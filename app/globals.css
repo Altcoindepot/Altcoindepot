@@ -1,0 +1,159 @@
+@import "tailwindcss";
+
+:root {
+  --background: #090a0d;
+  --foreground: #f6f2eb;
+  --bronze: #b98152;
+  --bronze-soft: #d1a173;
+  --glass: rgba(246, 232, 215, 0.07);
+  --glass-border: rgba(244, 221, 195, 0.2);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee-track {
+  animation: marquee-scroll 55s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee-track {
+    animation: none;
+  }
+}
+
+body {
+  min-height: 100%;
+  background: var(--background);
+  color: var(--foreground);
+  background-image: radial-gradient(circle at 12% -10%, rgba(185, 129, 82, 0.17), transparent 42%),
+    radial-gradient(circle at 88% 0%, rgba(126, 93, 69, 0.15), transparent 36%),
+    linear-gradient(180deg, #0e1118 0%, #090a0d 58%, #090a0d 100%);
+}
+
+/* Metallic chrome text for nav and accents */
+.text-metallic {
+  background: linear-gradient(
+    165deg,
+    #f8fafc 0%,
+    #94a3b8 22%,
+    #e2e8f0 45%,
+    #64748b 52%,
+    #cbd5e1 70%,
+    #f1f5f9 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-metallic:hover {
+  background: linear-gradient(
+    165deg,
+    #ffffff 0%,
+    #a8b8d0 25%,
+    #f0f4f8 48%,
+    #7a8aa0 55%,
+    #dce4ee 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.text-metallic-hero {
+  background: linear-gradient(
+    155deg,
+    #ffffff 0%,
+    #b8c5d6 18%,
+    #e8eef5 40%,
+    #7c8c9e 48%,
+    #dce6f0 62%,
+    #f8fafc 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 1px 12px rgba(0, 255, 159, 0.12));
+}
+
+.glass-panel {
+  background: linear-gradient(155deg, rgba(255, 246, 235, 0.16), rgba(126, 93, 69, 0.14));
+  border: 1px solid rgba(244, 221, 195, 0.35);
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.44), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(24px) saturate(150%);
+}
+
+.glass-card {
+  background: linear-gradient(155deg, rgba(255, 246, 235, 0.13), rgba(99, 72, 52, 0.13));
+  border: 1px solid rgba(244, 221, 195, 0.3);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(18px) saturate(135%);
+}
+
+.bronze-ring {
+  box-shadow: 0 0 0 1px rgba(185, 129, 82, 0.25), 0 0 24px rgba(185, 129, 82, 0.16);
+}
+
+.text-bronze {
+  color: var(--bronze-soft);
+}
+
+/*
+ * AltCoinDepot wordmark: high-contrast brushed silver / chrome on dark UI
+ */
+.text-brand-altcoindepot {
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+  background: linear-gradient(
+    118deg,
+    #4a5568 0%,
+    #718096 6%,
+    #a0aec0 11%,
+    #e2e8f0 17%,
+    #f7fafc 22%,
+    #cbd5e0 28%,
+    #edf2f7 34%,
+    #718096 40%,
+    #f1f5f9 46%,
+    #94a3b8 52%,
+    #ffffff 57%,
+    #cbd5e1 63%,
+    #64748b 69%,
+    #e8edf3 75%,
+    #a8b4c5 82%,
+    #f8fafc 88%,
+    #94a3b8 94%,
+    #dce3ec 100%
+  );
+  background-size: 160% 160%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.92))
+    drop-shadow(0 -1px 0 rgba(255, 255, 255, 0.22))
+    drop-shadow(0 0 28px rgba(255, 255, 255, 0.06));
+}
+
+/* Wraps `.text-brand-altcoindepot` span so UA link colors never hit the gradient text. */
+.header-home-link {
+  text-decoration: none;
+}
+.header-home-link:hover,
+.header-home-link:visited,
+.header-home-link:active {
+  text-decoration: none;
+}
