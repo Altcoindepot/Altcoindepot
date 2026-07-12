@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { PUBLIC_CATEGORIES } from "@/lib/coin-categories";
+import { ThemeSelector } from "@/components/theme-selector";
 
 const nav = [
   { href: "/", label: "Home" },
@@ -141,6 +142,9 @@ export function HeaderNavMenu() {
                   ))}
                   </ul>
                 ) : null}
+              </li>
+              <li>
+                <ThemeSelector />
               </li>
             </ul>
           </nav>
