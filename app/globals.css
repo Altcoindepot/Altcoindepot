@@ -45,6 +45,15 @@ body {
 }
 
 /* Metallic chrome text for nav and accents */
+.text-metallic,
+.text-metallic-hero,
+.text-brand-altcoindepot {
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  -webkit-background-clip: text !important;
+}
+
 .text-metallic {
   background: linear-gradient(
     165deg,
@@ -57,7 +66,6 @@ body {
   );
   -webkit-background-clip: text;
   background-clip: text;
-  color: transparent;
 }
 
 .text-metallic:hover {
@@ -85,7 +93,6 @@ body {
   );
   -webkit-background-clip: text;
   background-clip: text;
-  color: transparent;
   filter: drop-shadow(0 1px 12px rgba(0, 255, 159, 0.12));
 }
 
@@ -141,8 +148,6 @@ body {
   background-size: 160% 160%;
   -webkit-background-clip: text;
   background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.92))
     drop-shadow(0 -1px 0 rgba(255, 255, 255, 0.22))
     drop-shadow(0 0 28px rgba(255, 255, 255, 0.06));
@@ -188,40 +193,93 @@ html[data-theme="light"] .glass-card {
 html[data-theme="light"] .text-metallic {
   background: linear-gradient(
     165deg,
-    #1c1917 0%,
-    #57534e 22%,
-    #292524 45%,
-    #78716c 52%,
-    #44403c 70%,
-    #1c1917 100%
+    #44403c 0%,
+    #78716c 18%,
+    #292524 38%,
+    #a8a29e 48%,
+    #57534e 58%,
+    #1c1917 72%,
+    #78716c 86%,
+    #44403c 100%
   );
-  -webkit-background-clip: text;
-  background-clip: text;
 }
 
 html[data-theme="light"] .text-metallic:hover {
-  background: linear-gradient(165deg, #0c0a09 0%, #44403c 30%, #1c1917 55%, #57534e 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
+  background: linear-gradient(
+    165deg,
+    #292524 0%,
+    #57534e 30%,
+    #1c1917 52%,
+    #78716c 72%,
+    #44403c 100%
+  );
+}
+
+html[data-theme="light"] .text-metallic-hero {
+  background: linear-gradient(
+    155deg,
+    #44403c 0%,
+    #78716c 20%,
+    #292524 40%,
+    #57534e 52%,
+    #1c1917 65%,
+    #78716c 82%,
+    #44403c 100%
+  );
+  filter: drop-shadow(0 1px 8px rgba(28, 25, 23, 0.12));
 }
 
 html[data-theme="light"] .text-brand-altcoindepot {
   background: linear-gradient(
     118deg,
-    #57534e 0%,
-    #78716c 12%,
-    #a8a29e 22%,
-    #44403c 32%,
-    #292524 42%,
-    #57534e 52%,
-    #1c1917 62%,
+    #44403c 0%,
+    #78716c 8%,
+    #a8a29e 16%,
+    #57534e 24%,
+    #292524 32%,
+    #78716c 40%,
+    #1c1917 48%,
+    #57534e 56%,
+    #44403c 64%,
     #78716c 72%,
-    #44403c 82%,
-    #292524 92%,
+    #292524 80%,
+    #57534e 88%,
     #1c1917 100%
   );
-  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.65))
-    drop-shadow(0 1px 2px rgba(28, 25, 23, 0.12));
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.75))
+    drop-shadow(0 1px 2px rgba(28, 25, 23, 0.18));
+}
+
+html[data-theme="light"] .text-zinc-100:not(.text-metallic):not(.text-metallic-hero):not(.text-brand-altcoindepot) {
+  color: #1c1917 !important;
+}
+
+html[data-theme="light"] .text-zinc-200:not(.text-metallic):not(.text-metallic-hero):not(.text-brand-altcoindepot) {
+  color: #292524 !important;
+}
+
+html[data-theme="light"] .text-zinc-300:not(.text-metallic):not(.text-metallic-hero):not(.text-brand-altcoindepot) {
+  color: #44403c !important;
+}
+
+html[data-theme="light"] .text-zinc-400:not(.text-metallic):not(.text-metallic-hero):not(.text-brand-altcoindepot) {
+  color: #57534e !important;
+}
+
+html[data-theme="light"] .text-zinc-500:not(.text-metallic):not(.text-metallic-hero):not(.text-brand-altcoindepot) {
+  color: #78716c !important;
+}
+
+html[data-theme="light"] .text-zinc-600:not(.text-metallic):not(.text-metallic-hero):not(.text-brand-altcoindepot) {
+  color: #a8a29e !important;
+}
+
+html[data-theme="light"] .text-white:not(.text-metallic):not(.text-metallic-hero):not(.text-brand-altcoindepot) {
+  color: #1c1917 !important;
+}
+
+html[data-theme="light"] .hover\:text-zinc-300:hover {
+  color: #44403c !important;
 }
 
 html[data-theme="light"] .bg-\[\#0a0a0a\] {
@@ -246,38 +304,6 @@ html[data-theme="light"] .bg-\[\#111111\],
 html[data-theme="light"] .bg-\[\#111217\],
 html[data-theme="light"] .bg-\[\#141218\] {
   background-color: #ffffff !important;
-}
-
-html[data-theme="light"] .text-zinc-100 {
-  color: #1c1917 !important;
-}
-
-html[data-theme="light"] .text-zinc-200 {
-  color: #292524 !important;
-}
-
-html[data-theme="light"] .text-zinc-300 {
-  color: #44403c !important;
-}
-
-html[data-theme="light"] .text-zinc-400 {
-  color: #57534e !important;
-}
-
-html[data-theme="light"] .text-zinc-500 {
-  color: #78716c !important;
-}
-
-html[data-theme="light"] .text-zinc-600 {
-  color: #a8a29e !important;
-}
-
-html[data-theme="light"] .text-white {
-  color: #1c1917 !important;
-}
-
-html[data-theme="light"] .hover\:text-zinc-300:hover {
-  color: #44403c !important;
 }
 
 html[data-theme="light"] .border-white\/5 {

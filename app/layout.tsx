@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeScript } from "@/components/theme-script";
 import "./globals.css";
 
@@ -45,7 +46,6 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      data-theme="dark"
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full scroll-smooth antialiased`}
     >
@@ -53,7 +53,7 @@ export default function RootLayout({
         <ThemeScript />
       </head>
       <body className="min-h-full flex flex-col font-sans">
-        {children}
+        <ThemeProvider>{children}</ThemeProvider>
         <SpeedInsights />
       </body>
     </html>

@@ -9,6 +9,7 @@ export function isTheme(value: string | null | undefined): value is Theme {
 }
 
 export function applyTheme(theme: Theme) {
+  if (typeof document === "undefined") return;
   document.documentElement.setAttribute("data-theme", theme);
   document.documentElement.style.colorScheme = theme;
 }
@@ -30,4 +31,7 @@ export function persistTheme(theme: Theme) {
     /* ignore */
   }
   applyTheme(theme);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("theme-change", { detail: theme }));
+  }
 }

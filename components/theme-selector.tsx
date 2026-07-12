@@ -35,6 +35,17 @@ export function ThemeSelector() {
   useEffect(() => {
     setTheme(readStoredTheme());
     setMounted(true);
+
+    function syncTheme() {
+      setTheme(readStoredTheme());
+    }
+
+    window.addEventListener("theme-change", syncTheme);
+    window.addEventListener("storage", syncTheme);
+    return () => {
+      window.removeEventListener("theme-change", syncTheme);
+      window.removeEventListener("storage", syncTheme);
+    };
   }, []);
 
   if (!mounted) {
