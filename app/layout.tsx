@@ -15,26 +15,22 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://altcoindepot.com"),
   title: {
-    default:
-      "AltCoinDepot — Live Altcoin Prices, Layer 1 & DePIN Tickers | Buy & Track 2026",
-    template: "%s · AltCoinDepot",
+    default: "AltCoin Depot - Live Crypto Prices, Charts & Market Data",
+    template: "%s · AltCoin Depot",
   },
-  description:
-    "AltCoinDepot: near real-time altcoin prices, Layer 1 and DePIN tickers with 24h color moves, top-10 marquee, and sortable tables — jump to each project on X and to exchanges when you’re ready.",
+  description: "AltCoin Depot - Live Crypto Prices, Charts & Market Data",
   openGraph: {
-    title: "AltCoinDepot — Live Prices, L1 & DePIN Tickers",
-    description:
-      "Track top coins, ecosystem tickers, and market cap in one dark hub. Built for quick scans and serious research.",
+    title: "AltCoin Depot - Live Crypto Prices, Charts & Market Data",
+    description: "AltCoin Depot - Live Crypto Prices, Charts & Market Data",
     url: "https://altcoindepot.com",
-    siteName: "AltCoinDepot",
+    siteName: "AltCoin Depot",
     locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "AltCoinDepot — Altcoin prices that keep moving",
-    description:
-      "Live-updating tickers, X links for projects, and neon buy CTAs — your altcoin command center.",
+    title: "AltCoin Depot - Live Crypto Prices, Charts & Market Data",
+    description: "AltCoin Depot - Live Crypto Prices, Charts & Market Data",
   },
   robots: { index: true, follow: true },
 };
