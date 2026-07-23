@@ -10,7 +10,7 @@ import { CoinXFeed } from "@/components/coin-x-feed";
 import { CoinNewsFeed } from "@/components/coin-news-feed";
 import { CoinYoutubeFeed } from "@/components/coin-youtube-feed";
 import { ReppoStatsSection } from "@/components/reppo-stats-section";
-import { TradingViewChartEmbed } from "@/components/trading-view-chart-embed";
+import { CoinGeckoPriceChart } from "@/components/coingecko-price-chart";
 import { formatShortMonthDay } from "@/lib/format-date";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
 import { CoingeckoLogoAttribution } from "@/components/coingecko-logo-attribution";
@@ -721,11 +721,22 @@ export function CoinDetailView({
               : "Description currently unavailable from CoinGecko."}
           </p>
         </article>
-        <TradingViewChartEmbed
-          symbol={primaryInstrument}
+        <CoinGeckoPriceChart
+          coinId={coin.id}
           coinName={coin.name}
-          alternateSymbols={tvInstruments}
+          symbol={(coin.symbol ?? "").toString()}
         />
+        <p className="mt-2 text-[11px] text-zinc-500">
+          Prefer TradingView?{" "}
+          <a
+            href={`https://www.tradingview.com/chart/?symbol=${encodeURIComponent(primaryInstrument)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#00ff9f] underline-offset-2 hover:underline"
+          >
+            Open {primaryInstrument}
+          </a>
+        </p>
         <article className="mt-3 rounded-lg border border-white/10 bg-[#111111] p-3">
           <h3 className="text-sm font-semibold text-zinc-100">
             Where to buy {(coin.symbol ?? "").toString().toUpperCase() || "—"}

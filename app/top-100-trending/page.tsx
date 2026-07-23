@@ -115,10 +115,14 @@ export default async function Top100TrendingPage() {
                       <Link
                         key={coin.id}
                         href={`/coin/${encodeURIComponent(coin.id)}`}
-                        className="flex items-center justify-between rounded-lg border border-emerald-300/20 bg-black/25 px-3 py-2 text-xs hover:border-emerald-300/40"
+                        className="flex items-center justify-between gap-2 rounded-lg border border-emerald-300/20 bg-black/25 px-3 py-2 text-xs hover:border-emerald-300/40"
                       >
-                        <span className="truncate font-medium text-zinc-100">{coin.name}</span>
-                        <span className="font-mono text-emerald-300">
+                        <span className="min-w-0 truncate font-medium text-zinc-100">
+                          <span className="font-mono uppercase text-zinc-300">{coin.symbol}</span>
+                          <span className="text-zinc-600"> · </span>
+                          {coin.name}
+                        </span>
+                        <span className="shrink-0 font-mono text-emerald-300">
                           {formatPct(coin.price_change_percentage_24h)}
                         </span>
                       </Link>
@@ -134,10 +138,14 @@ export default async function Top100TrendingPage() {
                       <Link
                         key={coin.id}
                         href={`/coin/${encodeURIComponent(coin.id)}`}
-                        className="flex items-center justify-between rounded-lg border border-red-300/20 bg-black/25 px-3 py-2 text-xs hover:border-red-300/40"
+                        className="flex items-center justify-between gap-2 rounded-lg border border-red-300/20 bg-black/25 px-3 py-2 text-xs hover:border-red-300/40"
                       >
-                        <span className="truncate font-medium text-zinc-100">{coin.name}</span>
-                        <span className="font-mono text-red-300">
+                        <span className="min-w-0 truncate font-medium text-zinc-100">
+                          <span className="font-mono uppercase text-zinc-300">{coin.symbol}</span>
+                          <span className="text-zinc-600"> · </span>
+                          {coin.name}
+                        </span>
+                        <span className="shrink-0 font-mono text-red-300">
                           {formatPct(coin.price_change_percentage_24h)}
                         </span>
                       </Link>
@@ -165,9 +173,11 @@ export default async function Top100TrendingPage() {
                           sizes="20px"
                           className="rounded-full"
                         />
-                        <span className="truncate text-xs font-semibold text-zinc-100">{coin.name}</span>
+                        <span className="truncate font-mono text-xs font-bold uppercase text-zinc-100">
+                          {coin.symbol}
+                        </span>
                       </div>
-                      <p className="mt-1 text-[11px] uppercase text-zinc-400">{coin.symbol}</p>
+                      <p className="mt-1 truncate text-[11px] text-zinc-400">{coin.name}</p>
                       <p className="mt-1 text-xs font-mono text-zinc-200">{formatUsd(coin.current_price)}</p>
                       <p
                         className={`mt-1 text-xs font-mono ${

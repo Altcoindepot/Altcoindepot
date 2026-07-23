@@ -21,11 +21,11 @@ const EXCHANGE_BRAND: Record<
     badgeClass: "text-[#f0b90b]",
     glowClass: "hover:border-[#f0b90b]/55 hover:shadow-[0_0_22px_rgba(240,185,11,0.22)]",
   },
-  bybit: {
-    logoUrl: "https://www.google.com/s2/favicons?sz=64&domain=bybit.com",
-    panelClass: "border-[#f5be4f]/40 bg-[rgba(49,38,18,0.45)]",
-    badgeClass: "text-[#f5be4f]",
-    glowClass: "hover:border-[#f5be4f]/55 hover:shadow-[0_0_22px_rgba(245,190,79,0.22)]",
+  coinbase: {
+    logoUrl: "https://www.google.com/s2/favicons?sz=64&domain=coinbase.com",
+    panelClass: "border-[#0052ff]/40 bg-[rgba(18,36,78,0.45)]",
+    badgeClass: "text-[#7aa7ff]",
+    glowClass: "hover:border-[#0052ff]/55 hover:shadow-[0_0_22px_rgba(0,82,255,0.22)]",
   },
   kucoin: {
     logoUrl: "https://www.google.com/s2/favicons?sz=64&domain=kucoin.com",
@@ -52,6 +52,17 @@ const EXCHANGE_BRAND: Record<
     glowClass: "hover:border-[#2ad3b0]/55 hover:shadow-[0_0_22px_rgba(42,211,176,0.22)]",
   },
 };
+
+function formatPairSymbol(symbol: string): string {
+  const s = symbol.trim().toUpperCase();
+  if (s.includes("/") || s.includes("-")) return s;
+  for (const quote of ["USDT", "USDC", "USD", "BTC", "ETH"] as const) {
+    if (s.endsWith(quote) && s.length > quote.length) {
+      return `${s.slice(0, -quote.length)}/${quote}`;
+    }
+  }
+  return s;
+}
 
 function formatPrice(n: number) {
   return new Intl.NumberFormat("en-US", {
@@ -93,6 +104,7 @@ function pctPill(n: number | null) {
 function pairForExchange(exchangeId: string, symbol: string): string {
   if (exchangeId === "okx") return symbol.replace("/", "-");
   if (exchangeId === "kucoin") return symbol.replace("/", "-");
+  if (exchangeId === "coinbase") return symbol.replace("/", "-");
   if (exchangeId === "kraken") return symbol.replace("/", "");
   return symbol.replace("/", "");
 }
@@ -102,8 +114,8 @@ function tradingHref(exchangeId: string, symbol: string): string {
   switch (exchangeId) {
     case "binance":
       return `https://www.binance.com/en/trade/${encodeURIComponent(pair)}`;
-    case "bybit":
-      return `https://www.bybit.com/trade/spot/${encodeURIComponent(pair)}`;
+    case "coinbase":
+      return `https://www.coinbase.com/advanced-trade/${encodeURIComponent(pair)}`;
     case "kucoin":
       return `https://www.kucoin.com/trade/${encodeURIComponent(pair)}`;
     case "okx":
@@ -173,28 +185,35 @@ export default async function CexTrendingPage() {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={`Open ${row.symbol} on ${board.label}`}
-                        className={`glass-card rounded-md border-2 border-[#f4ddc3]/45 p-1.5 outline outline-1 outline-[#2a1e16]/60 transition-colors ${brand?.glowClass ?? "hover:border-white/35"}`}
+                        className={`glass-card rounded-md border-2 border-[#f4ddc3]/45 p-2.5 outline outline-1 outline-[#2a1e16]/60 transition-colors ${brand?.glowClass ?? "hover:border-white/35"}`}
                       >
-                        <div className="flex items-center justify-between gap-2">
-                          <span className={`font-mono text-[10px] font-semibold ${brand?.badgeClass ?? "text-zinc-300"}`}>
-                            #{index + 1}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="font-mono text-sm font-bold tracking-wide text-zinc-100 break-all">
+                              {formatPairSymbol(row.symbol)}
+                            </p>
+                            <p className={`mt-0.5 text-[10px] font-semibold ${brand?.badgeClass ?? "text-zinc-400"}`}>
+                              #{index + 1} · {board.label}
+                            </p>
+                          </div>
+                          <span className={`shrink-0 font-mono text-xs font-semibold ${pctTone(row.change24hPct)}`}>
+                            {formatPct(row.change24hPct)}
                           </span>
-                          <span className="font-mono text-[10px] text-zinc-300">{row.symbol}</span>
                         </div>
-                        <div className="mt-1 grid grid-cols-2 gap-1 text-[10px]">
+                        <div className="mt-2 grid grid-cols-2 gap-1.5 text-[11px]">
                           <div>
                             <p className="text-zinc-500">Price</p>
-                            <p className="font-mono text-[10px] text-zinc-100">{formatPrice(row.last)}</p>
+                            <p className="font-mono text-xs text-zinc-100">{formatPrice(row.last)}</p>
                           </div>
                           <div>
                             <p className="text-zinc-500">24h</p>
-                            <p className={`font-mono text-[10px] ${pctTone(row.change24hPct)}`}>
+                            <p className={`font-mono text-xs ${pctTone(row.change24hPct)}`}>
                               {formatPct(row.change24hPct)}
                             </p>
                           </div>
                           <div>
                             <p className="text-zinc-500">24h Vol</p>
-                            <p className="font-mono text-[10px] text-zinc-200">{formatCompactUsd(row.volume24h)}</p>
+                            <p className="font-mono text-xs text-zinc-200">{formatCompactUsd(row.volume24h)}</p>
                           </div>
                           <div>
                             <p className="text-zinc-500">1h</p>
@@ -205,7 +224,7 @@ export default async function CexTrendingPage() {
                           change24h={row.change24hPct}
                           change7d={row.change1hPct}
                           points={row.miniSeries}
-                          className="mt-1 h-6 w-full rounded border border-white/10 bg-[#0a0a0a]"
+                          className="mt-2 h-7 w-full rounded border border-white/10 bg-[#0a0a0a]"
                         />
                       </a>
                     ))}

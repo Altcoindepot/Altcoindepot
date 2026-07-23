@@ -137,28 +137,35 @@ export default async function DexTrendingPage() {
                           target="_blank"
                           rel="noopener noreferrer"
                           aria-label={`Open ${row.pair} on ${board.label}`}
-                          className="glass-card rounded-md border-2 border-[#f4ddc3]/45 p-1.5 outline outline-1 outline-[#2a1e16]/60 transition-colors hover:border-[#d1a173]/70 hover:bg-[rgba(48,35,26,0.25)]"
+                          className="glass-card rounded-md border-2 border-[#f4ddc3]/45 p-2.5 outline outline-1 outline-[#2a1e16]/60 transition-colors hover:border-[#d1a173]/70 hover:bg-[rgba(48,35,26,0.25)]"
                         >
-                          <div className="flex items-center justify-between gap-2">
-                            <span className={`font-mono text-[10px] font-semibold ${brand?.badgeClass ?? "text-zinc-300"}`}>
-                              #{index + 1}
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="font-mono text-sm font-bold tracking-wide text-zinc-100 break-all">
+                                {row.pair}
+                              </p>
+                              <p className={`mt-0.5 text-[10px] font-semibold ${brand?.badgeClass ?? "text-zinc-400"}`}>
+                                #{index + 1} · {board.label}
+                              </p>
+                            </div>
+                            <span className={`shrink-0 font-mono text-xs font-semibold ${pctTone(row.change24hPct)}`}>
+                              {formatPct(row.change24hPct)}
                             </span>
-                            <span className="font-mono text-[10px] text-zinc-300">{row.pair}</span>
                           </div>
-                          <div className="mt-1 grid grid-cols-2 gap-1 text-[10px]">
+                          <div className="mt-2 grid grid-cols-2 gap-1.5 text-[11px]">
                             <div>
                               <p className="text-zinc-500">Price</p>
-                              <p className="font-mono text-[10px] text-zinc-100">{formatPrice(row.priceUsd)}</p>
+                              <p className="font-mono text-xs text-zinc-100">{formatPrice(row.priceUsd)}</p>
                             </div>
                             <div>
                               <p className="text-zinc-500">24h</p>
-                              <p className={`font-mono text-[10px] ${pctTone(row.change24hPct)}`}>
+                              <p className={`font-mono text-xs ${pctTone(row.change24hPct)}`}>
                                 {formatPct(row.change24hPct)}
                               </p>
                             </div>
                             <div>
                               <p className="text-zinc-500">24h Vol</p>
-                              <p className="font-mono text-[10px] text-zinc-200">{formatCompactUsd(row.volume24h)}</p>
+                              <p className="font-mono text-xs text-zinc-200">{formatCompactUsd(row.volume24h)}</p>
                             </div>
                             <div>
                               <p className="text-zinc-500">1h</p>
@@ -168,7 +175,7 @@ export default async function DexTrendingPage() {
                           <MiniCoinChart
                             change24h={row.change24hPct}
                             change7d={row.change1hPct}
-                            className="mt-1 h-6 w-full rounded border border-white/10 bg-[#0a0a0a]"
+                            className="mt-2 h-7 w-full rounded border border-white/10 bg-[#0a0a0a]"
                           />
                         </a>
                       ))}
