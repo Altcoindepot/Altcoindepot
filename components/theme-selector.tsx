@@ -2,17 +2,22 @@
 
 import { useEffect, useState } from "react";
 import {
-  persistTheme,
-  readStoredTheme,
-  type Theme,
+  persistThemePreference,
+  readStoredPreference,
+  type ThemePreference,
 } from "@/lib/theme";
 
-const options: { value: Theme; label: string; icon: "sun" | "moon" }[] = [
+const options: {
+  value: ThemePreference;
+  label: string;
+  icon: "system" | "sun" | "moon";
+}[] = [
+  { value: "system", label: "System", icon: "system" },
   { value: "light", label: "Light", icon: "sun" },
   { value: "dark", label: "Dark", icon: "moon" },
 ];
 
-function ThemeIcon({ kind }: { kind: "sun" | "moon" }) {
+function ThemeIcon({ kind }: { kind: "system" | "sun" | "moon" }) {
   if (kind === "sun") {
     return (
       <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
@@ -21,55 +26,42 @@ function ThemeIcon({ kind }: { kind: "sun" | "moon" }) {
       </svg>
     );
   }
+  if (kind === "moon") {
+    return (
+      <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+        <path d="M21 14.5A8.5 8.5 0 1 1 9.5 3a6.5 6.5 0 1 0 11.5 11.5Z" strokeLinejoin="round" />
+      </svg>
+    );
+  }
   return (
     <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-      <path d="M21 14.5A8.5 8.5 0 1 1 9.5 3a6.5 6.5 0 1 0 11.5 11.5Z" strokeLinejoin="round" />
+      <rect x="2" y="3" width="20" height="14" rx="2" />
+      <path d="M8 21h8M12 17v4" strokeLinecap="round" />
     </svg>
   );
 }
 
 export function ThemeSelector() {
-  const [theme, setTheme] = useState<Theme>("dark");
+  const [preference, setPreference] = useState<ThemePreference>("system");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setTheme(readStoredTheme());
+    setPreference(readStoredPreference());
     setMounted(true);
 
-    function syncTheme() {
-      setTheme(readStoredTheme());
+    function sync() {
+      setPreference(readStoredPreference());
     }
 
-    window.addEventListener("theme-change", syncTheme);
-    window.addEventListener("storage", syncTheme);
+    window.addEventListener("theme-change", sync);
+    window.addEventListener("storage", sync);
     return () => {
-      window.removeEventListener("theme-change", syncTheme);
-      window.removeEventListener("storage", syncTheme);
+      window.removeEventListener("theme-change", sync);
+      window.removeEventListener("storage", sync);
     };
   }, []);
 
-  if (!mounted) {
-    return (
-      <div className="mt-1 border-t border-[#f4ddc3]/15 pt-3" aria-hidden>
-        <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-widest text-[#d7ad82]">
-          Appearance
-        </p>
-        <div className="mx-1 grid grid-cols-2 gap-1 rounded-lg border border-white/10 bg-black/20 p-1">
-          {options.map((opt) => (
-            <div
-              key={opt.value}
-              className="flex items-center justify-center gap-1.5 rounded-md px-2 py-2 text-xs font-medium text-zinc-400"
-            >
-              <ThemeIcon kind={opt.icon} />
-              {opt.label}
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  return (
+  const shell = (
     <div className="mt-1 border-t border-[#f4ddc3]/15 pt-3">
       <p
         id="theme-selector-label"
@@ -80,21 +72,22 @@ export function ThemeSelector() {
       <div
         role="radiogroup"
         aria-labelledby="theme-selector-label"
-        className="mx-1 grid grid-cols-2 gap-1 rounded-lg border border-white/10 bg-black/20 p-1"
+        className="mx-1 grid grid-cols-3 gap-1 rounded-lg border border-white/10 bg-black/20 p-1"
       >
         {options.map((opt) => {
-          const active = theme === opt.value;
+          const active = mounted && preference === opt.value;
           return (
             <button
               key={opt.value}
               type="button"
               role="radio"
               aria-checked={active}
+              disabled={!mounted}
               onClick={() => {
-                persistTheme(opt.value);
-                setTheme(opt.value);
+                persistThemePreference(opt.value);
+                setPreference(opt.value);
               }}
-              className={`flex items-center justify-center gap-1.5 rounded-md px-2 py-2 text-xs font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] ${
+              className={`flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-md px-1 py-2 text-[11px] font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] sm:text-xs ${
                 active
                   ? "bg-[#d1a173]/25 text-zinc-100 ring-1 ring-[#d1a173]/45"
                   : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
@@ -106,6 +99,11 @@ export function ThemeSelector() {
           );
         })}
       </div>
+      <p className="px-3 pt-2 text-[10px] leading-relaxed text-zinc-500">
+        Choice is saved on this device. System follows your OS setting.
+      </p>
     </div>
   );
+
+  return shell;
 }

@@ -4,42 +4,60 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import {
   applyTheme,
-  isTheme,
-  readStoredTheme,
+  isThemePreference,
+  readStoredPreference,
+  resolveTheme,
   THEME_STORAGE_KEY,
 } from "@/lib/theme";
 
-/** Keeps `data-theme` on `<html>` in sync across client navigations and tabs. */
+/** Keeps `data-theme` on `<html>` in sync across navigations, tabs, and OS theme changes. */
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    applyTheme(readStoredTheme());
+    applyTheme(resolveTheme(readStoredPreference()));
   }, [pathname]);
 
   useEffect(() => {
-    applyTheme(readStoredTheme());
+    function syncFromStorage() {
+      applyTheme(resolveTheme(readStoredPreference()));
+    }
+
+    syncFromStorage();
 
     function onStorage(event: StorageEvent) {
-      if (event.key === THEME_STORAGE_KEY && isTheme(event.newValue)) {
-        applyTheme(event.newValue);
+      if (event.key === THEME_STORAGE_KEY && isThemePreference(event.newValue)) {
+        applyTheme(resolveTheme(event.newValue));
       }
     }
 
-    function onThemeChange(event: Event) {
-      const detail = (event as CustomEvent<string>).detail;
-      if (isTheme(detail)) {
-        applyTheme(detail);
-      } else {
-        applyTheme(readStoredTheme());
+    function onThemeChange() {
+      syncFromStorage();
+    }
+
+    const mq = window.matchMedia("(prefers-color-scheme: light)");
+    function onSystemChange() {
+      if (readStoredPreference() === "system") {
+        applyTheme(resolveTheme("system"));
       }
     }
 
     window.addEventListener("storage", onStorage);
     window.addEventListener("theme-change", onThemeChange);
+    if (typeof mq.addEventListener === "function") {
+      mq.addEventListener("change", onSystemChange);
+    } else {
+      mq.addListener(onSystemChange);
+    }
+
     return () => {
       window.removeEventListener("storage", onStorage);
       window.removeEventListener("theme-change", onThemeChange);
+      if (typeof mq.removeEventListener === "function") {
+        mq.removeEventListener("change", onSystemChange);
+      } else {
+        mq.removeListener(onSystemChange);
+      }
     };
   }, []);
 

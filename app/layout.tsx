@@ -4,6 +4,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeScript } from "@/components/theme-script";
 import { PriceAlertWatcher } from "@/components/price-alert-watcher";
+import { SiteFooter } from "@/components/site-footer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -58,7 +59,10 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col font-sans">
         <ThemeProvider>
-          {children}
+          <div className="flex min-h-full flex-1 flex-col">
+            <div className="flex-1">{children}</div>
+            <SiteFooter />
+          </div>
           <PriceAlertWatcher />
         </ThemeProvider>
         <SpeedInsights />

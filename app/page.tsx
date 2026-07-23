@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { MarketsDataShell } from "@/components/markets-data-shell";
 import { HomeMarketsFallback } from "@/components/home-markets-fallback";
-import { SiteFooter } from "@/components/site-footer";
 import { HomeNewsFeed } from "@/components/home-news-feed";
 
 export default function Home() {
@@ -21,7 +20,6 @@ export default function Home() {
           </main>
         </div>
       </div>
-      <SiteFooter />
     </>
   );
 }

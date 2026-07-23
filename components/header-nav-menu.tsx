@@ -70,7 +70,7 @@ export function HeaderNavMenu() {
             return next;
           })
         }
-        className="flex items-center gap-2 rounded-lg border border-[#f4ddc3]/25 bg-[rgba(20,18,22,0.7)] px-3 py-2 text-sm font-medium text-zinc-200 shadow-[0_0_0_1px_rgba(185,129,82,0.2)] transition-[border-color,box-shadow] hover:border-[#d1a173]/55 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173]"
+        className="flex min-h-11 items-center gap-2 rounded-lg border border-[#f4ddc3]/25 bg-[rgba(20,18,22,0.7)] px-3 py-2.5 text-sm font-medium text-zinc-200 shadow-[0_0_0_1px_rgba(185,129,82,0.2)] transition-[border-color,box-shadow] hover:border-[#d1a173]/55 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173]"
       >
         <span className="sr-only">Open navigation menu</span>
         <svg

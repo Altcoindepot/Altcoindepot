@@ -71,7 +71,7 @@ export function PriceAlertForm({
           id={`alert-dir-${coinId}`}
           value={direction}
           onChange={(e) => setDirection(e.target.value as "above" | "below")}
-          className="mt-1 w-full rounded-md border border-white/15 bg-[#0a0a0a] px-2 py-1.5 text-xs text-zinc-100"
+        className="mt-1 w-full rounded-md border border-white/15 bg-[#0a0a0a] px-3 py-2.5 text-sm text-zinc-100 sm:py-1.5 sm:text-xs"
         >
           <option value="above">Above</option>
           <option value="below">Below</option>
@@ -89,14 +89,14 @@ export function PriceAlertForm({
           min="0"
           value={target}
           onChange={(e) => setTarget(e.target.value)}
-          className="mt-1 w-full rounded-md border border-white/15 bg-[#0a0a0a] px-2 py-1.5 font-mono text-xs text-zinc-100"
+          className="mt-1 w-full rounded-md border border-white/15 bg-[#0a0a0a] px-3 py-2.5 font-mono text-sm text-zinc-100 sm:py-1.5 sm:text-xs"
           placeholder="0.00"
         />
       </div>
       <button
         type="submit"
         disabled={busy}
-        className="rounded-lg border border-[#d1a173]/45 bg-[#d1a173]/10 px-3 py-1.5 text-xs font-semibold text-[#d7ad82] transition-colors hover:border-[#d1a173]/70 disabled:opacity-60"
+        className="inline-flex min-h-11 items-center justify-center rounded-lg border border-[#d1a173]/45 bg-[#d1a173]/10 px-4 py-2.5 text-sm font-semibold text-[#d7ad82] transition-colors hover:border-[#d1a173]/70 disabled:opacity-60 sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs"
       >
         {busy ? "Saving…" : "Set price alert"}
       </button>

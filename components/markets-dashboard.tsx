@@ -4,7 +4,7 @@ import { LiveTopCoins } from "@/components/live-top-coins";
 import { useMarkets } from "@/components/markets-provider";
 
 export function MarketsDashboard() {
-  const { topMarkets, ecosystemMarkets, stale } = useMarkets();
+  const { topMarkets, ecosystemMarkets, stale, refreshError, refreshing, refresh } = useMarkets();
   const featuredSource = [
     ...topMarkets,
     ...ecosystemMarkets.filter((coin) => !topMarkets.some((top) => top.id === coin.id)),
@@ -23,16 +23,27 @@ export function MarketsDashboard() {
           >
             <span className="text-brand-altcoindepot">Featured</span>
           </h2>
-          {stale ? (
-            <p
+          {stale || refreshError ? (
+            <div
               role="status"
               aria-live="polite"
-              className="mt-2 inline-flex items-center rounded-md border border-amber-400/25 bg-amber-400/10 px-2.5 py-1 text-xs text-amber-200"
+              className="mt-3 flex flex-col gap-2 rounded-lg border border-amber-400/25 bg-amber-400/10 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between"
             >
-              Data may be delayed due to CoinGecko rate limits.
-            </p>
+              <p className="text-sm text-amber-100">
+                {refreshError ??
+                  "Data may be delayed due to CoinGecko rate limits. You’re seeing the last good snapshot."}
+              </p>
+              <button
+                type="button"
+                onClick={() => void refresh()}
+                disabled={refreshing}
+                className="min-h-11 shrink-0 rounded-lg border border-amber-300/40 bg-amber-400/15 px-4 text-sm font-semibold text-amber-50 disabled:opacity-60 sm:min-h-9 sm:text-xs"
+              >
+                {refreshing ? "Refreshing…" : "Try again"}
+              </button>
+            </div>
           ) : null}
-          <p className="mt-1 text-sm text-zinc-400">
+          <p className="mt-2 text-sm text-zinc-400">
             Bitcoin, Ethereum, Solana, LIT, and Injective · Tap a card for full coin info · USD
             · Refreshes every ~60s
           </p>
@@ -41,7 +52,6 @@ export function MarketsDashboard() {
           </div>
         </div>
       </section>
-
     </>
   );
 }

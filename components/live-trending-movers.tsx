@@ -38,6 +38,7 @@ export function LiveTrendingMovers() {
   const [coins, setCoins] = useState<Mover[]>([]);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
@@ -45,7 +46,11 @@ export function LiveTrendingMovers() {
       try {
         const res = await fetch(`/api/trending-movers?_=${Date.now()}`, { cache: "no-store" });
         const data = await readResponseJsonSafely(res);
-        if (!mounted || !data || typeof data !== "object") return;
+        if (!mounted) return;
+        if (!res.ok || !data || typeof data !== "object") {
+          setError(true);
+          return;
+        }
         const list = (data as { coins?: unknown }).coins;
         if (Array.isArray(list)) {
           setCoins(list as Mover[]);
@@ -55,6 +60,8 @@ export function LiveTrendingMovers() {
         if (typeof ts === "string") setUpdatedAt(ts);
       } catch {
         if (mounted) setError(true);
+      } finally {
+        if (mounted) setLoading(false);
       }
     }
     void load();
@@ -89,18 +96,31 @@ export function LiveTrendingMovers() {
           ) : null}
         </div>
 
-        {error && coins.length === 0 ? (
-          <p className="mt-4 text-sm text-zinc-500">Movers unavailable right now.</p>
+        {loading && coins.length === 0 ? (
+          <p className="mt-4 text-sm text-zinc-500">Loading movers…</p>
         ) : null}
 
-        <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {error && coins.length === 0 ? (
+          <div className="mt-4 rounded-lg border border-amber-400/20 bg-amber-400/10 px-3 py-3 text-sm text-amber-100">
+            Movers are unavailable right now (API busy or offline). We’ll keep retrying
+            automatically.
+          </div>
+        ) : null}
+
+        {error && coins.length > 0 ? (
+          <p className="mt-3 text-xs text-amber-200/80">
+            Latest refresh failed — showing the last movers we got.
+          </p>
+        ) : null}
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {coins.slice(0, 8).map((coin) => {
             const ch = coin.price_change_percentage_24h;
             return (
               <Link
                 key={coin.id}
                 href={`/coin/${encodeURIComponent(coin.id)}`}
-                className="glass-card rounded-lg border-2 border-[#f4ddc3]/35 p-3 transition-colors hover:border-[#d1a173]/70"
+                className="glass-card rounded-lg border-2 border-[#f4ddc3]/35 p-3.5 transition-colors hover:border-[#d1a173]/70"
               >
                 <div className="flex items-center gap-2">
                   {coin.image ? (

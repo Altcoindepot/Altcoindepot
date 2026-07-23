@@ -626,7 +626,7 @@ export function CoinDetailView({
               href={geckoUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg border border-[#00ff9f]/40 bg-[#00ff9f]/10 px-3 py-1.5 text-xs font-semibold text-[#00ff9f] transition-[box-shadow] hover:shadow-[0_0_20px_rgba(0,255,159,0.2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a855f7]"
+              className="inline-flex min-h-11 items-center rounded-lg border border-[#00ff9f]/40 bg-[#00ff9f]/10 px-3.5 py-2.5 text-sm font-semibold text-[#00ff9f] transition-[box-shadow] hover:shadow-[0_0_20px_rgba(0,255,159,0.2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a855f7] sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs"
             >
               View on CoinGecko
             </a>
@@ -635,7 +635,7 @@ export function CoinDetailView({
                 href={homepage}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-lg border border-white/15 px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:border-[#a855f7]/40 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a855f7]"
+                className="inline-flex min-h-11 items-center rounded-lg border border-white/15 px-3.5 py-2.5 text-sm text-zinc-300 transition-colors hover:border-[#a855f7]/40 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a855f7] sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs"
               >
                 Official site
               </a>
@@ -645,7 +645,7 @@ export function CoinDetailView({
                 href={twitterHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-lg border border-white/15 px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a855f7]"
+                className="inline-flex min-h-11 items-center rounded-lg border border-white/15 px-3.5 py-2.5 text-sm text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a855f7] sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs"
               >
                 X (Twitter)
               </a>
@@ -655,7 +655,7 @@ export function CoinDetailView({
                 href={mediumSourceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-lg border border-white/15 px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:border-[#00ff9f]/40 hover:text-[#00ff9f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a855f7]"
+                className="inline-flex min-h-11 items-center rounded-lg border border-white/15 px-3.5 py-2.5 text-sm text-zinc-300 transition-colors hover:border-[#00ff9f]/40 hover:text-[#00ff9f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a855f7] sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs"
               >
                 Medium
               </a>
@@ -665,7 +665,7 @@ export function CoinDetailView({
                 href={whitepaper}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-lg border border-white/15 px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:border-[#d1a173]/40 hover:text-[#d7ad82] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173]"
+                className="inline-flex min-h-11 items-center rounded-lg border border-white/15 px-3.5 py-2.5 text-sm text-zinc-300 transition-colors hover:border-[#d1a173]/40 hover:text-[#d7ad82] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs"
               >
                 Whitepaper
               </a>
@@ -808,7 +808,7 @@ export function CoinDetailView({
                   rel="noopener noreferrer sponsored"
                   title={btn.label}
                   aria-label={btn.label}
-                  className={`inline-flex min-h-8 items-center justify-center rounded-full border px-3.5 py-1.5 text-[11px] font-extrabold tracking-wide transition-[filter,transform] hover:-translate-y-px active:translate-y-px ${btn.className}`}
+                  className={`inline-flex min-h-11 items-center justify-center rounded-full border px-4 py-2 text-xs font-extrabold tracking-wide transition-[filter,transform] hover:-translate-y-px active:translate-y-px sm:min-h-8 sm:px-3.5 sm:py-1.5 sm:text-[11px] ${btn.className}`}
                 >
                   {btn.exchangeName}
                 </a>
@@ -820,7 +820,7 @@ export function CoinDetailView({
                 rel="noopener noreferrer"
                 title="View markets on CoinGecko"
                 aria-label="View markets on CoinGecko"
-                className="inline-flex min-h-8 items-center justify-center rounded-full border border-[#00ff9f]/70 bg-gradient-to-b from-[#1c3f37] to-[#0f1420] px-3 py-1.5 text-[11px] font-bold tracking-wide text-[#87ffd0] shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_2px_0_#09110f] transition-[filter,transform] hover:-translate-y-px hover:brightness-110 active:translate-y-px"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#00ff9f]/70 bg-gradient-to-b from-[#1c3f37] to-[#0f1420] px-4 py-2 text-xs font-bold tracking-wide text-[#87ffd0] shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_2px_0_#09110f] transition-[filter,transform] hover:-translate-y-px hover:brightness-110 active:translate-y-px sm:min-h-8 sm:px-3 sm:py-1.5 sm:text-[11px]"
               >
                 CoinGecko
               </a>

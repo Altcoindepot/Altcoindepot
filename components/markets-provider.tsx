@@ -23,6 +23,9 @@ type MarketsContextValue = {
   categoryHomeColumns: CategoryHomeColumn[];
   getCoin: (id: string) => CoinMarket | undefined;
   stale: boolean;
+  refreshError: string | null;
+  refreshing: boolean;
+  refresh: () => Promise<void>;
 };
 
 const MarketsContext = createContext<MarketsContextValue | null>(null);
@@ -42,11 +45,21 @@ export function MarketsProvider({
   children: ReactNode;
 }) {
   const [bundle, setBundle] = useState(initialBundle);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const refresh = useCallback(async () => {
+    setRefreshing(true);
     try {
       const res = await fetch("/api/markets");
-      if (!res.ok) return;
+      if (!res.ok) {
+        setRefreshError(
+          res.status === 429
+            ? "Market updates are rate-limited. Showing the last good snapshot."
+            : "Couldn’t refresh live prices. Showing the last good snapshot.",
+        );
+        return;
+      }
       const data = await readResponseJsonSafely(res);
       if (
         data &&
@@ -66,10 +79,15 @@ export function MarketsProvider({
             categoryHomeColumns,
             stale: Boolean(parsed.stale),
           });
+          setRefreshError(null);
+          return;
         }
       }
+      setRefreshError("Market data looked incomplete. Keeping the previous prices on screen.");
     } catch {
-      /* keep last snapshot */
+      setRefreshError("Network issue while updating markets. Your last prices are still shown.");
+    } finally {
+      setRefreshing(false);
     }
   }, []);
 
@@ -111,8 +129,19 @@ export function MarketsProvider({
       categoryHomeColumns: bundle.categoryHomeColumns ?? [],
       getCoin: (id: string) => map.get(id),
       stale: bundle.stale,
+      refreshError,
+      refreshing,
+      refresh,
     };
-  }, [bundle.topMarkets, bundle.ecosystemMarkets, bundle.categoryHomeColumns, bundle.stale]);
+  }, [
+    bundle.topMarkets,
+    bundle.ecosystemMarkets,
+    bundle.categoryHomeColumns,
+    bundle.stale,
+    refreshError,
+    refreshing,
+    refresh,
+  ]);
 
   return (
     <MarketsContext.Provider value={value}>{children}</MarketsContext.Provider>
