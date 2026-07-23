@@ -46,9 +46,9 @@ export function LiveTopCoins({ coins }: { coins: CoinMarket[] }) {
     { ids: ["ethereum"], symbols: ["eth"], names: ["ethereum"] },
     { ids: ["solana"], symbols: ["sol"], names: ["solana"] },
     {
-      ids: ["lighter"],
-      symbols: ["lit"],
-      names: ["lighter"],
+      ids: ["ripple"],
+      symbols: ["xrp"],
+      names: ["xrp", "ripple"],
     },
     {
       ids: ["injective", "injective-protocol"],

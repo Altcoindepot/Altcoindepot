@@ -44,7 +44,7 @@ export function MarketsDashboard() {
             </div>
           ) : null}
           <p className="mt-2 text-sm text-zinc-400">
-            Bitcoin, Ethereum, Solana, LIT, and Injective · Tap a card for full coin info · USD
+            Bitcoin, Ethereum, Solana, XRP, and Injective · Tap a card for full coin info · USD
             · Refreshes every ~60s
           </p>
           <div className="mt-8">

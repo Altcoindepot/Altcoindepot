@@ -90,7 +90,7 @@ export type MarketsBundle = {
 let lastKnownMarketsBundle: MarketsBundle | null = null;
 
 /** Always available for the homepage Featured strip (may sit outside top-100 / category spotlights). */
-const FEATURED_EXTRA_GECKO_IDS = ["lighter", "injective-protocol"] as const;
+const FEATURED_EXTRA_GECKO_IDS = ["ripple", "injective-protocol"] as const;
 
 async function loadMarketsByGeckoIds(
   ids: readonly string[],
