@@ -2,8 +2,62 @@ import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { PUBLIC_CATEGORIES } from "@/lib/coin-categories";
 
-export const MARKETS_URL =
-  "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=true&price_change_percentage=24h%2C7d";
+/**
+ * Single control point for all CoinGecko traffic.
+ *
+ * Env (server-only — never prefix with NEXT_PUBLIC_):
+ * - COINGECKO_API_KEY — Demo or Pro API key from CoinGecko
+ * - COINGECKO_API_PLAN — "demo" (default) or "pro"
+ */
+export type CoinGeckoApiPlan = "demo" | "pro";
+
+export function getCoinGeckoApiPlan(): CoinGeckoApiPlan {
+  const plan = process.env.COINGECKO_API_PLAN?.trim().toLowerCase();
+  return plan === "pro" ? "pro" : "demo";
+}
+
+export function getCoinGeckoApiBase(): string {
+  return getCoinGeckoApiPlan() === "pro"
+    ? "https://pro-api.coingecko.com/api/v3"
+    : "https://api.coingecko.com/api/v3";
+}
+
+/** Auth + Accept headers for every CoinGecko request. */
+export function coinGeckoHeaders(): HeadersInit {
+  const headers: Record<string, string> = { Accept: "application/json" };
+  const key = process.env.COINGECKO_API_KEY?.trim();
+  if (key) {
+    if (getCoinGeckoApiPlan() === "pro") {
+      headers["x-cg-pro-api-key"] = key;
+    } else {
+      headers["x-cg-demo-api-key"] = key;
+    }
+  }
+  return headers;
+}
+
+/** Fetch a CoinGecko path (e.g. `/coins/markets?...`) with the shared base URL + API key. */
+export async function coinGeckoFetch(
+  path: string,
+  init?: RequestInit & { next?: { revalidate?: number } },
+): Promise<Response> {
+  const normalized = path.startsWith("http")
+    ? path
+    : `${getCoinGeckoApiBase()}${path.startsWith("/") ? path : `/${path}`}`;
+  return fetch(normalized, {
+    ...init,
+    headers: {
+      ...coinGeckoHeaders(),
+      ...(init?.headers as Record<string, string> | undefined),
+    },
+  });
+}
+
+export const MARKETS_PATH =
+  "/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=true&price_change_percentage=24h%2C7d";
+
+/** @deprecated Prefer {@link coinGeckoFetch} with {@link MARKETS_PATH}; kept for any external imports. */
+export const MARKETS_URL = `https://api.coingecko.com/api/v3${MARKETS_PATH}`;
 
 export type CoinMarket = {
   id: string;
@@ -43,13 +97,10 @@ async function loadMarketsByGeckoIds(
   init?: RequestInit & { next?: { revalidate?: number } },
 ): Promise<CoinMarket[]> {
   if (ids.length === 0) return [];
-  const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${encodeURIComponent(
+  const path = `/coins/markets?vs_currency=usd&ids=${encodeURIComponent(
     ids.join(","),
   )}&order=market_cap_desc&per_page=250&page=1&sparkline=true&price_change_percentage=24h%2C7d`;
-  const res = await fetch(url, {
-    ...init,
-    headers: { Accept: "application/json", ...init?.headers },
-  });
+  const res = await coinGeckoFetch(path, init);
   if (!res.ok) {
     return [];
   }
@@ -83,10 +134,7 @@ function mergeEcosystemWithFeaturedPins(
 export async function loadMarkets(
   init?: RequestInit & { next?: { revalidate?: number } },
 ): Promise<CoinMarket[]> {
-  const res = await fetch(MARKETS_URL, {
-    ...init,
-    headers: { Accept: "application/json", ...init?.headers },
-  });
+  const res = await coinGeckoFetch(MARKETS_PATH, init);
   if (!res.ok) {
     throw new Error(`CoinGecko error: ${res.status}`);
   }
@@ -102,13 +150,10 @@ export async function loadMarketsByGeckoCategory(
   perPage: number,
   init?: RequestInit & { next?: { revalidate?: number } },
 ): Promise<CoinMarket[]> {
-  const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&category=${encodeURIComponent(
+  const path = `/coins/markets?vs_currency=usd&category=${encodeURIComponent(
     categoryId,
   )}&order=market_cap_desc&per_page=${perPage}&page=1&sparkline=true&price_change_percentage=24h%2C7d`;
-  const res = await fetch(url, {
-    ...init,
-    headers: { Accept: "application/json", ...init?.headers },
-  });
+  const res = await coinGeckoFetch(path, init);
   if (!res.ok) {
     throw new Error(`CoinGecko category ${categoryId}: ${res.status}`);
   }
@@ -257,18 +302,7 @@ function isTransientCoinGeckoFailure(status: number): boolean {
   return status === 408 || status === 429 || (status >= 500 && status <= 599);
 }
 
-/** Optional `COINGECKO_API_KEY` improves rate limits on CoinGecko Demo/Pro plans. */
-export function coinGeckoHeaders(): HeadersInit {
-  const headers: Record<string, string> = { Accept: "application/json" };
-  const key = process.env.COINGECKO_API_KEY?.trim();
-  if (key) {
-    headers["x-cg-demo-api-key"] = key;
-  }
-  return headers;
-}
-
 async function fetchCoinDetailWithRetries(safe: string): Promise<CoinLookupResult> {
-  const base = `https://api.coingecko.com/api/v3/coins/${encodeURIComponent(safe)}`;
   const maxWaves = 4;
 
   for (let wave = 0; wave < maxWaves; wave++) {
@@ -280,9 +314,8 @@ async function fetchCoinDetailWithRetries(safe: string): Promise<CoinLookupResul
       const q = lite ? coinDetailParamsLite : coinDetailParams;
       let res: Response;
       try {
-        res = await fetch(`${base}?${q}`, {
+        res = await coinGeckoFetch(`/coins/${encodeURIComponent(safe)}?${q}`, {
           next: { revalidate: 60 },
-          headers: coinGeckoHeaders(),
         });
       } catch {
         continue;

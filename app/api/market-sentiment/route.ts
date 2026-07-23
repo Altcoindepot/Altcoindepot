@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
+import { coinGeckoFetch } from "@/lib/coingecko";
 
 async function fetchCoinGeckoGlobal() {
-  const res = await fetch("https://api.coingecko.com/api/v3/global", {
+  const res = await coinGeckoFetch("/global", {
     next: { revalidate: 120 },
-    headers: { Accept: "application/json" },
   });
   if (!res.ok) throw new Error(`CoinGecko global failed (${res.status})`);
   const data = await res.json();

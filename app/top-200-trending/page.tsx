@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
-import type { CoinMarket } from "@/lib/coingecko";
+import { coinGeckoFetch, type CoinMarket } from "@/lib/coingecko";
 import { MiniCoinChart } from "@/components/mini-coin-chart";
 
 export const metadata: Metadata = {
@@ -11,8 +11,8 @@ export const metadata: Metadata = {
     "Heatmap-style view of top 200 crypto projects ranked by 24h movers on AltCoinDepot.",
 };
 
-const TOP_200_URL =
-  "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=200&page=1&sparkline=true&price_change_percentage=24h";
+const TOP_200_PATH =
+  "/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=200&page=1&sparkline=true&price_change_percentage=24h";
 
 function formatUsd(n: number | null | undefined) {
   if (n == null || Number.isNaN(n)) return "—";
@@ -47,9 +47,8 @@ export default async function Top200TrendingPage() {
   let coins: CoinMarket[] = [];
   let loadError = false;
   try {
-    const res = await fetch(TOP_200_URL, {
+    const res = await coinGeckoFetch(TOP_200_PATH, {
       next: { revalidate: 60 },
-      headers: { Accept: "application/json" },
     });
     if (!res.ok) throw new Error(`CoinGecko error: ${res.status}`);
     const data: unknown = await res.json();

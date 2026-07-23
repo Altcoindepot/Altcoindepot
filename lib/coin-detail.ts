@@ -1,6 +1,4 @@
-import { coinGeckoHeaders } from "@/lib/coingecko";
-
-const CG = "https://api.coingecko.com/api/v3";
+import { coinGeckoFetch } from "@/lib/coingecko";
 
 export type CoinSearchHit = {
   id: string;
@@ -19,10 +17,7 @@ export async function searchCoins(
 ): Promise<CoinSearchHit[]> {
   const q = query.trim();
   if (!q) return [];
-  const res = await fetch(`${CG}/search?query=${encodeURIComponent(q)}`, {
-    ...init,
-    headers: { Accept: "application/json", ...coinGeckoHeaders(), ...init?.headers },
-  });
+  const res = await coinGeckoFetch(`/search?query=${encodeURIComponent(q)}`, init);
   if (!res.ok) throw new Error(`CoinGecko search error: ${res.status}`);
   const data = (await res.json()) as CoinSearchResponse;
   return data.coins ?? [];
@@ -68,21 +63,15 @@ export async function loadCoinDetailStats(
   id: string,
   init?: RequestInit & { next?: { revalidate?: number } },
 ): Promise<CoinDetailStats | null> {
-  const detailUrl = `${CG}/coins/${encodeURIComponent(
+  const detailPath = `/coins/${encodeURIComponent(
     id,
   )}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`;
 
   const [detailRes, chartRes] = await Promise.all([
-    fetch(detailUrl, {
-      ...init,
-      headers: { Accept: "application/json", ...init?.headers },
-    }),
-    fetch(
-      `${CG}/coins/${encodeURIComponent(id)}/market_chart?vs_currency=usd&days=1`,
-      {
-        ...init,
-        headers: { Accept: "application/json", ...init?.headers },
-      },
+    coinGeckoFetch(detailPath, init),
+    coinGeckoFetch(
+      `/coins/${encodeURIComponent(id)}/market_chart?vs_currency=usd&days=1`,
+      init,
     ),
   ]);
 

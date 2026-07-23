@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
-import { getMarketsBundle, type CoinMarket } from "@/lib/coingecko";
+import { coinGeckoFetch, getMarketsBundle, type CoinMarket } from "@/lib/coingecko";
 import { MiniCoinChart } from "@/components/mini-coin-chart";
 
 export const metadata: Metadata = {
@@ -11,14 +11,13 @@ export const metadata: Metadata = {
     "Heatmap-style view of top 100 crypto projects ranked by 24h movers on AltCoinDepot.",
 };
 
-const TOP_100_URL =
-  "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=true&price_change_percentage=24h";
+const TOP_100_PATH =
+  "/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=true&price_change_percentage=24h";
 
 async function fetchTop100Trending(): Promise<CoinMarket[]> {
   for (let attempt = 0; attempt < 3; attempt++) {
-    const res = await fetch(TOP_100_URL, {
+    const res = await coinGeckoFetch(TOP_100_PATH, {
       next: { revalidate: 60 },
-      headers: { Accept: "application/json" },
     });
     if (res.ok) {
       const data: unknown = await res.json();

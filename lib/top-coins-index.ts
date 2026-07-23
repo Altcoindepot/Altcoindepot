@@ -1,5 +1,5 @@
 import { unstable_cache } from "next/cache";
-import { coinGeckoHeaders } from "@/lib/coingecko";
+import { coinGeckoFetch } from "@/lib/coingecko";
 
 export type TopCoinSearchEntry = {
   id: string;
@@ -27,12 +27,10 @@ type MarketsRow = {
 };
 
 async function fetchTopMarketsPage(page: number): Promise<TopCoinSearchEntry[]> {
-  const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${PER_PAGE}&page=${page}&sparkline=false&price_change_percentage=24h`;
+  const path = `/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${PER_PAGE}&page=${page}&sparkline=false&price_change_percentage=24h`;
   let res: Response;
   try {
-    res = await fetch(url, {
-      headers: coinGeckoHeaders(),
-    });
+    res = await coinGeckoFetch(path);
   } catch {
     return [];
   }
