@@ -17,6 +17,7 @@ import { CoingeckoLogoAttribution } from "@/components/coingecko-logo-attributio
 import { WatchlistToggleButton } from "@/components/watchlist-toggle-button";
 import { PriceAlertForm } from "@/components/price-alert-form";
 import { RelatedCoins } from "@/components/related-coins";
+import { RecordRecentlyViewed } from "@/components/record-recently-viewed";
 
 function tradingViewSymbol(symbol: string | undefined) {
   return (symbol ?? "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
@@ -590,6 +591,12 @@ export function CoinDetailView({
         ) : null}
 
         <div className="order-1 min-w-0 flex-1 px-4 sm:px-6 lg:order-2 lg:pr-8">
+          <RecordRecentlyViewed
+            coinId={coin.id}
+            name={coin.name}
+            symbol={(coin.symbol ?? "").toString()}
+            image={img}
+          />
           <Link
             href="/"
             className="text-metallic text-sm font-medium underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a855f7]"

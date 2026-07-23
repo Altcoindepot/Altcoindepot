@@ -16,8 +16,8 @@ export default function PrivacyPage() {
         <div className="mt-5 space-y-4 text-sm leading-relaxed text-zinc-400 sm:text-base">
           <p>
             AltCoin Depot is designed to work without requiring an account. Watchlist, portfolio,
-            price alerts, and theme preference are stored in your browser’s local storage on your
-            device — we do not host those as a logged-in cloud profile.
+            price alerts, recently viewed coins, and theme preference are stored in your browser’s
+            local storage on your device — we do not host those as a logged-in cloud profile.
           </p>
           <p>
             When you use the site, your browser requests market data through our servers from
