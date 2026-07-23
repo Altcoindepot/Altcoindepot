@@ -5,8 +5,12 @@ import type { CoinNewsItem } from "@/lib/coin-news";
 import { formatNewsTimestampEst } from "@/lib/format-date";
 import { readResponseJsonSafely } from "@/lib/read-response-json";
 
-/** Poll interval; keep in sync with `NEWS_TTL_MS` in `lib/coin-news.ts` so each tick can show new headlines. */
+/** Poll interval; keep in sync with `NEWS_TTL_MS` in `lib/coin-news.ts`. */
 const POLL_MS = 45_000;
+const MAX_HEADLINES = 5;
+
+const FALLBACK_MORE_NEWS =
+  "https://news.google.com/search?q=cryptocurrency&hl=en-US&gl=US&ceid=US:en";
 
 function cleanDisplayText(input: string) {
   return input
@@ -21,21 +25,6 @@ function cleanDisplayText(input: string) {
     .replace(/\bwww\.\S+/gi, "")
     .replace(/\s+/g, " ")
     .trim();
-}
-
-function sourceBadgeClass(source: string) {
-  const s = source.toLowerCase();
-  if (s.includes("coindesk")) return "border-[#f0b90b]/40 bg-[#f0b90b]/10 text-[#f0b90b]";
-  if (s.includes("cointelegraph")) return "border-[#ffcc33]/40 bg-[#ffcc33]/10 text-[#ffcc33]";
-  if (s.includes("decrypt")) return "border-[#7dd3fc]/40 bg-[#7dd3fc]/10 text-[#7dd3fc]";
-  if (s.includes("the block")) return "border-zinc-300/40 bg-zinc-300/10 text-zinc-200";
-  if (s.includes("bitcoin magazine")) return "border-[#f97316]/40 bg-[#f97316]/10 text-[#fdba74]";
-  return "border-[#a855f7]/35 bg-[#a855f7]/10 text-[#d8b4fe]";
-}
-
-function safeThumb(url: string | undefined) {
-  if (!url) return null;
-  return /^https?:\/\//i.test(url) ? url : null;
 }
 
 export function HomeNewsFeed({
@@ -81,86 +70,69 @@ export function HomeNewsFeed({
     };
   }, []);
 
+  const headlines = items.slice(0, MAX_HEADLINES);
+  const moreHref = sourceUrl || FALLBACK_MORE_NEWS;
+
   return (
     <section
       aria-labelledby="home-news-heading"
-      className="glass-panel rounded-xl p-3"
+      className="glass-panel rounded-xl p-4"
     >
-      <div>
-        <div className="flex items-center justify-between gap-3">
-          <h2 id="home-news-heading" className="text-sm font-semibold text-zinc-100">
-            In the News
-          </h2>
-          {stale ? (
-            <span className="rounded border border-amber-400/30 bg-amber-400/10 px-1.5 py-0.5 text-[10px] text-amber-200">
-              Feed delayed
-            </span>
-          ) : null}
-        </div>
-        <p className="mt-1 text-xs text-zinc-400">
-          Live crypto headlines, newest first. Timestamps are US Eastern (EST/EDT). Auto-refreshes
-          about every 45s.
-        </p>
-        <div className="mt-3 space-y-2">
-          {items.length > 0 ? (
-            items.map((item) => (
-              <article
-                key={item.id}
-                className="glass-card rounded-lg p-2.5"
-              >
-                {safeThumb(item.thumbnail) ? (
-                  <div className="mb-2 overflow-hidden rounded-md border border-white/10 bg-[#0a0a0a]">
-                    <img
-                      src={safeThumb(item.thumbnail) ?? ""}
-                      alt=""
-                      loading="lazy"
-                      className="h-24 w-full object-cover"
-                    />
-                  </div>
-                ) : null}
-                {(() => {
-                  const source = cleanDisplayText(item.source);
-                  return (
-                    <span
-                      className={`mb-1 inline-flex rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${sourceBadgeClass(source)}`}
-                    >
-                      {source || "News"}
-                    </span>
-                  );
-                })()}
+      <div className="flex items-center justify-between gap-3">
+        <h2
+          id="home-news-heading"
+          className="text-base font-extrabold tracking-tight text-zinc-100"
+        >
+          In the News
+        </h2>
+        {stale ? (
+          <span className="rounded border border-amber-400/30 bg-amber-400/10 px-1.5 py-0.5 text-[10px] text-amber-200">
+            Feed delayed
+          </span>
+        ) : null}
+      </div>
+
+      <ul className="mt-4 flex flex-col gap-3">
+        {headlines.length > 0 ? (
+          headlines.map((item) => {
+            const source = cleanDisplayText(item.source) || "News";
+            const title = cleanDisplayText(item.title);
+            return (
+              <li key={item.id}>
                 <a
                   href={item.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="line-clamp-2 text-xs font-semibold text-zinc-100 underline-offset-2 hover:text-[#d7ad82] hover:underline"
+                  className="block rounded-lg border border-white/10 bg-[#111111]/80 px-3 py-3 transition-colors hover:border-[#d1a173]/40 hover:bg-[#141414] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173]"
                 >
-                  {cleanDisplayText(item.title)}
+                  <span className="inline-flex max-w-full truncate rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-zinc-500">
+                    {source}
+                  </span>
+                  <span className="mt-2 line-clamp-2 block text-sm font-semibold leading-snug text-zinc-100">
+                    {title}
+                  </span>
+                  <span className="mt-2 block text-[11px] text-zinc-500">
+                    {formatNewsTimestampEst(item.publishedAt)}
+                  </span>
                 </a>
-                <p className="mt-1 line-clamp-3 text-[11px] text-zinc-400">
-                  {cleanDisplayText(item.summary) || "Read the full article."}
-                </p>
-                <p className="mt-1 text-[10px] text-zinc-500">
-                  {formatNewsTimestampEst(item.publishedAt)}
-                </p>
-              </article>
-            ))
-          ) : (
-            <div className="glass-card rounded-lg p-3 text-xs text-zinc-500">
-              No crypto headlines available at the moment.
-            </div>
-          )}
-        </div>
-        {sourceUrl ? (
-          <a
-            href={sourceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 inline-flex text-xs font-medium text-[#d7ad82] underline-offset-2 hover:underline"
-          >
-            Open full crypto news feed
-          </a>
-        ) : null}
-      </div>
+              </li>
+            );
+          })
+        ) : (
+          <li className="rounded-lg border border-white/10 px-3 py-3 text-sm text-zinc-500">
+            No crypto headlines available at the moment.
+          </li>
+        )}
+      </ul>
+
+      <a
+        href={moreHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-4 inline-flex min-h-10 items-center text-sm font-medium text-[#d7ad82] underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173]"
+      >
+        View more news →
+      </a>
     </section>
   );
 }
