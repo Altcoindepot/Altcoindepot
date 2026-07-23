@@ -18,13 +18,15 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://altcoindepot.com"),
   title: {
-    default: "AltCoin Depot - Live Crypto Prices, Charts & Market Data",
+    default: "AltCoin Depot – Live Crypto Prices, Charts & Market Data",
     template: "%s · AltCoin Depot",
   },
-  description: "AltCoin Depot - Live Crypto Prices, Charts & Market Data",
+  description:
+    "Track real-time cryptocurrency prices, charts, and market data for Bitcoin, Ethereum, and top altcoins. Free and updated live.",
   openGraph: {
-    title: "AltCoin Depot - Live Crypto Prices, Charts & Market Data",
-    description: "AltCoin Depot - Live Crypto Prices, Charts & Market Data",
+    title: "AltCoin Depot – Live Crypto Prices, Charts & Market Data",
+    description:
+      "Track real-time cryptocurrency prices, charts, and market data for Bitcoin, Ethereum, and top altcoins. Free and updated live.",
     url: "https://altcoindepot.com",
     siteName: "AltCoin Depot",
     locale: "en_US",
@@ -32,8 +34,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "AltCoin Depot - Live Crypto Prices, Charts & Market Data",
-    description: "AltCoin Depot - Live Crypto Prices, Charts & Market Data",
+    title: "AltCoin Depot – Live Crypto Prices, Charts & Market Data",
+    description:
+      "Track real-time cryptocurrency prices, charts, and market data for Bitcoin, Ethereum, and top altcoins. Free and updated live.",
   },
   robots: { index: true, follow: true },
 };
