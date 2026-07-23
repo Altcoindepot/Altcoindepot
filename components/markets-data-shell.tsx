@@ -4,6 +4,7 @@ import { PriceMarquee } from "@/components/price-marquee";
 import { MarketSentimentStrip } from "@/components/market-sentiment-strip";
 import { HomeInsightPanels } from "@/components/home-insight-panels";
 import { MarketsDashboard } from "@/components/markets-dashboard";
+import { LiveTrendingMovers } from "@/components/live-trending-movers";
 
 export async function MarketsDataShell() {
   let bundle;
@@ -31,6 +32,7 @@ export async function MarketsDataShell() {
       <PriceMarquee />
       <MarketSentimentStrip />
       <MarketsDashboard />
+      <LiveTrendingMovers />
       <HomeInsightPanels />
     </MarketsProvider>
   );

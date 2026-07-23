@@ -14,6 +14,9 @@ import { CoinGeckoPriceChart } from "@/components/coingecko-price-chart";
 import { formatShortMonthDay } from "@/lib/format-date";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
 import { CoingeckoLogoAttribution } from "@/components/coingecko-logo-attribution";
+import { WatchlistToggleButton } from "@/components/watchlist-toggle-button";
+import { PriceAlertForm } from "@/components/price-alert-form";
+import { RelatedCoins } from "@/components/related-coins";
 
 function tradingViewSymbol(symbol: string | undefined) {
   return (symbol ?? "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
@@ -435,6 +438,12 @@ export function CoinDetailView({
   const whitepaper = firstHttpUrlFromUnknown((coin.links as { whitepaper?: unknown } | undefined)?.whitepaper);
   const geckoUrl = `https://www.coingecko.com/en/coins/${coin.id}`;
   const descriptionText = stripHtmlToText(coin.description?.en ?? "");
+  const whatIsSummary = (() => {
+    if (!descriptionText) return null;
+    const sentences = descriptionText.split(/(?<=[.!?])\s+/).filter(Boolean);
+    const short = sentences.slice(0, 3).join(" ");
+    return short.length > 420 ? `${short.slice(0, 417)}…` : short;
+  })();
   const tickerDerived = tradingViewFromCoinGeckoTickers(coin.tickers);
   const tvInstruments = [
     ...tickerDerived,
@@ -661,9 +670,49 @@ export function CoinDetailView({
                 Whitepaper
               </a>
             ) : null}
+            <WatchlistToggleButton
+              coinId={coin.id}
+              name={coin.name}
+              symbol={(coin.symbol ?? "").toString()}
+              image={img}
+            />
           </div>
         </div>
           </header>
+
+          <div className="mt-4 space-y-3">
+            <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded-lg border border-[#f4ddc3]/20 bg-[#0f131b]/80 px-3 py-2">
+                <dt className="text-[10px] uppercase tracking-wide text-zinc-500">Price</dt>
+                <dd className="mt-0.5 font-mono text-sm font-semibold text-zinc-100">
+                  {formatUsd(current)}
+                </dd>
+              </div>
+              <div className="rounded-lg border border-[#f4ddc3]/20 bg-[#0f131b]/80 px-3 py-2">
+                <dt className="text-[10px] uppercase tracking-wide text-zinc-500">Market cap</dt>
+                <dd className="mt-0.5 font-mono text-sm font-semibold text-zinc-100">
+                  {formatCompactUsd(marketCap)}
+                </dd>
+              </div>
+              <div className="rounded-lg border border-[#f4ddc3]/20 bg-[#0f131b]/80 px-3 py-2">
+                <dt className="text-[10px] uppercase tracking-wide text-zinc-500">24h volume</dt>
+                <dd className="mt-0.5 font-mono text-sm font-semibold text-zinc-100">
+                  {formatCompactUsd(usd(md?.total_volume))}
+                </dd>
+              </div>
+              <div className="rounded-lg border border-[#f4ddc3]/20 bg-[#0f131b]/80 px-3 py-2">
+                <dt className="text-[10px] uppercase tracking-wide text-zinc-500">24h change</dt>
+                <dd className="mt-0.5 font-mono text-sm font-semibold">{pct(ch24)}</dd>
+              </div>
+            </dl>
+            <PriceAlertForm
+              coinId={coin.id}
+              name={coin.name}
+              symbol={(coin.symbol ?? "").toString()}
+              image={img}
+              currentPrice={current}
+            />
+          </div>
 
           <nav
             aria-label="Coin page sections"
@@ -714,12 +763,20 @@ export function CoinDetailView({
           Market stats <span className="text-zinc-500">(USD, CoinGecko)</span>
         </h2>
         <article className="mt-4 rounded-lg border border-white/10 bg-[#111111] p-3">
-          <h3 className="text-sm font-semibold text-zinc-100">About {coin.name}</h3>
+          <h3 className="text-sm font-semibold text-zinc-100">What is {coin.name}?</h3>
           <p className="mt-2 text-xs leading-relaxed text-zinc-400 sm:text-sm">
-            {descriptionText
-              ? `${descriptionText.slice(0, 900)}${descriptionText.length > 900 ? "…" : ""}`
-              : "Description currently unavailable from CoinGecko."}
+            {whatIsSummary ?? "A short explanation is not available from CoinGecko right now."}
           </p>
+          {descriptionText && descriptionText.length > (whatIsSummary?.length ?? 0) + 40 ? (
+            <details className="mt-3">
+              <summary className="cursor-pointer text-xs font-medium text-[#d7ad82]">
+                Read more
+              </summary>
+              <p className="mt-2 text-xs leading-relaxed text-zinc-500 sm:text-sm">
+                {`${descriptionText.slice(0, 1200)}${descriptionText.length > 1200 ? "…" : ""}`}
+              </p>
+            </details>
+          ) : null}
         </article>
         <CoinGeckoPriceChart
           coinId={coin.id}
@@ -794,6 +851,8 @@ export function CoinDetailView({
           <Stat label="Max supply">{formatNum(md?.max_supply)}</Stat>
         </dl>
           </section>
+
+          <RelatedCoins coinId={coin.id} />
 
           {coin.id === "reppo" && reppoStats ? <ReppoStatsSection data={reppoStats} /> : null}
 

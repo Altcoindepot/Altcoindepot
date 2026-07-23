@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeScript } from "@/components/theme-script";
+import { PriceAlertWatcher } from "@/components/price-alert-watcher";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -56,7 +57,10 @@ export default function RootLayout({
         <ThemeScript />
       </head>
       <body className="min-h-full flex flex-col font-sans">
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          {children}
+          <PriceAlertWatcher />
+        </ThemeProvider>
         <SpeedInsights />
       </body>
     </html>
