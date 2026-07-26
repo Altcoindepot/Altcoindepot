@@ -15,7 +15,7 @@ export function MarketsDashboard() {
     <>
       <section
         aria-labelledby="featured-heading"
-        className="border-b border-[#f4ddc3]/10 bg-[#0f131b]/65 px-4 py-10 sm:px-6 sm:py-12"
+        className="border-b border-[#f4ddc3]/10 bg-[#0f131b]/65 px-4 py-12 sm:px-6 sm:py-14"
       >
         <div className="glass-panel mx-auto max-w-6xl rounded-2xl p-5 sm:p-6 md:p-7">
           <SectionHeading id="featured-heading">Featured</SectionHeading>

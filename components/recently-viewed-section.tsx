@@ -92,7 +92,7 @@ export function RecentlyViewedSection() {
   return (
     <section
       aria-labelledby="recently-viewed-heading"
-      className="border-b border-[#f4ddc3]/10 bg-[#0f131b]/50 px-4 py-10 sm:px-6 sm:py-12"
+      className="border-b border-[#f4ddc3]/10 bg-[#0f131b]/50 px-4 py-12 sm:px-6 sm:py-14"
     >
       <div className="glass-panel mx-auto max-w-6xl rounded-2xl p-5 sm:p-6 md:p-7">
         <div className="flex flex-wrap items-end justify-between gap-3">

@@ -85,7 +85,7 @@ export function LiveTopCoins({ coins }: { coins: CoinMarket[] }) {
 
   return (
     <div
-      className="-mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-3 [scrollbar-width:thin] sm:mx-0 sm:grid sm:snap-none sm:grid-cols-2 sm:gap-5 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-5"
+      className="-mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-3 [scrollbar-width:thin] [-webkit-overflow-scrolling:touch] sm:mx-0 sm:gap-5 lg:grid lg:snap-none lg:grid-cols-5 lg:overflow-visible lg:px-0 lg:pb-0"
       role="list"
     >
       {top.map((coin, index) => {
@@ -96,7 +96,7 @@ export function LiveTopCoins({ coins }: { coins: CoinMarket[] }) {
           <article
             key={coin.id}
             role="listitem"
-            className="glass-card w-[min(82vw,19rem)] shrink-0 snap-start rounded-xl border border-[#f4ddc3]/20 p-5 outline-none transition-colors hover:border-[#d1a173]/45 hover:bg-[rgba(48,35,26,0.25)] sm:w-auto sm:shrink sm:p-6"
+            className="glass-card w-[min(85vw,20rem)] shrink-0 snap-start rounded-xl border border-[#f4ddc3]/20 p-5 outline-none transition-colors hover:border-[#d1a173]/45 hover:bg-[rgba(48,35,26,0.25)] lg:w-auto lg:shrink lg:p-6"
           >
             <div className="flex items-center justify-between gap-2">
               <span className="font-mono text-xs font-semibold text-[#d7ad82]">#{rank}</span>

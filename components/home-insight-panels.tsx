@@ -179,7 +179,7 @@ export function HomeInsightPanels() {
   const stillLoading = catalysts.length === 0 && catalystSourceProvider === "Loading";
 
   return (
-    <section className="border-b border-[#f4ddc3]/10 bg-[#0f131b]/60 px-4 py-10 sm:px-6 sm:py-12">
+    <section className="border-b border-[#f4ddc3]/10 bg-[#0f131b]/60 px-4 py-12 sm:px-6 sm:py-14">
       <div className="mx-auto grid max-w-6xl gap-4">
         <article className="glass-panel rounded-xl p-5 sm:p-6">
           <div className="flex items-center justify-between gap-2">

@@ -139,9 +139,9 @@ export function MarketSentimentStrip() {
   return (
     <section
       aria-label="Market sentiment trackers"
-      className="border-b border-[#f4ddc3]/10 bg-[#0f131b]/70 px-4 py-8 sm:px-6 sm:py-10"
+      className="border-b border-[#f4ddc3]/10 bg-[#0f131b]/70 px-4 py-12 sm:px-6 sm:py-14"
     >
-      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-3 rounded-xl border border-[#f4ddc3]/20 bg-[rgba(18,16,20,0.92)] p-3 sm:grid-cols-2 sm:gap-3 md:grid-cols-3 md:gap-4 md:p-4">
+      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-4 rounded-xl border border-[#f4ddc3]/20 bg-[rgba(18,16,20,0.92)] p-3 sm:gap-3 md:grid-cols-2 md:gap-4 md:p-4 lg:grid-cols-3">
         <article className="rounded-xl border border-[#f4ddc3]/18 bg-[rgba(28,24,30,0.95)] px-4 py-4 sm:px-5 sm:py-5">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-[#e8d4bc]">
             Total Crypto Market Cap
@@ -171,7 +171,7 @@ export function MarketSentimentStrip() {
           </div>
           <p className="mt-2 text-xs text-[#d6c4b0] sm:text-[11px]">Source: Alternative.me</p>
         </article>
-        <article className="rounded-xl border border-[#f4ddc3]/18 bg-[rgba(28,24,30,0.95)] px-4 py-4 sm:col-span-2 sm:px-5 sm:py-5 md:col-span-1">
+        <article className="rounded-xl border border-[#f4ddc3]/18 bg-[rgba(28,24,30,0.95)] px-4 py-4 md:col-span-2 md:px-5 md:py-5 lg:col-span-1">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-[#e8d4bc]">
             Alt Season Tracker
           </p>

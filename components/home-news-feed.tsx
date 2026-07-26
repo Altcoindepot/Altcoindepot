@@ -9,8 +9,8 @@ import { SectionHeading } from "@/components/section-heading";
 /** Poll interval; keep in sync with `NEWS_TTL_MS` in `lib/coin-news.ts`. */
 const POLL_MS = 45_000;
 const MAX_HEADLINES = 5;
-/** Keep mobile news shorter so market data stays above the fold longer. */
-const MAX_HEADLINES_MOBILE = 4;
+/** Mobile: fewer, shorter cards so the feed doesn’t dominate the viewport. */
+const MAX_HEADLINES_MOBILE = 3;
 
 const FALLBACK_MORE_NEWS =
   "https://news.google.com/search?q=cryptocurrency&hl=en-US&gl=US&ceid=US:en";
@@ -114,7 +114,7 @@ export function HomeNewsFeed({
                   <span className="inline-flex max-w-[85%] truncate rounded border border-white/[0.06] bg-white/[0.02] px-1.5 py-px text-[9px] font-medium uppercase tracking-wider text-[#71717a]">
                     {source}
                   </span>
-                  <span className="mt-2 line-clamp-2 block overflow-hidden text-[14px] font-semibold leading-snug text-zinc-100 sm:mt-2.5 sm:text-sm sm:leading-snug">
+                  <span className="mt-2 line-clamp-2 block overflow-hidden text-[14px] font-semibold leading-tight text-zinc-100 sm:mt-2.5 sm:text-sm sm:leading-snug">
                     {title}
                   </span>
                   <span className="mt-1.5 block text-[11px] text-zinc-500 sm:mt-2 sm:text-[11px]">

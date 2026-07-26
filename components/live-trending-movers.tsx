@@ -230,7 +230,7 @@ export function LiveTrendingMovers() {
   return (
     <section
       aria-labelledby="live-trending-heading"
-      className="border-b border-[#f4ddc3]/10 bg-[#0f131b]/55 px-4 py-10 sm:px-6 sm:py-12"
+      className="border-b border-[#f4ddc3]/10 bg-[#0f131b]/55 px-4 py-12 sm:px-6 sm:py-14"
     >
       <div className="glass-panel mx-auto max-w-6xl rounded-2xl p-5 sm:p-6 md:p-7">
         <div className="flex flex-wrap items-end justify-between gap-3">
@@ -266,7 +266,7 @@ export function LiveTrendingMovers() {
         ) : null}
 
         {!empty ? (
-          <div className="mt-6 flex flex-col gap-8 lg:grid lg:grid-cols-2 lg:gap-6">
+          <div className="mt-6 flex flex-col gap-10 lg:grid lg:grid-cols-2 lg:gap-6">
             <MoversColumn
               headingId="top-gainers-heading"
               title="Top gainers"
@@ -274,7 +274,10 @@ export function LiveTrendingMovers() {
               tone="up"
               coins={topGainers}
             />
-            <div className="border-t border-[#f4ddc3]/12 lg:hidden" aria-hidden />
+            <div
+              className="mx-1 border-t border-[#f4ddc3]/15 pt-2 lg:hidden"
+              aria-hidden
+            />
             <MoversColumn
               headingId="top-losers-heading"
               title="Top losers"
