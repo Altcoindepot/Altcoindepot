@@ -112,15 +112,15 @@ export function RecentlyViewedSection() {
         </div>
 
         <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {visible.map((entry) => {
+          {visible.map((entry, index) => {
             const quote = live[entry.id];
             const ch = quote?.price_change_percentage_24h;
             const img = quote?.image || entry.image;
             return (
-              <li key={entry.id}>
+              <li key={entry.id} className={index >= 3 ? "hidden sm:block" : undefined}>
                 <Link
                   href={`/coin/${encodeURIComponent(entry.id)}`}
-                  className="glass-card flex items-center gap-3 rounded-xl border border-[#f4ddc3]/18 p-4 transition-colors hover:border-[#d1a173]/45"
+                  className="glass-card flex min-h-[4.5rem] items-center gap-3 rounded-xl border border-[#f4ddc3]/18 p-4 transition-colors hover:border-[#d1a173]/45"
                 >
                   {img ? (
                     <Image

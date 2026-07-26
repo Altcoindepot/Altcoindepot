@@ -9,6 +9,8 @@ import { SectionHeading } from "@/components/section-heading";
 /** Poll interval; keep in sync with `NEWS_TTL_MS` in `lib/coin-news.ts`. */
 const POLL_MS = 45_000;
 const MAX_HEADLINES = 5;
+/** Keep mobile news shorter so market data stays above the fold longer. */
+const MAX_HEADLINES_MOBILE = 4;
 
 const FALLBACK_MORE_NEWS =
   "https://news.google.com/search?q=cryptocurrency&hl=en-US&gl=US&ceid=US:en";
@@ -92,24 +94,27 @@ export function HomeNewsFeed({
 
       <ul className="mt-5 flex flex-col gap-3.5 sm:gap-4">
         {headlines.length > 0 ? (
-          headlines.map((item) => {
+          headlines.map((item, index) => {
             const source = cleanDisplayText(item.source) || "News";
             const title = cleanDisplayText(item.title);
             return (
-              <li key={item.id}>
+              <li
+                key={item.id}
+                className={index >= MAX_HEADLINES_MOBILE ? "hidden sm:block" : undefined}
+              >
                 <a
                   href={item.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block rounded-xl border border-white/[0.08] bg-[#111111]/70 px-4 py-3.5 transition-colors hover:border-[#d1a173]/35 hover:bg-[#141414] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173]"
+                  className="block rounded-xl border border-white/[0.08] bg-[#111111]/70 px-4 py-4 transition-colors hover:border-[#d1a173]/35 hover:bg-[#141414] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] sm:py-3.5"
                 >
                   <span className="inline-flex max-w-full truncate rounded border border-white/[0.08] bg-white/[0.03] px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-zinc-500">
                     {source}
                   </span>
-                  <span className="mt-2.5 line-clamp-2 block text-sm font-semibold leading-snug text-zinc-100">
+                  <span className="mt-2.5 line-clamp-2 block text-[15px] font-semibold leading-snug text-zinc-100 sm:text-sm">
                     {title}
                   </span>
-                  <span className="mt-2 block text-[11px] text-zinc-500">
+                  <span className="mt-2 block text-xs text-zinc-500 sm:text-[11px]">
                     {formatNewsTimestampEst(item.publishedAt)}
                   </span>
                 </a>
@@ -127,7 +132,7 @@ export function HomeNewsFeed({
         href={moreHref}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-5 inline-flex min-h-10 items-center text-sm font-medium text-[#d7ad82] underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173]"
+        className="mt-5 inline-flex min-h-11 items-center text-sm font-medium text-[#d7ad82] underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] sm:min-h-10"
       >
         View more news →
       </a>

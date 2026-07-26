@@ -322,7 +322,7 @@ export function CoinSearchBar({
       {variant === "header" ? (
         <Link
           href="/coin"
-          className="inline-flex min-h-10 items-center rounded-lg border border-[#f4ddc3]/25 bg-[rgba(20,18,22,0.7)] px-3 py-2 text-sm font-medium text-zinc-200 md:hidden"
+          className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-[#f4ddc3]/25 bg-[rgba(20,18,22,0.7)] px-3 py-2 text-sm font-medium text-zinc-200 md:hidden"
         >
           Search
         </Link>

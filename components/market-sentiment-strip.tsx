@@ -141,20 +141,20 @@ export function MarketSentimentStrip() {
       aria-label="Market sentiment trackers"
       className="border-b border-[#f4ddc3]/10 bg-[#0f131b]/70 px-4 py-8 sm:px-6 sm:py-10"
     >
-      <div className="glass-panel mx-auto grid max-w-6xl gap-3 rounded-xl p-3 md:grid-cols-3 md:gap-4 md:p-4">
+      <div className="glass-panel mx-auto grid max-w-6xl grid-cols-1 gap-3 rounded-xl p-3 sm:grid-cols-2 sm:gap-3 md:grid-cols-3 md:gap-4 md:p-4">
         <article className="glass-card rounded-xl border border-[#f4ddc3]/12 px-4 py-4 sm:px-5 sm:py-5">
           <p className="text-[10px] uppercase tracking-wide text-zinc-500">Total Crypto Market Cap</p>
-          <p className="mt-1.5 text-sm font-semibold text-zinc-100 sm:text-base">
+          <p className="mt-1.5 text-base font-semibold tabular-nums text-zinc-100 sm:text-base">
             {formatCompactUsd(globalMcap)}
           </p>
-          <p className={`mt-1 font-mono text-[11px] ${toneClass(globalMcap24h)}`}>
+          <p className={`mt-1 font-mono text-xs ${toneClass(globalMcap24h)}`}>
             {formatPct(globalMcap24h)} (24h)
           </p>
           <MiniLine points={mcapSeries} />
         </article>
         <article className="glass-card rounded-xl border border-[#f4ddc3]/12 px-4 py-4 sm:px-5 sm:py-5">
           <p className="text-[10px] uppercase tracking-wide text-zinc-500">Fear & Greed Index</p>
-          <p className={`mt-1.5 text-sm font-semibold sm:text-base ${fearGreedTone(fearGreedValue)}`}>
+          <p className={`mt-1.5 text-base font-semibold sm:text-base ${fearGreedTone(fearGreedValue)}`}>
             {fearGreedLabel} ({Math.round(fearGreedValue)})
           </p>
           <div className="mt-2 rounded-full border border-white/10 bg-[#0a0a0a] p-1.5">
@@ -167,9 +167,9 @@ export function MarketSentimentStrip() {
           </div>
           <p className="mt-2 text-[11px] text-zinc-400">Source: Alternative.me</p>
         </article>
-        <article className="glass-card rounded-xl border border-[#f4ddc3]/12 px-4 py-4 sm:px-5 sm:py-5">
+        <article className="glass-card rounded-xl border border-[#f4ddc3]/12 px-4 py-4 sm:col-span-2 sm:px-5 sm:py-5 md:col-span-1">
           <p className="text-[10px] uppercase tracking-wide text-zinc-500">Alt Season Tracker</p>
-          <p className="mt-1.5 text-sm font-semibold text-zinc-100 sm:text-base">
+          <p className="mt-1.5 text-base font-semibold text-zinc-100 sm:text-base">
             {altSeasonLabel} ({altSeasonIndex.toFixed(0)})
           </p>
           <div className="mt-2 rounded-full border border-white/10 bg-[#0a0a0a] p-1.5">

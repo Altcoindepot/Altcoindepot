@@ -16,7 +16,7 @@ function formatUsd(n: number | null | undefined) {
 function pctCell(v: number | null | undefined) {
   if (v == null || Number.isNaN(v)) {
     return (
-      <span className="rounded bg-zinc-800/50 px-1 py-0.5 text-[10px] text-zinc-500 sm:px-1.5 sm:text-xs">
+      <span className="rounded bg-zinc-800/50 px-1.5 py-0.5 text-xs text-zinc-500 sm:px-1.5 sm:text-xs">
         —
       </span>
     );
@@ -26,8 +26,8 @@ function pctCell(v: number | null | undefined) {
     <span
       className={
         positive
-          ? "inline-block rounded bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-300 ring-1 ring-emerald-500/35 sm:text-xs"
-          : "inline-block rounded bg-red-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-red-300 ring-1 ring-red-500/35 sm:text-xs"
+          ? "inline-block rounded bg-emerald-500/20 px-1.5 py-1 text-xs font-semibold text-emerald-300 ring-1 ring-emerald-500/35 sm:py-0.5 sm:text-xs"
+          : "inline-block rounded bg-red-500/20 px-1.5 py-1 text-xs font-semibold text-red-300 ring-1 ring-red-500/35 sm:py-0.5 sm:text-xs"
       }
     >
       {positive ? "+" : ""}
@@ -84,7 +84,10 @@ export function LiveTopCoins({ coins }: { coins: CoinMarket[] }) {
     .filter((coin): coin is CoinMarket => Boolean(coin));
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-5">
+    <div
+      className="-mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-3 [scrollbar-width:thin] sm:mx-0 sm:grid sm:snap-none sm:grid-cols-2 sm:gap-5 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-5"
+      role="list"
+    >
       {top.map((coin, index) => {
         const ch24 = coin.price_change_percentage_24h;
         const rank = index + 1;
@@ -92,57 +95,66 @@ export function LiveTopCoins({ coins }: { coins: CoinMarket[] }) {
         return (
           <article
             key={coin.id}
-            className="glass-card rounded-xl border border-[#f4ddc3]/20 p-4 outline-none transition-colors hover:border-[#d1a173]/45 hover:bg-[rgba(48,35,26,0.25)] sm:p-5"
+            role="listitem"
+            className="glass-card w-[min(82vw,19rem)] shrink-0 snap-start rounded-xl border border-[#f4ddc3]/20 p-4 outline-none transition-colors hover:border-[#d1a173]/45 hover:bg-[rgba(48,35,26,0.25)] sm:w-auto sm:shrink sm:p-5"
           >
             <div className="flex items-center justify-between gap-2">
               <span className="font-mono text-xs font-semibold text-[#d7ad82]">#{rank}</span>
             </div>
             <div className="mt-2 flex items-center gap-2.5">
-              <span className="relative size-8 shrink-0 overflow-hidden rounded-full ring-1 ring-white/10">
+              <span className="relative size-9 shrink-0 overflow-hidden rounded-full ring-1 ring-white/10 sm:size-8">
                 <Image
                   src={coin.image}
                   alt=""
-                  width={32}
-                  height={32}
-                  sizes="32px"
+                  width={36}
+                  height={36}
+                  sizes="36px"
                   className="object-cover"
                 />
               </span>
               <div className="min-w-0">
                 <Link
                   href={`/coin/${encodeURIComponent(coin.id)}`}
-                  className="block truncate text-sm font-semibold text-zinc-100 transition-colors hover:text-[#d7ad82] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173]"
+                  className="block truncate text-base font-semibold text-zinc-100 transition-colors hover:text-[#d7ad82] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] sm:text-sm"
                 >
                   {coin.name}
                 </Link>
-                <p className="text-[10px] uppercase tracking-wide text-zinc-500">{coin.symbol}</p>
+                <p className="text-xs uppercase tracking-wide text-zinc-500 sm:text-[10px]">
+                  {coin.symbol}
+                </p>
               </div>
             </div>
-            <div className="mt-3 space-y-2 text-xs">
+            <div className="mt-3 space-y-2.5 text-xs sm:space-y-2">
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <p className="text-zinc-500">Price</p>
-                  <p className="font-mono text-zinc-100">{formatUsd(coin.current_price)}</p>
+                  <p className="font-mono text-base tabular-nums text-zinc-100 sm:text-sm">
+                    {formatUsd(coin.current_price)}
+                  </p>
                 </div>
                 <div>
                   <p className="text-zinc-500">24h</p>
-                  <p className="font-mono">{pctCell(ch24)}</p>
+                  <p className="font-mono text-sm sm:text-xs">{pctCell(ch24)}</p>
                 </div>
               </div>
               <MiniCoinChart
                 change24h={coin.price_change_percentage_24h}
                 change7d={coin.price_change_percentage_7d_in_currency}
                 points={coin.sparkline_in_7d?.price}
-                className="h-9 w-full max-w-[130px] rounded border border-white/10 bg-[#0a0a0a] sm:w-[120px]"
+                className="h-9 w-full rounded border border-white/10 bg-[#0a0a0a] sm:max-w-[130px] sm:w-[120px]"
               />
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <p className="text-zinc-500">7d</p>
-                  <p className="font-mono">{pctCell(coin.price_change_percentage_7d_in_currency)}</p>
+                  <p className="font-mono text-sm sm:text-xs">
+                    {pctCell(coin.price_change_percentage_7d_in_currency)}
+                  </p>
                 </div>
                 <div>
                   <p className="text-zinc-500">MCap</p>
-                  <p className="font-mono text-zinc-200">{formatCompactUsd(coin.market_cap)}</p>
+                  <p className="font-mono text-sm tabular-nums text-zinc-200 sm:text-xs">
+                    {formatCompactUsd(coin.market_cap)}
+                  </p>
                 </div>
               </div>
             </div>
