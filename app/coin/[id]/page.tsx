@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const coin = result.coin;
   const sym = (coin.symbol ?? "").toString().toUpperCase() || "—";
   const name = (coin.name ?? "Coin").toString();
-  const { title, description } = buildCoinSeoCopy(name, sym);
+  const { title, description } = buildCoinSeoCopy(name, sym, coin.id);
   return {
     title: { absolute: title },
     description,
