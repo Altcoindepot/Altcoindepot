@@ -91,6 +91,9 @@ export function HomeNewsFeed({
           </span>
         ) : null}
       </div>
+      <p className="mt-1.5 text-[11px] text-zinc-400 sm:pl-4">
+        General market headlines. Listings and major policy live in Catalyst Calendar.
+      </p>
 
       <ul className="mt-5 flex flex-col gap-3.5 sm:gap-4">
         {headlines.length > 0 ? (

@@ -1,13 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useMarkets } from "@/components/markets-provider";
-
-type SentimentSnapshot = {
-  fearGreedValue: number;
-  fearGreedLabel: string;
-  fearGreedTimeUntilUpdateSec: number;
-};
+import { useEffect, useState } from "react";
 
 type CatalystItem = {
   category: "Government" | "Policy" | "Listings";
@@ -26,76 +19,22 @@ function formatWhen(ts: Date) {
   });
 }
 
-function eventImpact(title: string) {
-  const t = title.toLowerCase();
-  if (/\b(fomc|fed|sec|etf|approval|ban|lawsuit|clarity act|regulation)\b/.test(t)) {
-    return "High";
-  }
-  if (/\b(listing|delisting|adds support|launch|mainnet|vote)\b/.test(t)) {
-    return "Medium";
-  }
-  return "Low";
+const LISTING_SIGNAL =
+  /\b(listing|will list|lists|listed|delist|delisting|adds support|new listing)\b/i;
+const MAJOR_POLICY_SIGNAL =
+  /\b(clarity act|sec\b|cftc|mica|etf|lawsuit|hearing|ban|approval|regulation|bill|fomc|federal reserve|fed\b|government|congress|treasury)\b/i;
+
+function isListingCatalyst(item: CatalystItem) {
+  return item.category === "Listings" || LISTING_SIGNAL.test(item.title);
 }
 
-function impactClass(impact: string) {
-  if (impact === "High") return "border-red-400/35 bg-red-500/15 text-red-200";
-  if (impact === "Medium") return "border-amber-400/35 bg-amber-500/15 text-amber-200";
-  return "border-zinc-400/25 bg-zinc-500/10 text-zinc-300";
-}
-
-function nextUtcHour(from = new Date()) {
-  const d = new Date(from);
-  d.setUTCMinutes(0, 0, 0);
-  d.setUTCHours(d.getUTCHours() + 1);
-  return d;
-}
-
-function nextUtcDayBoundary(from = new Date()) {
-  const d = new Date(from);
-  d.setUTCHours(24, 0, 0, 0);
-  return d;
+function isMajorPolicyCatalyst(item: CatalystItem) {
+  return item.category !== "Listings" && MAJOR_POLICY_SIGNAL.test(item.title);
 }
 
 export function HomeInsightPanels() {
-  const { topMarkets } = useMarkets();
-  const [sentiment, setSentiment] = useState<SentimentSnapshot>({
-    fearGreedValue: 50,
-    fearGreedLabel: "Neutral",
-    fearGreedTimeUntilUpdateSec: 0,
-  });
   const [catalysts, setCatalysts] = useState<CatalystItem[]>([]);
   const [catalystSourceProvider, setCatalystSourceProvider] = useState("Loading");
-
-  useEffect(() => {
-    let mounted = true;
-    async function refresh() {
-      try {
-        const res = await fetch(`/api/market-sentiment?_=${Date.now()}`, { cache: "no-store" });
-        if (!res.ok) return;
-        const data: unknown = await res.json();
-        if (!mounted || !data || typeof data !== "object") return;
-        const fg = (data as { fearGreed?: Record<string, unknown> }).fearGreed ?? {};
-        const fearGreedValue = Number(fg.value ?? 50);
-        const fearGreedLabel = typeof fg.label === "string" ? fg.label : "Neutral";
-        const fearGreedTimeUntilUpdateSec = Number(fg.timeUntilUpdateSec ?? 0);
-        setSentiment({
-          fearGreedValue: Number.isFinite(fearGreedValue) ? fearGreedValue : 50,
-          fearGreedLabel,
-          fearGreedTimeUntilUpdateSec: Number.isFinite(fearGreedTimeUntilUpdateSec)
-            ? fearGreedTimeUntilUpdateSec
-            : 0,
-        });
-      } catch {
-        // keep previous snapshot
-      }
-    }
-    void refresh();
-    const id = window.setInterval(() => void refresh(), 120000);
-    return () => {
-      mounted = false;
-      window.clearInterval(id);
-    };
-  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -140,18 +79,9 @@ export function HomeInsightPanels() {
     };
   }, []);
 
-  const fallbackEvents = [
-    {
-      category: "Government" as const,
-      title: "Next macro/policy catalysts loading...",
-      source: "Catalyst feed",
-      url: "#",
-      publishedAt: new Date().toISOString(),
-    },
-  ];
-  const events = catalysts.length > 0 ? catalysts : fallbackEvents;
-  const listingEvents = events.filter((e) => e.category === "Listings");
-  const regulatoryEvents = events.filter((e) => e.category !== "Listings");
+  const listingEvents = catalysts.filter(isListingCatalyst).slice(0, 4);
+  const policyEvents = catalysts.filter(isMajorPolicyCatalyst).slice(0, 4);
+  const stillLoading = catalysts.length === 0 && catalystSourceProvider === "Loading";
 
   return (
     <section className="border-b border-[#f4ddc3]/10 bg-[#0f131b]/60 px-4 py-10 sm:px-6 sm:py-12">
@@ -167,40 +97,46 @@ export function HomeInsightPanels() {
             </span>
           </div>
           <p className="mt-2 text-[11px] text-zinc-400 sm:pl-4">
-            Prioritized: exchange token listings/delistings, then major policy/government updates.
+            High-impact only: exchange listings/delistings and major policy. General headlines stay in In
+            the News.
           </p>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             <section className="rounded-lg border border-[#f4ddc3]/12 bg-[rgba(20,22,30,0.5)] p-3">
               <h3 className="px-1 text-[11px] font-semibold uppercase tracking-wide text-[#d7ad82]">
-                Listings Watch
+                Exchange Listings
               </h3>
               <div className="mt-2 space-y-2.5">
-                {(listingEvents.length > 0 ? listingEvents : events.slice(0, 3)).slice(0, 4).map((event) => (
-                  <a
-                    key={`${event.title}-${event.publishedAt}-listing`}
-                    href={event.url}
-                    target={event.url.startsWith("http") ? "_blank" : undefined}
-                    rel={event.url.startsWith("http") ? "noopener noreferrer" : undefined}
-                    className="glass-card block rounded-lg px-3.5 py-3 transition-colors hover:border-[#d1a173]/40"
-                  >
-                    <p className="line-clamp-2 text-xs font-semibold text-zinc-100">{event.title}</p>
-                    <p className="font-mono text-[11px] text-[#d7ad82]">
-                      {formatWhen(new Date(event.publishedAt))}
-                    </p>
-                    <p className="text-[11px] text-zinc-400">{event.source}</p>
-                  </a>
-                ))}
+                {listingEvents.length > 0 ? (
+                  listingEvents.map((event) => (
+                    <a
+                      key={`${event.title}-${event.publishedAt}-listing`}
+                      href={event.url}
+                      target={event.url.startsWith("http") ? "_blank" : undefined}
+                      rel={event.url.startsWith("http") ? "noopener noreferrer" : undefined}
+                      className="glass-card block rounded-lg px-3.5 py-3 transition-colors hover:border-[#d1a173]/40"
+                    >
+                      <p className="line-clamp-2 text-xs font-semibold text-zinc-100">{event.title}</p>
+                      <p className="font-mono text-[11px] text-[#d7ad82]">
+                        {formatWhen(new Date(event.publishedAt))}
+                      </p>
+                      <p className="text-[11px] text-zinc-400">{event.source}</p>
+                    </a>
+                  ))
+                ) : (
+                  <p className="px-1 py-2 text-[11px] text-zinc-500">
+                    {stillLoading ? "Loading listings…" : "No high-impact listings right now."}
+                  </p>
+                )}
               </div>
             </section>
 
             <section className="rounded-lg border border-[#f4ddc3]/12 bg-[rgba(20,22,30,0.5)] p-3">
               <h3 className="px-1 text-[11px] font-semibold uppercase tracking-wide text-[#9ec8ff]">
-                CoinMarketCal Style Events
+                Major Policy
               </h3>
               <div className="mt-2 space-y-2.5">
-                {(regulatoryEvents.length > 0 ? regulatoryEvents : events.slice(0, 3))
-                  .slice(0, 4)
-                  .map((event) => (
+                {policyEvents.length > 0 ? (
+                  policyEvents.map((event) => (
                     <a
                       key={`${event.title}-${event.publishedAt}-reg`}
                       href={event.url}
@@ -210,12 +146,8 @@ export function HomeInsightPanels() {
                     >
                       <div className="flex items-start justify-between gap-2">
                         <p className="line-clamp-2 text-xs font-semibold text-zinc-100">{event.title}</p>
-                        <span
-                          className={`shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold ${impactClass(
-                            eventImpact(event.title),
-                          )}`}
-                        >
-                          {eventImpact(event.title)}
+                        <span className="shrink-0 rounded border border-red-400/35 bg-red-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-red-200">
+                          High
                         </span>
                       </div>
                       <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px]">
@@ -230,7 +162,12 @@ export function HomeInsightPanels() {
                         </span>
                       </div>
                     </a>
-                  ))}
+                  ))
+                ) : (
+                  <p className="px-1 py-2 text-[11px] text-zinc-500">
+                    {stillLoading ? "Loading policy…" : "No major policy catalysts right now."}
+                  </p>
+                )}
               </div>
             </section>
           </div>

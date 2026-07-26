@@ -8,10 +8,13 @@ type CatalystItem = {
   publishedAt: string;
 };
 
+/** Exchange listing / delisting signals only. */
 const LISTING_KEYWORDS =
-  /\b(listing|will list|lists|listed|delist|delisting|adds support|new asset|roadmap)\b/i;
-const POLICY_KEYWORDS =
-  /\b(clarity act|sec|cftc|miCA|regulation|policy|etf|lawsuit|bill|hearing|government)\b/i;
+  /\b(listing|will list|lists|listed|delist|delisting|adds support|new listing)\b/i;
+
+/** Major policy / regulatory catalysts only (not general crypto news). */
+const MAJOR_POLICY_KEYWORDS =
+  /\b(clarity act|sec\b|cftc|mica|etf|lawsuit|hearing|ban|approval|regulation|bill|fomc|federal reserve|fed\b|government|congress|treasury)\b/i;
 
 function decodeHtml(input: string): string {
   return input
@@ -60,6 +63,15 @@ function onlyListingSignals(items: CatalystItem[]): CatalystItem[] {
   return items.filter((item) => LISTING_KEYWORDS.test(item.title));
 }
 
+function onlyMajorPolicy(items: CatalystItem[]): CatalystItem[] {
+  return items.filter((item) => MAJOR_POLICY_KEYWORDS.test(item.title));
+}
+
+function isHighImpact(item: CatalystItem): boolean {
+  if (item.category === "Listings") return LISTING_KEYWORDS.test(item.title);
+  return MAJOR_POLICY_KEYWORDS.test(item.title);
+}
+
 function dedupe(items: CatalystItem[]): CatalystItem[] {
   const seen = new Set<string>();
   const out: CatalystItem[] = [];
@@ -72,10 +84,14 @@ function dedupe(items: CatalystItem[]): CatalystItem[] {
   return out;
 }
 
-function classifyEvent(title: string): CatalystItem["category"] {
+function classifyEvent(title: string): CatalystItem["category"] | null {
   if (LISTING_KEYWORDS.test(title)) return "Listings";
-  if (POLICY_KEYWORDS.test(title)) return "Policy";
-  return "Policy";
+  if (MAJOR_POLICY_KEYWORDS.test(title)) {
+    return /\b(government|congress|treasury|fed\b|fomc|federal reserve)\b/i.test(title)
+      ? "Government"
+      : "Policy";
+  }
+  return null;
 }
 
 async function fetchCoinMarketCalEvents(limit = 12): Promise<CatalystItem[]> {
@@ -121,6 +137,9 @@ async function fetchCoinMarketCalEvents(limit = 12): Promise<CatalystItem[]> {
     const title = decodeHtml(titleRaw).replace(/\s+/g, " ").trim();
     if (!title) continue;
 
+    const category = classifyEvent(title);
+    if (!category) continue;
+
     const source =
       (typeof r.source === "string" ? r.source : "") ||
       (typeof (r.coin as Record<string, unknown> | undefined)?.name === "string"
@@ -143,7 +162,7 @@ async function fetchCoinMarketCalEvents(limit = 12): Promise<CatalystItem[]> {
       : new Date(dateRaw).toISOString();
 
     out.push({
-      category: classifyEvent(title),
+      category,
       title,
       url,
       source,
@@ -156,46 +175,60 @@ async function fetchCoinMarketCalEvents(limit = 12): Promise<CatalystItem[]> {
 
 export async function GET() {
   try {
-    const [coinMarketCalEvents, clarityAct, listings, krakenListings, listingSignals] = await Promise.all([
-      fetchCoinMarketCalEvents(12),
-      fetchRss(
-        "https://news.google.com/rss/search?q=CLARITY+Act+crypto&hl=en-US&gl=US&ceid=US:en",
-        "Policy",
-        "Google News",
-        4,
-      ),
-      fetchRss(
-        "https://news.google.com/rss/search?q=crypto+exchange+listing+binance+coinbase+kraken&hl=en-US&gl=US&ceid=US:en",
-        "Listings",
-        "Google News",
-        5,
-      ),
-      fetchRss("https://blog.kraken.com/feed", "Listings", "Kraken Blog", 8),
-      fetchRss(
-        "https://news.google.com/rss/search?q=(binance+OR+coinbase+OR+kraken+OR+okx+OR+kucoin+OR+bybit)+(%22will+list%22+OR+listing+OR+delisting)&hl=en-US&gl=US&ceid=US:en",
-        "Listings",
-        "Google News",
-        10,
-      ),
-    ]);
+    const [coinMarketCalEvents, clarityAct, listings, krakenListings, listingSignals] =
+      await Promise.all([
+        fetchCoinMarketCalEvents(20),
+        fetchRss(
+          "https://news.google.com/rss/search?q=CLARITY+Act+OR+SEC+crypto+OR+ETF+crypto&hl=en-US&gl=US&ceid=US:en",
+          "Policy",
+          "Google News",
+          6,
+        ),
+        fetchRss(
+          "https://news.google.com/rss/search?q=crypto+exchange+listing+binance+coinbase+kraken&hl=en-US&gl=US&ceid=US:en",
+          "Listings",
+          "Google News",
+          5,
+        ),
+        fetchRss("https://blog.kraken.com/feed", "Listings", "Kraken Blog", 8),
+        fetchRss(
+          "https://news.google.com/rss/search?q=(binance+OR+coinbase+OR+kraken+OR+okx+OR+kucoin+OR+bybit)+(%22will+list%22+OR+listing+OR+delisting)&hl=en-US&gl=US&ceid=US:en",
+          "Listings",
+          "Google News",
+          10,
+        ),
+      ]);
 
     const listingItems = dedupe(
-      [...onlyListingSignals(krakenListings), ...onlyListingSignals(listings), ...onlyListingSignals(listingSignals)]
+      [
+        ...onlyListingSignals(krakenListings),
+        ...onlyListingSignals(listings),
+        ...onlyListingSignals(listingSignals),
+        ...coinMarketCalEvents.filter((e) => e.category === "Listings"),
+      ]
         .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
-        .slice(0, 8),
+        .slice(0, 5),
     );
 
-    const fallbackItems = [...listingItems, ...clarityAct]
-      .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+    const policyItems = dedupe(
+      [
+        ...onlyMajorPolicy(clarityAct),
+        ...coinMarketCalEvents.filter((e) => e.category !== "Listings"),
+      ]
+        .filter(isHighImpact)
+        .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+        .slice(0, 5),
+    );
+
+    const items = dedupe([...listingItems, ...policyItems]).sort(
+      (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
+    );
 
     const usingCoinMarketCal = coinMarketCalEvents.length > 0;
-    const items = usingCoinMarketCal
-      ? coinMarketCalEvents
-      : dedupe(fallbackItems).slice(0, 12);
 
     return NextResponse.json({
       items,
-      sourceProvider: usingCoinMarketCal ? "CoinMarketCal" : "Aggregated News Feeds",
+      sourceProvider: usingCoinMarketCal ? "CoinMarketCal + Feeds" : "Aggregated News Feeds",
     });
   } catch (error) {
     return NextResponse.json(
