@@ -41,7 +41,14 @@ export const metadata: Metadata = {
     description:
       "Track live cryptocurrency prices, charts, market cap, gainers, losers, and market sentiment. Free real-time crypto data on AltCoin Depot.",
   },
-  robots: { index: true, follow: true },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
 };
 
 export default function RootLayout({
