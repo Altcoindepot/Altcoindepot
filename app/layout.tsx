@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeScript } from "@/components/theme-script";
@@ -65,6 +66,7 @@ export default function RootLayout({
           </div>
           <PriceAlertWatcher />
         </ThemeProvider>
+        <Analytics />
         <SpeedInsights />
       </body>
     </html>
