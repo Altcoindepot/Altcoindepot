@@ -89,8 +89,8 @@ export function ThemeSelector() {
               }}
               className={`flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-md px-1 py-2 text-[11px] font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] sm:text-xs ${
                 active
-                  ? "bg-[#d1a173]/25 text-zinc-100 ring-1 ring-[#d1a173]/45"
-                  : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
+                  ? "bg-[#d1a173]/25 text-[#faf7f2] ring-1 ring-[#d1a173]/45"
+                  : "text-[#d6c4b0] hover:bg-[#d1a173]/15 hover:text-[#faf7f2]"
               }`}
             >
               <ThemeIcon kind={opt.icon} />
@@ -99,7 +99,7 @@ export function ThemeSelector() {
           );
         })}
       </div>
-      <p className="px-3 pt-2 text-[10px] leading-relaxed text-zinc-500">
+      <p className="px-3 pt-2 text-[10px] leading-relaxed text-[#c4b09a]">
         Choice is saved on this device. System follows your OS setting.
       </p>
     </div>

@@ -8,7 +8,7 @@ function formatPct(n: number) {
 }
 
 function toneClass(n: number) {
-  return n >= 0 ? "text-emerald-300" : "text-red-300";
+  return n >= 0 ? "text-[#6ee7b7]" : "text-[#fca5a5]";
 }
 
 function formatCompactUsd(n: number | null) {
@@ -22,9 +22,9 @@ function formatCompactUsd(n: number | null) {
 }
 
 function fearGreedTone(value: number) {
-  if (value >= 60) return "text-emerald-300";
-  if (value <= 40) return "text-red-300";
-  return "text-amber-200";
+  if (value >= 60) return "text-[#6ee7b7]";
+  if (value <= 40) return "text-[#fca5a5]";
+  return "text-[#fde68a]";
 }
 
 function clamp(n: number, min: number, max: number) {
@@ -141,51 +141,57 @@ export function MarketSentimentStrip() {
       aria-label="Market sentiment trackers"
       className="border-b border-[#f4ddc3]/10 bg-[#0f131b]/70 px-4 py-8 sm:px-6 sm:py-10"
     >
-      <div className="glass-panel mx-auto grid max-w-6xl grid-cols-1 gap-3 rounded-xl p-3 sm:grid-cols-2 sm:gap-3 md:grid-cols-3 md:gap-4 md:p-4">
-        <article className="glass-card rounded-xl border border-[#f4ddc3]/12 px-4 py-4 sm:px-5 sm:py-5">
-          <p className="text-[10px] uppercase tracking-wide text-zinc-500">Total Crypto Market Cap</p>
-          <p className="mt-1.5 text-base font-semibold tabular-nums text-zinc-100 sm:text-base">
+      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-3 rounded-xl border border-[#f4ddc3]/20 bg-[rgba(18,16,20,0.92)] p-3 sm:grid-cols-2 sm:gap-3 md:grid-cols-3 md:gap-4 md:p-4">
+        <article className="rounded-xl border border-[#f4ddc3]/18 bg-[rgba(28,24,30,0.95)] px-4 py-4 sm:px-5 sm:py-5">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-[#e8d4bc]">
+            Total Crypto Market Cap
+          </p>
+          <p className="mt-1.5 text-lg font-bold tabular-nums text-[#faf7f2] sm:text-base">
             {formatCompactUsd(globalMcap)}
           </p>
-          <p className={`mt-1 font-mono text-xs ${toneClass(globalMcap24h)}`}>
+          <p className={`mt-1 font-mono text-sm font-semibold sm:text-xs ${toneClass(globalMcap24h)}`}>
             {formatPct(globalMcap24h)} (24h)
           </p>
           <MiniLine points={mcapSeries} />
         </article>
-        <article className="glass-card rounded-xl border border-[#f4ddc3]/12 px-4 py-4 sm:px-5 sm:py-5">
-          <p className="text-[10px] uppercase tracking-wide text-zinc-500">Fear & Greed Index</p>
-          <p className={`mt-1.5 text-base font-semibold sm:text-base ${fearGreedTone(fearGreedValue)}`}>
+        <article className="rounded-xl border border-[#f4ddc3]/18 bg-[rgba(28,24,30,0.95)] px-4 py-4 sm:px-5 sm:py-5">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-[#e8d4bc]">
+            Fear & Greed Index
+          </p>
+          <p className={`mt-1.5 text-lg font-bold sm:text-base ${fearGreedTone(fearGreedValue)}`}>
             {fearGreedLabel} ({Math.round(fearGreedValue)})
           </p>
-          <div className="mt-2 rounded-full border border-white/10 bg-[#0a0a0a] p-1.5">
-            <div className="relative h-2 rounded-full bg-gradient-to-r from-red-500/70 via-amber-400/70 to-emerald-400/70">
+          <div className="mt-2 rounded-full border border-white/15 bg-[#0a0a0a] p-1.5">
+            <div className="relative h-2.5 rounded-full bg-gradient-to-r from-red-500 via-amber-400 to-emerald-400">
               <span
-                className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border border-white/40 bg-white"
-                style={{ left: `calc(${fearGreedPos}% - 6px)` }}
+                className="absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full border-2 border-white bg-white shadow"
+                style={{ left: `calc(${fearGreedPos}% - 7px)` }}
               />
             </div>
           </div>
-          <p className="mt-2 text-[11px] text-zinc-400">Source: Alternative.me</p>
+          <p className="mt-2 text-xs text-[#d6c4b0] sm:text-[11px]">Source: Alternative.me</p>
         </article>
-        <article className="glass-card rounded-xl border border-[#f4ddc3]/12 px-4 py-4 sm:col-span-2 sm:px-5 sm:py-5 md:col-span-1">
-          <p className="text-[10px] uppercase tracking-wide text-zinc-500">Alt Season Tracker</p>
-          <p className="mt-1.5 text-base font-semibold text-zinc-100 sm:text-base">
+        <article className="rounded-xl border border-[#f4ddc3]/18 bg-[rgba(28,24,30,0.95)] px-4 py-4 sm:col-span-2 sm:px-5 sm:py-5 md:col-span-1">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-[#e8d4bc]">
+            Alt Season Tracker
+          </p>
+          <p className="mt-1.5 text-lg font-bold text-[#faf7f2] sm:text-base">
             {altSeasonLabel} ({altSeasonIndex.toFixed(0)})
           </p>
-          <div className="mt-2 rounded-full border border-white/10 bg-[#0a0a0a] p-1.5">
-            <div className="relative h-2 rounded-full bg-gradient-to-r from-[#f59e0b]/70 via-[#60a5fa]/70 to-[#a855f7]/70">
+          <div className="mt-2 rounded-full border border-white/15 bg-[#0a0a0a] p-1.5">
+            <div className="relative h-2.5 rounded-full bg-gradient-to-r from-[#f59e0b] via-[#60a5fa] to-[#c084fc]">
               <span
-                className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border border-white/40 bg-white"
-                style={{ left: `calc(${altPos}% - 6px)` }}
+                className="absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full border-2 border-white bg-white shadow"
+                style={{ left: `calc(${altPos}% - 7px)` }}
               />
             </div>
           </div>
-          <p className="mt-2 text-[11px] text-zinc-400">
+          <p className="mt-2 text-xs text-[#d6c4b0] sm:text-[11px]">
             {outperformers}/{Math.max(altUniverse.length, 1)} alts outperform BTC (7d)
           </p>
         </article>
       </div>
-      <div className="mx-auto mt-2 max-w-6xl px-1 text-right text-[10px] text-zinc-500">
+      <div className="mx-auto mt-2 max-w-6xl px-1 text-right text-[11px] text-[#c4b09a]">
         Last updated: {lastUpdatedLabel}
       </div>
     </section>

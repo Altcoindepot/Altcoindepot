@@ -3,6 +3,33 @@ import { coinGeckoFetch } from "@/lib/coingecko";
 
 const ALLOWED_DAYS = new Set(["1", "7", "14", "30", "90", "180", "365", "max"]);
 
+/** CoinGecko OHLC candle: [timestamp, open, high, low, close] */
+export type OhlcCandle = [number, number, number, number, number];
+
+function parseOhlc(raw: unknown): OhlcCandle[] {
+  if (!Array.isArray(raw)) return [];
+  const out: OhlcCandle[] = [];
+  for (const row of raw) {
+    if (
+      Array.isArray(row) &&
+      row.length >= 5 &&
+      typeof row[0] === "number" &&
+      typeof row[1] === "number" &&
+      typeof row[2] === "number" &&
+      typeof row[3] === "number" &&
+      typeof row[4] === "number" &&
+      Number.isFinite(row[0]) &&
+      Number.isFinite(row[1]) &&
+      Number.isFinite(row[2]) &&
+      Number.isFinite(row[3]) &&
+      Number.isFinite(row[4])
+    ) {
+      out.push([row[0], row[1], row[2], row[3], row[4]]);
+    }
+  }
+  return out;
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id")?.trim().toLowerCase() ?? "";
@@ -15,7 +42,7 @@ export async function GET(request: Request) {
 
   try {
     const res = await coinGeckoFetch(
-      `/coins/${encodeURIComponent(id)}/market_chart?vs_currency=usd&days=${encodeURIComponent(days)}`,
+      `/coins/${encodeURIComponent(id)}/ohlc?vs_currency=usd&days=${encodeURIComponent(days)}`,
       { next: { revalidate: 120 } },
     );
     if (!res.ok) {
@@ -24,22 +51,11 @@ export async function GET(request: Request) {
         { status: res.status === 404 ? 404 : 502 },
       );
     }
-    const data = (await res.json()) as { prices?: [number, number][] };
-    const prices = Array.isArray(data.prices)
-      ? data.prices
-          .filter(
-            (p): p is [number, number] =>
-              Array.isArray(p) &&
-              p.length >= 2 &&
-              typeof p[0] === "number" &&
-              typeof p[1] === "number" &&
-              Number.isFinite(p[0]) &&
-              Number.isFinite(p[1]),
-          )
-          .map(([t, v]) => [t, v] as [number, number])
-      : [];
+    const data: unknown = await res.json();
+    const ohlc = parseOhlc(data);
+    const prices = ohlc.map(([t, , , , c]) => [t, c] as [number, number]);
 
-    return NextResponse.json({ id, days, prices });
+    return NextResponse.json({ id, days, ohlc, prices });
   } catch {
     return NextResponse.json({ error: "Chart unavailable" }, { status: 502 });
   }

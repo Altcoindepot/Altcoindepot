@@ -96,7 +96,7 @@ export function HeaderNavMenu() {
         <div
           ref={panelRef}
           id={listId}
-          className="absolute left-0 z-[60] mt-2 w-[min(100vw-2rem,18rem)] origin-top-left rounded-xl border border-[#f4ddc3]/20 bg-[rgba(11,12,16,0.9)] py-2 shadow-[0_0_40px_rgba(0,0,0,0.65),0_0_20px_rgba(185,129,82,0.12)] backdrop-blur-md"
+          className="absolute left-0 z-[60] mt-2 w-[min(100vw-2rem,18rem)] origin-top-left rounded-xl border border-[#f4ddc3]/35 bg-[linear-gradient(160deg,rgba(58,46,38,0.98),rgba(28,24,30,0.98))] py-2 shadow-[0_0_40px_rgba(0,0,0,0.55),0_0_20px_rgba(185,129,82,0.18)] backdrop-blur-md"
         >
           <nav aria-label="Site pages">
             <ul className="flex flex-col gap-0.5 px-1">
@@ -105,18 +105,18 @@ export function HeaderNavMenu() {
                   <Link
                     href={href}
                     onClick={close}
-                    className="text-metallic block rounded-lg px-3 py-2.5 text-base font-medium transition-colors hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173]"
+                    className="block rounded-lg px-3 py-2.5 text-base font-semibold text-[#f4ebe0] transition-colors hover:bg-[#d1a173]/15 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173]"
                   >
                     {label}
                   </Link>
                 </li>
               ))}
-              <li className="mt-1 border-t border-[#f4ddc3]/15 pt-2">
+              <li className="mt-1 border-t border-[#f4ddc3]/25 pt-2">
                 <button
                   type="button"
                   aria-expanded={categoriesOpen}
                   onClick={() => setCategoriesOpen((v) => !v)}
-                  className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-widest text-[#d7ad82] transition-colors hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173]"
+                  className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-widest text-[#e8d4bc] transition-colors hover:bg-[#d1a173]/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173]"
                 >
                   <span>Categories</span>
                   <svg
@@ -137,7 +137,7 @@ export function HeaderNavMenu() {
                       <Link
                         href={`/category/${encodeURIComponent(category.slug)}`}
                         onClick={close}
-                        className="text-metallic block rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173]"
+                        className="block rounded-lg px-3 py-2 text-sm font-medium text-[#f0e6da] transition-colors hover:bg-[#d1a173]/15 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173]"
                       >
                         {category.title}
                       </Link>
