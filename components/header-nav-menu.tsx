@@ -7,9 +7,9 @@ import { ThemeSelector } from "@/components/theme-selector";
 
 const nav = [
   { href: "/", label: "Home" },
+  { href: "/compare", label: "Compare" },
   { href: "/watchlist", label: "Watchlist" },
   { href: "/portfolio", label: "Portfolio" },
-  { href: "/compare", label: "Compare" },
   { href: "/alerts", label: "Price alerts" },
   { href: "/gainers-losers", label: "Gainers & Losers" },
   { href: "/cex-trending", label: "CEX Trending" },

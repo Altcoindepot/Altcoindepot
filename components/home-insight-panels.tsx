@@ -7,6 +7,9 @@ import {
   scoreCatalystImpact,
   type CatalystImpact,
 } from "@/lib/catalyst-impact";
+import { SectionHeading } from "@/components/section-heading";
+import { DisclaimerNote } from "@/components/disclaimer-note";
+import { ds } from "@/lib/ui-classes";
 
 type CatalystItem = {
   category: "Government" | "Policy" | "Listings";
@@ -61,38 +64,24 @@ function CatalystCard({
     event.countdown ??
     (event.eventAt ? formatEventCountdown(event.eventAt) : null);
   const high = impact === "High";
-  const dateCls = accent === "listing" ? "text-[#d7ad82]" : "text-[#9ec8ff]";
-  const chipCls =
-    accent === "listing"
-      ? "border-[#d7ad82]/35 bg-[#d7ad82]/10 text-[#d7ad82]"
-      : "border-[#9ec8ff]/35 bg-[#9ec8ff]/10 text-[#9ec8ff]";
+  const dateCls = accent === "listing" ? "text-[#d7ad82]" : "text-zinc-400";
 
   return (
     <a
       href={event.url}
       target={event.url.startsWith("http") ? "_blank" : undefined}
       rel={event.url.startsWith("http") ? "noopener noreferrer" : undefined}
-      className={`glass-card flex h-[6.25rem] flex-col justify-between rounded-lg px-3.5 py-3 transition-colors hover:border-[#d1a173]/40 ${
-        high ? "border-amber-300/35 bg-amber-400/[0.06] ring-1 ring-amber-300/20" : ""
+      className={`ds-card flex h-[6.25rem] flex-col justify-between px-3.5 py-3 transition-colors hover:border-[#d1a173]/40 ${
+        high ? "ring-1 ring-amber-300/25" : ""
       }`}
     >
       <p className="line-clamp-2 text-xs font-semibold leading-snug text-zinc-100">{event.title}</p>
-      <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px]">
-        <span className={`rounded border px-1.5 py-0.5 font-semibold ${chipCls}`}>
-          {event.category}
-        </span>
-        <span className={`rounded border px-1.5 py-0.5 font-semibold ${impactBadgeClass(impact)}`}>
-          {impact}
-        </span>
-        {countdown ? (
-          <span className="rounded border border-[#d1a173]/35 bg-[#d1a173]/10 px-1.5 py-0.5 font-mono font-semibold text-[#d7ad82]">
-            in {countdown}
-          </span>
-        ) : null}
-        <span className="rounded border border-white/15 px-1.5 py-0.5 text-zinc-300">
-          {event.source}
-        </span>
-        <span className={`font-mono ${dateCls}`}>
+      <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+        <span className={ds.badgeInfo}>{event.category}</span>
+        <span className={`ds-badge ${impactBadgeClass(impact)}`}>{impact}</span>
+        {countdown ? <span className={ds.badgeAccent}>in {countdown}</span> : null}
+        <span className={ds.badgeInfo}>{event.source}</span>
+        <span className={`font-mono text-[10px] ${dateCls}`}>
           {formatWhen(new Date(event.eventAt || event.publishedAt))}
         </span>
       </div>
@@ -102,7 +91,7 @@ function CatalystCard({
 
 function EmptySlot({ message }: { message?: string }) {
   return (
-    <div className="flex h-[6.25rem] items-center rounded-lg border border-dashed border-white/10 bg-[rgba(12,14,20,0.35)] px-3.5 py-3">
+    <div className="flex h-[6.25rem] items-center rounded-xl border border-dashed border-white/10 bg-[rgba(12,14,20,0.35)] px-3.5 py-3">
       {message ? <p className="text-[11px] text-zinc-500">{message}</p> : null}
     </div>
   );
@@ -110,7 +99,6 @@ function EmptySlot({ message }: { message?: string }) {
 
 function CatalystColumn({
   title,
-  titleClass,
   accent,
   events,
   emptyMessage,
@@ -118,7 +106,6 @@ function CatalystColumn({
   stillLoading,
 }: {
   title: string;
-  titleClass: string;
   accent: "listing" | "policy";
   events: CatalystItem[];
   emptyMessage: string;
@@ -129,10 +116,8 @@ function CatalystColumn({
   const placeholder = stillLoading ? loadingMessage : emptyMessage;
 
   return (
-    <section className="flex h-full flex-col rounded-lg border border-[#f4ddc3]/12 bg-[rgba(20,22,30,0.5)] p-3">
-      <h3 className={`px-1 text-[11px] font-semibold uppercase tracking-wide ${titleClass}`}>
-        {title}
-      </h3>
+    <section className={`${ds.card} flex h-full flex-col !p-3`}>
+      <h3 className={`px-1 ${ds.label}`}>{title}</h3>
       <div className="mt-2 grid flex-1 grid-rows-4 gap-2.5">
         {slots.map((event, i) =>
           event ? (
@@ -236,24 +221,18 @@ export function HomeInsightPanels() {
   return (
     <section className="section-band border-b border-[#f4ddc3]/08 bg-[#0f131b]/60 px-4 py-16 sm:px-6 sm:py-20">
       <div className="mx-auto grid max-w-6xl gap-4">
-        <article className="glass-panel rounded-xl p-5 sm:p-6">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="flex items-center gap-3 text-base font-extrabold tracking-tight text-zinc-100 sm:text-lg">
-              <span className="hidden h-6 w-1 shrink-0 rounded-full bg-[#d1a173]/80 sm:block" aria-hidden />
-              Catalyst Calendar
-            </h2>
-            <span className="rounded border border-[#f4ddc3]/15 bg-[rgba(20,22,30,0.6)] px-1.5 py-0.5 text-[10px] text-zinc-300">
-              Source: {catalystSourceProvider}
-            </span>
+        <article className={ds.panelLg}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <SectionHeading>Catalyst Calendar</SectionHeading>
+            <span className={ds.badgeInfo}>Source: {catalystSourceProvider}</span>
           </div>
-          <p className="mt-2 text-[11px] text-zinc-400 sm:pl-4">
-            High-impact listings and major policy · impact scores are informational heuristics, not
-            advice
+          <p className={ds.subtitle}>
+            High-impact listings and major policy · impact scores are informational heuristics
           </p>
-          <div className="mt-4 grid items-stretch gap-3 md:grid-cols-2">
+          <DisclaimerNote className="sm:pl-4" />
+          <div className="mt-5 grid items-stretch gap-3 md:grid-cols-2">
             <CatalystColumn
               title="Exchange Listings"
-              titleClass="text-[#d7ad82]"
               accent="listing"
               events={listingEvents}
               emptyMessage="No high-impact listings right now."
@@ -262,7 +241,6 @@ export function HomeInsightPanels() {
             />
             <CatalystColumn
               title="Major Policy"
-              titleClass="text-[#9ec8ff]"
               accent="policy"
               events={policyEvents}
               emptyMessage="No major policy catalysts right now."

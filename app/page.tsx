@@ -1,8 +1,31 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { MarketsDataShell } from "@/components/markets-data-shell";
 import { HomeMarketsFallback } from "@/components/home-markets-fallback";
 import { HomeNewsFeed } from "@/components/home-news-feed";
+
+const TITLE = "AltCoin Depot – Market Regime, Live Crypto Prices & Compare";
+const DESCRIPTION =
+  "Live crypto market dashboard: Market Regime, Market Brief, prices, gainers & losers, and side-by-side coin compare. Free real-time data on AltCoin Depot.";
+
+export const metadata: Metadata = {
+  title: { absolute: TITLE },
+  description: DESCRIPTION,
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: "https://altcoindepot.com",
+    siteName: "AltCoin Depot",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
+};
 
 export default function Home() {
   return (

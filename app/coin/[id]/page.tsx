@@ -16,6 +16,7 @@ import { SiteHeader } from "@/components/site-header";
 import { CoinDetailView } from "@/components/coin-detail-view";
 import { getReppoStatsForDisplay } from "@/lib/reppo-stats-live";
 import { buildCoinSeoCopy } from "@/lib/coin-seo";
+import { resolveNarrativeTags } from "@/lib/coin-narratives";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -45,7 +46,37 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const coin = result.coin;
   const sym = (coin.symbol ?? "").toString().toUpperCase() || "—";
   const name = (coin.name ?? "Coin").toString();
-  const { title, description } = buildCoinSeoCopy(name, sym, coin.id);
+
+  let vsBtc7d: number | null = null;
+  if (coin.id !== "bitcoin") {
+    const md = coin.market_data;
+    const ch7 =
+      typeof md?.price_change_percentage_7d === "number"
+        ? md.price_change_percentage_7d
+        : typeof md?.price_change_percentage_7d_in_currency?.usd === "number"
+          ? md.price_change_percentage_7d_in_currency.usd
+          : null;
+    const btcResult = await lookupCoinById("bitcoin");
+    if (btcResult.status === "ok" && ch7 != null) {
+      const btcMd = btcResult.coin.market_data;
+      const btc7 =
+        typeof btcMd?.price_change_percentage_7d === "number"
+          ? btcMd.price_change_percentage_7d
+          : typeof btcMd?.price_change_percentage_7d_in_currency?.usd === "number"
+            ? btcMd.price_change_percentage_7d_in_currency.usd
+            : null;
+      if (btc7 != null) vsBtc7d = ch7 - btc7;
+    }
+  }
+
+  const tags = resolveNarrativeTags({
+    id: coin.id,
+    categories: coin.categories,
+  });
+  const { title, description } = buildCoinSeoCopy(name, sym, coin.id, {
+    vsBtc7d,
+    tags,
+  });
   return {
     title: { absolute: title },
     description,

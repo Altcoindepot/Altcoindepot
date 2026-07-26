@@ -21,7 +21,9 @@ import { LiquidityBadge } from "@/components/liquidity-badge";
 import { PriceAlertForm } from "@/components/price-alert-form";
 import { RelatedCoins } from "@/components/related-coins";
 import { RecordRecentlyViewed } from "@/components/record-recently-viewed";
+import { DisclaimerNote } from "@/components/disclaimer-note";
 import { inferMoveDriver } from "@/lib/move-driver";
+import { ds } from "@/lib/ui-classes";
 
 function tradingViewSymbol(symbol: string | undefined) {
   return (symbol ?? "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
@@ -653,7 +655,7 @@ export function CoinDetailView({
             {(coin.symbol ?? "—").toString().toUpperCase()}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <NarrativeTags coinId={coin.id} categories={coin.categories} />
+            <NarrativeTags coinId={coin.id} categories={coin.categories} max={3} />
             <LiquidityBadge totalVolume={volume24} marketCap={marketCap} />
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -661,7 +663,7 @@ export function CoinDetailView({
               href={geckoUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-11 items-center rounded-lg border border-[#00ff9f]/40 bg-[#00ff9f]/10 px-3.5 py-2.5 text-sm font-semibold text-[#00ff9f] transition-[box-shadow] hover:shadow-[0_0_20px_rgba(0,255,159,0.2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a855f7] sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs"
+              className={ds.btnPrimary}
             >
               View on CoinGecko
             </a>
@@ -670,7 +672,7 @@ export function CoinDetailView({
                 href={homepage}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center rounded-lg border border-white/15 px-3.5 py-2.5 text-sm text-zinc-300 transition-colors hover:border-[#a855f7]/40 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a855f7] sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs"
+                className={ds.btnSecondary}
               >
                 Official site
               </a>
@@ -680,7 +682,7 @@ export function CoinDetailView({
                 href={twitterHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center rounded-lg border border-white/15 px-3.5 py-2.5 text-sm text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a855f7] sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs"
+                className={ds.btnSecondary}
               >
                 X (Twitter)
               </a>
@@ -690,7 +692,7 @@ export function CoinDetailView({
                 href={mediumSourceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center rounded-lg border border-white/15 px-3.5 py-2.5 text-sm text-zinc-300 transition-colors hover:border-[#00ff9f]/40 hover:text-[#00ff9f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a855f7] sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs"
+                className={ds.btnSecondary}
               >
                 Medium
               </a>
@@ -700,7 +702,7 @@ export function CoinDetailView({
                 href={whitepaper}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center rounded-lg border border-white/15 px-3.5 py-2.5 text-sm text-zinc-300 transition-colors hover:border-[#d1a173]/40 hover:text-[#d7ad82] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs"
+                className={ds.btnSecondary}
               >
                 Whitepaper
               </a>
@@ -715,77 +717,100 @@ export function CoinDetailView({
               coinId={coin.id}
               name={coin.name}
               symbol={(coin.symbol ?? "").toString()}
+              vsBtc7d={vsBtc7d}
             />
+            {coin.id !== "bitcoin" ? (
+              <Link
+                href={`/compare?add=${encodeURIComponent(coin.id)}`}
+                className={ds.btnPrimary}
+              >
+                Compare with another coin
+              </Link>
+            ) : (
+              <Link href="/compare" className={ds.btnPrimary}>
+                Compare coins
+              </Link>
+            )}
           </div>
         </div>
           </header>
 
-          <div className="mt-4 space-y-3">
+          <div className="mt-4 space-y-4">
             <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <div className="rounded-lg border border-[#f4ddc3]/20 bg-[#0f131b]/80 px-3 py-2">
-                <dt className="text-[10px] uppercase tracking-wide text-zinc-500">Price</dt>
+              <div className={ds.stat}>
+                <dt className={ds.label}>Price</dt>
                 <dd className="mt-0.5 font-mono text-sm font-semibold text-zinc-100">
                   {formatUsd(current)}
                 </dd>
               </div>
-              <div className="rounded-lg border border-[#f4ddc3]/20 bg-[#0f131b]/80 px-3 py-2">
-                <dt className="text-[10px] uppercase tracking-wide text-zinc-500">Market cap</dt>
+              <div className={ds.stat}>
+                <dt className={ds.label}>Market cap</dt>
                 <dd className="mt-0.5 font-mono text-sm font-semibold text-zinc-100">
                   {formatCompactUsd(marketCap)}
                 </dd>
               </div>
-              <div className="rounded-lg border border-[#f4ddc3]/20 bg-[#0f131b]/80 px-3 py-2">
-                <dt className="text-[10px] uppercase tracking-wide text-zinc-500">24h volume</dt>
+              <div className={ds.stat}>
+                <dt className={ds.label}>24h volume</dt>
                 <dd className="mt-0.5 font-mono text-sm font-semibold text-zinc-100">
                   {formatCompactUsd(usd(md?.total_volume))}
                 </dd>
               </div>
-              <div className="rounded-lg border border-[#f4ddc3]/20 bg-[#0f131b]/80 px-3 py-2">
-                <dt className="text-[10px] uppercase tracking-wide text-zinc-500">24h change</dt>
+              <div className={ds.stat}>
+                <dt className={ds.label}>24h change</dt>
                 <dd className="mt-0.5 font-mono text-sm font-semibold">{pct(ch24)}</dd>
               </div>
             </dl>
 
             {(vsBtc7d != null || vsBtc30d != null) && coin.id !== "bitcoin" ? (
-              <div className="rounded-lg border border-[#f4ddc3]/15 bg-[#0c0e14]/80 px-3 py-2.5">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
-                  Compared to BTC
-                </p>
-                <div className="mt-1.5 flex flex-wrap gap-4">
-                  <p className="font-mono text-sm tabular-nums">
-                    <span className="mr-1.5 text-[10px] uppercase text-zinc-500">7d</span>
-                    <span className={vsBtc7d != null && vsBtc7d >= 0 ? "text-emerald-300" : "text-red-300"}>
+              <div className={ds.card}>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className={ds.label}>Compared to BTC</p>
+                  <Link
+                    href={`/compare?add=${encodeURIComponent(coin.id)},bitcoin`}
+                    className="text-[11px] font-medium text-[#d7ad82] underline-offset-2 hover:underline"
+                  >
+                    Compare side by side
+                  </Link>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-3 sm:max-w-sm">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-zinc-500">7d vs BTC</p>
+                    <p
+                      className={`mt-0.5 font-mono text-xl font-bold tabular-nums sm:text-2xl ${
+                        vsBtc7d != null && vsBtc7d >= 0 ? "text-emerald-300" : "text-red-300"
+                      }`}
+                    >
                       {vsBtc7d == null
                         ? "—"
                         : `${vsBtc7d >= 0 ? "+" : ""}${vsBtc7d.toFixed(2)}%`}
-                    </span>
-                  </p>
-                  <p className="font-mono text-sm tabular-nums">
-                    <span className="mr-1.5 text-[10px] uppercase text-zinc-500">30d</span>
-                    <span
-                      className={vsBtc30d != null && vsBtc30d >= 0 ? "text-emerald-300" : "text-red-300"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-zinc-500">30d vs BTC</p>
+                    <p
+                      className={`mt-0.5 font-mono text-xl font-bold tabular-nums sm:text-2xl ${
+                        vsBtc30d != null && vsBtc30d >= 0 ? "text-emerald-300" : "text-red-300"
+                      }`}
                     >
                       {vsBtc30d == null
                         ? "—"
                         : `${vsBtc30d >= 0 ? "+" : ""}${vsBtc30d.toFixed(2)}%`}
-                    </span>
-                  </p>
+                    </p>
+                  </div>
                 </div>
-                <p className="mt-1 text-[10px] text-zinc-600">
-                  Coin % change minus Bitcoin’s over the same window
-                </p>
+                <DisclaimerNote>
+                  Coin % change minus Bitcoin’s over the same window · informational only
+                </DisclaimerNote>
               </div>
             ) : null}
 
-            <div className="rounded-lg border border-white/10 bg-[#111111]/80 px-3 py-2.5">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
-                What moved this coin?
-              </p>
-              <p className="mt-1 text-sm font-medium text-zinc-100">{moveDriver.label}</p>
+            <div className={ds.card}>
+              <p className={ds.label}>What moved this coin?</p>
+              <p className="mt-2 text-sm font-medium text-zinc-100">{moveDriver.label}</p>
               <p className="mt-0.5 text-xs leading-snug text-zinc-400">{moveDriver.detail}</p>
-              <p className="mt-1.5 text-[10px] text-zinc-600">
+              <DisclaimerNote>
                 Contextual guess from price vs BTC and recent headlines · not financial advice
-              </p>
+              </DisclaimerNote>
             </div>
             <PriceAlertForm
               coinId={coin.id}

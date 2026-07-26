@@ -19,6 +19,7 @@ const POLICY_RE =
 /**
  * Lightweight contextual guess — not financial advice.
  * Uses coin vs BTC divergence plus optional headline keywords.
+ * Prefers specific drivers when signals are clear; otherwise falls back to mixed/unclear.
  */
 export function inferMoveDriver(input: {
   coinChange24h: number | null;
@@ -65,8 +66,9 @@ export function inferMoveDriver(input: {
   if (Math.abs(coin) >= 8 && gap >= 5) {
     return {
       kind: "social",
-      label: "Possibly coin-specific / social-driven",
-      detail: "Move looks larger than Bitcoin’s — could be narrative or flow-specific.",
+      label: "Possibly coin-specific",
+      detail:
+        "Move looks larger than Bitcoin’s — could be narrative- or flow-specific. Not confirmed.",
     };
   }
 

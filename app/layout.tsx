@@ -23,15 +23,15 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://altcoindepot.com"),
   title: {
-    default: "AltCoin Depot – Live Crypto Prices, Charts & Market Data",
+    default: "AltCoin Depot – Market Regime, Live Crypto Prices & Compare",
     template: "%s · AltCoin Depot",
   },
   description:
-    "Track live cryptocurrency prices, charts, market cap, gainers, losers, and market sentiment. Free real-time crypto data on AltCoin Depot.",
+    "Live crypto market dashboard: Market Regime, Market Brief, prices, gainers & losers, and side-by-side coin compare. Free real-time data on AltCoin Depot.",
   openGraph: {
-    title: "AltCoin Depot – Live Crypto Prices, Charts & Market Data",
+    title: "AltCoin Depot – Market Regime, Live Crypto Prices & Compare",
     description:
-      "Track live cryptocurrency prices, charts, market cap, gainers, losers, and market sentiment. Free real-time crypto data on AltCoin Depot.",
+      "Live crypto market dashboard: Market Regime, Market Brief, prices, gainers & losers, and side-by-side coin compare. Free real-time data on AltCoin Depot.",
     url: "https://altcoindepot.com",
     siteName: "AltCoin Depot",
     locale: "en_US",
@@ -39,9 +39,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "AltCoin Depot – Live Crypto Prices, Charts & Market Data",
+    title: "AltCoin Depot – Market Regime, Live Crypto Prices & Compare",
     description:
-      "Track live cryptocurrency prices, charts, market cap, gainers, losers, and market sentiment. Free real-time crypto data on AltCoin Depot.",
+      "Live crypto market dashboard: Market Regime, Market Brief, prices, gainers & losers, and side-by-side coin compare. Free real-time data on AltCoin Depot.",
   },
   // Do not set robots here: parent `index, follow` conflicts with Next.js
   // auto-`noindex` on real 404s (soft-404 / conflicting signals in Search Console).

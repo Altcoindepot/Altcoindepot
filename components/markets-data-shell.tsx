@@ -20,6 +20,14 @@ export async function MarketsDataShell() {
   return (
     <MarketsProvider initialBundle={bundle}>
       <PriceMarquee />
+      {/* Quiet, crawlable framing for Market Regime / Compare (live widgets hydrate below). */}
+      <p className="mx-auto max-w-6xl px-4 pb-2 pt-4 text-xs leading-relaxed text-zinc-600 sm:px-6">
+        Market Regime and Market Brief summarize risk tone from sentiment and breadth. Use{" "}
+        <a href="/compare" className="text-zinc-500 underline-offset-2 hover:text-[#d7ad82] hover:underline">
+          Compare
+        </a>{" "}
+        for side-by-side prices, and coin pages for Compared to BTC.
+      </p>
       <MarketSentimentStrip />
       <MarketsDashboard />
       <HomeTrendingSection />

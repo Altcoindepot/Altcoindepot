@@ -15,6 +15,8 @@ function XIcon({ className }: { className?: string }) {
 }
 
 const FOOTER_LINKS = [
+  { href: "/compare", label: "Compare coins" },
+  { href: "/gainers-losers", label: "Gainers & Losers" },
   { href: "/about", label: "About" },
   { href: "/disclaimer", label: "Disclaimer" },
   { href: "/privacy", label: "Privacy" },
@@ -32,8 +34,8 @@ export function SiteFooter() {
               AltCoinDepot
             </p>
             <p className="mt-2 text-sm leading-relaxed text-zinc-500">
-              Live crypto prices, charts, and tools. Not financial advice — always do your own
-              research.
+              Live crypto prices, Market Regime, Compared to BTC, and side-by-side Compare. Not
+              financial advice — always do your own research.
             </p>
             <nav aria-label="Footer" className="mt-5">
               <ul className="flex flex-wrap justify-center gap-x-4 gap-y-2 sm:justify-start">

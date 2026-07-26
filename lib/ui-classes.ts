@@ -1,0 +1,20 @@
+/** Shared UI class tokens for the decision-support modules. */
+export const ds = {
+  panel: "ds-panel p-4 sm:p-5",
+  panelLg: "ds-panel p-5 sm:p-6",
+  card: "ds-card p-4",
+  label: "ds-label",
+  subtitle: "ds-subtitle",
+  disclaimer: "ds-disclaimer",
+  badge: "ds-badge",
+  badgePos: "ds-badge ds-badge-pos",
+  badgeNeg: "ds-badge ds-badge-neg",
+  badgeInfo: "ds-badge ds-badge-info",
+  badgeAccent: "ds-badge ds-badge-accent",
+  badgeWarn: "ds-badge ds-badge-warn",
+  btn: "ds-btn",
+  btnSecondary: "ds-btn ds-btn-secondary",
+  btnPrimary: "ds-btn ds-btn-primary",
+  btnActive: "ds-btn ds-btn-active",
+  stat: "ds-stat",
+} as const;

@@ -2,15 +2,19 @@
 
 import { useState } from "react";
 import { showToast } from "@/components/toast-host";
+import { ds } from "@/lib/ui-classes";
 
 export function CoinShareButtons({
   name,
   symbol,
   coinId,
+  vsBtc7d,
 }: {
   name: string;
   symbol: string;
   coinId: string;
+  /** Relative 7d performance vs Bitcoin for shareable copy. */
+  vsBtc7d?: number | null;
 }) {
   const [copied, setCopied] = useState(false);
   const sym = symbol.trim().toUpperCase() || "COIN";
@@ -24,6 +28,10 @@ export function CoinShareButtons({
   }
 
   function shareText() {
+    if (vsBtc7d != null && Number.isFinite(vsBtc7d) && coinId !== "bitcoin") {
+      const sign = vsBtc7d >= 0 ? "+" : "";
+      return `${name} (${sym}) is ${sign}${vsBtc7d.toFixed(1)}% vs BTC (7d) on AltCoin Depot`;
+    }
     return `Check out ${name} (${sym}) price on AltCoin Depot`;
   }
 
@@ -45,18 +53,10 @@ export function CoinShareButtons({
 
   return (
     <div className="flex flex-wrap gap-2">
-      <button
-        type="button"
-        onClick={shareOnX}
-        className="inline-flex min-h-11 items-center rounded-lg border border-white/15 px-3.5 py-2.5 text-sm text-zinc-300 transition-colors hover:border-zinc-400 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs"
-      >
+      <button type="button" onClick={shareOnX} className={ds.btnSecondary}>
         Share on X
       </button>
-      <button
-        type="button"
-        onClick={() => void copyLink()}
-        className="inline-flex min-h-11 items-center rounded-lg border border-white/15 px-3.5 py-2.5 text-sm text-zinc-300 transition-colors hover:border-[#d1a173]/40 hover:text-[#d7ad82] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs"
-      >
+      <button type="button" onClick={() => void copyLink()} className={ds.btnSecondary}>
         {copied ? "Copied" : "Copy link"}
       </button>
     </div>

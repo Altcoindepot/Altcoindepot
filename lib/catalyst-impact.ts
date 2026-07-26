@@ -26,11 +26,11 @@ export function scoreCatalystImpact(input: CatalystImpactInput): CatalystImpact 
 export function impactBadgeClass(impact: CatalystImpact): string {
   switch (impact) {
     case "High":
-      return "border-amber-300/50 bg-amber-400/20 text-amber-100";
+      return "ds-badge-warn";
     case "Medium":
-      return "border-white/20 bg-white/5 text-zinc-300";
+      return "ds-badge-info";
     default:
-      return "border-white/10 bg-transparent text-zinc-500";
+      return "ds-badge-info opacity-70";
   }
 }
 

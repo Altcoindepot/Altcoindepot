@@ -176,37 +176,7 @@ export function resolveNarrativeTags(input: {
   return [...new Set(tags)].slice(0, 3);
 }
 
-export function narrativeTagClass(tag: CoinCategoryLabel): string {
-  switch (tag) {
-    case "AI":
-      return "border-lime-400/35 text-lime-200";
-    case "RWA":
-      return "border-sky-400/35 text-sky-200";
-    case "Meme":
-      return "border-amber-400/35 text-amber-200";
-    case "Layer 1":
-      return "border-emerald-400/35 text-emerald-200";
-    case "Layer 2":
-      return "border-violet-400/35 text-violet-200";
-    case "DeFi":
-      return "border-cyan-400/35 text-cyan-200";
-    case "DEX":
-      return "border-cyan-300/35 text-cyan-100";
-    case "DePIN":
-      return "border-fuchsia-400/35 text-fuchsia-200";
-    case "Privacy":
-      return "border-zinc-400/35 text-zinc-200";
-    case "Infrastructure":
-      return "border-[#d1a173]/40 text-[#d7ad82]";
-    case "Oracle":
-      return "border-orange-400/35 text-orange-200";
-    case "Stablecoin":
-      return "border-teal-400/35 text-teal-200";
-    case "Gaming":
-      return "border-pink-400/35 text-pink-200";
-    case "NFT":
-      return "border-rose-400/35 text-rose-200";
-    case "Liquid Staking":
-      return "border-indigo-400/35 text-indigo-200";
-  }
+/** Informational category tags share one muted badge style. */
+export function narrativeTagClass(_tag: CoinCategoryLabel): string {
+  return "ds-badge-info";
 }

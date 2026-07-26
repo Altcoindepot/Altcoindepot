@@ -9,6 +9,13 @@ export type CoinSeoCopy = {
   description: string;
 };
 
+export type CoinSeoExtras = {
+  /** Relative 7d performance vs Bitcoin (coin % − BTC %), when known. */
+  vsBtc7d?: number | null;
+  /** Short narrative labels (Layer 1, AI, …) for discovery phrasing. */
+  tags?: string[];
+};
+
 const TITLE_BUILDERS: Array<(name: string, sym: string) => string> = [
   (name, sym) => `${name} (${sym}) Price, Chart & Market Cap | AltCoin Depot`,
   (name) => `${name} Price Today – Live Chart & Stats | AltCoin Depot`,
@@ -67,10 +74,36 @@ function pickTitle(name: string, sym: string, seed: number): string {
   return clampLen(compact, TITLE_MAX);
 }
 
-function pickDescription(name: string, sym: string, seed: number): string {
+function formatVsBtc(vs: number): string {
+  const sign = vs >= 0 ? "+" : "";
+  return `${sign}${vs.toFixed(1)}% vs BTC (7d)`;
+}
+
+function pickDescription(
+  name: string,
+  sym: string,
+  seed: number,
+  extras?: CoinSeoExtras,
+): string {
   // Offset description pattern from title so pairs don't lock 1:1 forever.
   const idx = (seed + 1) % DESCRIPTION_BUILDERS.length;
-  const primary = DESCRIPTION_BUILDERS[idx]!(name, sym);
+  let primary = DESCRIPTION_BUILDERS[idx]!(name, sym);
+
+  const vs =
+    extras?.vsBtc7d != null && Number.isFinite(extras.vsBtc7d) ? extras.vsBtc7d : null;
+  const tagBit =
+    extras?.tags && extras.tags.length > 0
+      ? extras.tags.slice(0, 2).join(", ")
+      : null;
+
+  if (vs != null) {
+    const withBtc = `Live ${name} (${sym}) price & chart. ${formatVsBtc(vs)}. Track ${sym} on AltCoin Depot.`;
+    if (withBtc.length <= DESC_MAX) primary = withBtc;
+  } else if (tagBit) {
+    const withTags = `Live ${name} (${sym}) price, chart & market cap. ${tagBit}. Track on AltCoin Depot.`;
+    if (withTags.length <= DESC_MAX) primary = withTags;
+  }
+
   if (primary.length <= DESC_MAX) return primary;
 
   for (const builder of DESCRIPTION_BUILDERS) {
@@ -84,12 +117,13 @@ export function buildCoinSeoCopy(
   name: string,
   symbol: string,
   coinId?: string,
+  extras?: CoinSeoExtras,
 ): CoinSeoCopy {
   const coinName = name.trim() || "Coin";
   const sym = symbol.trim().toUpperCase() || "—";
   const seed = patternSeed((coinId ?? `${coinName}:${sym}`).toLowerCase());
   return {
     title: pickTitle(coinName, sym, seed),
-    description: pickDescription(coinName, sym, seed),
+    description: pickDescription(coinName, sym, seed, extras),
   };
 }

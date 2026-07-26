@@ -54,12 +54,12 @@ export function computeMarketRegime(input: MarketRegimeInput): MarketRegimeResul
 export function regimeToneClass(regime: MarketRegime): string {
   switch (regime) {
     case "Risk-On":
-      return "border-emerald-400/35 bg-emerald-500/15 text-emerald-200";
+      return "ds-badge-pos";
     case "Risk-Off":
-      return "border-red-400/35 bg-red-500/15 text-red-200";
+      return "ds-badge-neg";
     case "Alt Season":
-      return "border-[#d1a173]/45 bg-[#d1a173]/15 text-[#d7ad82]";
+      return "ds-badge-accent";
     default:
-      return "border-amber-400/30 bg-amber-400/10 text-amber-100";
+      return "ds-badge-info";
   }
 }

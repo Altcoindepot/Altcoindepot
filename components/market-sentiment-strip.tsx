@@ -1,10 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useMarkets } from "@/components/markets-provider";
 import { PersonalMarketBrief } from "@/components/personal-market-brief";
 import { MarketRegimeBadge } from "@/components/market-regime-badge";
+import { DisclaimerNote } from "@/components/disclaimer-note";
+import { SectionHeading } from "@/components/section-heading";
 import { computeMarketRegime } from "@/lib/market-regime";
+import { ds } from "@/lib/ui-classes";
 
 function formatPct(n: number) {
   return `${n >= 0 ? "+" : ""}${n.toFixed(2)}%`;
@@ -150,27 +154,30 @@ export function MarketSentimentStrip() {
 
   return (
     <section
+      id="market-regime"
       aria-label="Market sentiment trackers"
       className="section-band border-b border-[#f4ddc3]/08 bg-[#0f131b]/70 px-4 py-16 sm:px-6 sm:py-20"
     >
-      <div className="mx-auto mb-4 flex max-w-6xl flex-wrap items-center justify-between gap-3">
+      <div className="mx-auto mb-6 flex max-w-6xl flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-500">
-            Market regime
-          </p>
-          <div className="mt-1.5">
+          <SectionHeading>Market Regime</SectionHeading>
+          <p className={ds.subtitle}>Live breadth, sentiment, and risk tone</p>
+          <div className="mt-3">
             <MarketRegimeBadge regime={regime.regime} summary={regime.summary} />
           </div>
         </div>
-        <p className="text-[11px] text-zinc-500">Informational snapshot · not financial advice</p>
+        <div className="flex flex-col items-start gap-2 sm:items-end">
+          <DisclaimerNote>Informational snapshot · not financial advice</DisclaimerNote>
+          <Link href="/compare" className={ds.btnPrimary}>
+            Compare coins side by side
+          </Link>
+        </div>
       </div>
 
-      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-4 rounded-xl border border-[#f4ddc3]/20 bg-[rgba(18,16,20,0.92)] p-3 sm:gap-3 md:grid-cols-2 md:gap-4 md:p-4 lg:grid-cols-3">
-        <article className="rounded-xl border border-[#f4ddc3]/18 bg-[rgba(28,24,30,0.95)] px-4 py-4 sm:px-5 sm:py-5">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-[#e8d4bc]">
-            Total Crypto Market Cap
-          </p>
-          <p className="mt-1.5 text-lg font-bold tabular-nums text-[#faf7f2] sm:text-base">
+      <div className={`mx-auto grid max-w-6xl grid-cols-1 gap-3 ${ds.panelLg} md:grid-cols-2 lg:grid-cols-3`}>
+        <article className={ds.card}>
+          <p className={ds.label}>Total Crypto Market Cap</p>
+          <p className="mt-2 text-lg font-bold tabular-nums text-zinc-50 sm:text-base">
             {formatCompactUsd(globalMcap)}
           </p>
           <p className={`mt-1 font-mono text-sm font-semibold sm:text-xs ${toneClass(globalMcap24h)}`}>
@@ -178,11 +185,9 @@ export function MarketSentimentStrip() {
           </p>
           <MiniLine points={mcapSeries} />
         </article>
-        <article className="rounded-xl border border-[#f4ddc3]/18 bg-[rgba(28,24,30,0.95)] px-4 py-4 sm:px-5 sm:py-5">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-[#e8d4bc]">
-            Fear & Greed Index
-          </p>
-          <p className={`mt-1.5 text-lg font-bold sm:text-base ${fearGreedTone(fearGreedValue)}`}>
+        <article className={ds.card}>
+          <p className={ds.label}>Fear & Greed Index</p>
+          <p className={`mt-2 text-lg font-bold sm:text-base ${fearGreedTone(fearGreedValue)}`}>
             {fearGreedLabel} ({Math.round(fearGreedValue)})
           </p>
           <div className="mt-2 rounded-full border border-white/15 bg-[#0a0a0a] p-1.5">
@@ -193,13 +198,11 @@ export function MarketSentimentStrip() {
               />
             </div>
           </div>
-          <p className="mt-2 text-xs text-[#d6c4b0] sm:text-[11px]">Source: Alternative.me</p>
+          <p className="mt-2 text-xs text-zinc-500 sm:text-[11px]">Source: Alternative.me</p>
         </article>
-        <article className="rounded-xl border border-[#f4ddc3]/18 bg-[rgba(28,24,30,0.95)] px-4 py-4 md:col-span-2 md:px-5 md:py-5 lg:col-span-1">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-[#e8d4bc]">
-            Alt Season Tracker
-          </p>
-          <p className="mt-1.5 text-lg font-bold text-[#faf7f2] sm:text-base">
+        <article className={`${ds.card} md:col-span-2 lg:col-span-1`}>
+          <p className={ds.label}>Alt Season Tracker</p>
+          <p className="mt-2 text-lg font-bold text-zinc-50 sm:text-base">
             {altSeasonLabel} ({altSeasonIndex.toFixed(0)})
           </p>
           <div className="mt-2 rounded-full border border-white/15 bg-[#0a0a0a] p-1.5">
@@ -210,13 +213,13 @@ export function MarketSentimentStrip() {
               />
             </div>
           </div>
-          <p className="mt-2 text-xs text-[#d6c4b0] sm:text-[11px]">
+          <p className="mt-2 text-xs text-zinc-500 sm:text-[11px]">
             {outperformers}/{Math.max(altUniverse.length, 1)} alts outperform BTC (7d)
           </p>
         </article>
       </div>
 
-      <div className="mx-auto mt-4 max-w-6xl">
+      <div className="mx-auto mt-6 max-w-6xl">
         <PersonalMarketBrief
           fearGreed={fearGreed}
           fearGreedLabel={fearGreedLabel}
@@ -226,8 +229,8 @@ export function MarketSentimentStrip() {
         />
       </div>
 
-      <div className="mx-auto mt-2 max-w-6xl px-1 text-right text-[11px] text-[#c4b09a]">
-        Last updated: {lastUpdatedLabel}
+      <div className="mx-auto mt-3 max-w-6xl text-right">
+        <p className={ds.disclaimer}>Last updated: {lastUpdatedLabel}</p>
       </div>
     </section>
   );
