@@ -1,6 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  formatEventCountdown,
+  impactBadgeClass,
+  scoreCatalystImpact,
+  type CatalystImpact,
+} from "@/lib/catalyst-impact";
 
 type CatalystItem = {
   category: "Government" | "Policy" | "Listings";
@@ -8,6 +14,9 @@ type CatalystItem = {
   url: string;
   source: string;
   publishedAt: string;
+  eventAt?: string | null;
+  impact?: CatalystImpact;
+  countdown?: string | null;
 };
 
 const SLOT_COUNT = 4;
@@ -47,6 +56,11 @@ function CatalystCard({
   event: CatalystItem;
   accent: "listing" | "policy";
 }) {
+  const impact = event.impact ?? scoreCatalystImpact(event);
+  const countdown =
+    event.countdown ??
+    (event.eventAt ? formatEventCountdown(event.eventAt) : null);
+  const high = impact === "High";
   const dateCls = accent === "listing" ? "text-[#d7ad82]" : "text-[#9ec8ff]";
   const chipCls =
     accent === "listing"
@@ -58,17 +72,29 @@ function CatalystCard({
       href={event.url}
       target={event.url.startsWith("http") ? "_blank" : undefined}
       rel={event.url.startsWith("http") ? "noopener noreferrer" : undefined}
-      className="glass-card flex h-[5.75rem] flex-col justify-between rounded-lg px-3.5 py-3 transition-colors hover:border-[#d1a173]/40"
+      className={`glass-card flex h-[6.25rem] flex-col justify-between rounded-lg px-3.5 py-3 transition-colors hover:border-[#d1a173]/40 ${
+        high ? "border-amber-300/35 bg-amber-400/[0.06] ring-1 ring-amber-300/20" : ""
+      }`}
     >
       <p className="line-clamp-2 text-xs font-semibold leading-snug text-zinc-100">{event.title}</p>
       <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px]">
         <span className={`rounded border px-1.5 py-0.5 font-semibold ${chipCls}`}>
           {event.category}
         </span>
+        <span className={`rounded border px-1.5 py-0.5 font-semibold ${impactBadgeClass(impact)}`}>
+          {impact}
+        </span>
+        {countdown ? (
+          <span className="rounded border border-[#d1a173]/35 bg-[#d1a173]/10 px-1.5 py-0.5 font-mono font-semibold text-[#d7ad82]">
+            in {countdown}
+          </span>
+        ) : null}
         <span className="rounded border border-white/15 px-1.5 py-0.5 text-zinc-300">
           {event.source}
         </span>
-        <span className={`font-mono ${dateCls}`}>{formatWhen(new Date(event.publishedAt))}</span>
+        <span className={`font-mono ${dateCls}`}>
+          {formatWhen(new Date(event.eventAt || event.publishedAt))}
+        </span>
       </div>
     </a>
   );
@@ -76,7 +102,7 @@ function CatalystCard({
 
 function EmptySlot({ message }: { message?: string }) {
   return (
-    <div className="flex h-[5.75rem] items-center rounded-lg border border-dashed border-white/10 bg-[rgba(12,14,20,0.35)] px-3.5 py-3">
+    <div className="flex h-[6.25rem] items-center rounded-lg border border-dashed border-white/10 bg-[rgba(12,14,20,0.35)] px-3.5 py-3">
       {message ? <p className="text-[11px] text-zinc-500">{message}</p> : null}
     </div>
   );
@@ -158,9 +184,22 @@ export function HomeInsightPanels() {
               ) {
                 return null;
               }
-              return r as CatalystItem;
+              const base: CatalystItem = {
+                category: r.category,
+                title: r.title,
+                url: r.url,
+                source: r.source,
+                publishedAt: r.publishedAt,
+                eventAt: typeof r.eventAt === "string" ? r.eventAt : null,
+                countdown: typeof r.countdown === "string" ? r.countdown : null,
+                impact:
+                  r.impact === "High" || r.impact === "Medium" || r.impact === "Low"
+                    ? r.impact
+                    : scoreCatalystImpact({ category: r.category, title: r.title }),
+              };
+              return base;
             })
-            .filter((v): v is CatalystItem => Boolean(v)),
+            .filter((v): v is CatalystItem => v != null),
         );
       } catch {
         // keep previous
@@ -174,8 +213,24 @@ export function HomeInsightPanels() {
     };
   }, []);
 
-  const listingEvents = catalysts.filter(isListingCatalyst).slice(0, SLOT_COUNT);
-  const policyEvents = catalysts.filter(isMajorPolicyCatalyst).slice(0, SLOT_COUNT);
+  const listingEvents = catalysts
+    .filter(isListingCatalyst)
+    .sort((a, b) => {
+      const rank = { High: 0, Medium: 1, Low: 2 } as const;
+      const ia = a.impact ?? "Medium";
+      const ib = b.impact ?? "Medium";
+      return rank[ia] - rank[ib];
+    })
+    .slice(0, SLOT_COUNT);
+  const policyEvents = catalysts
+    .filter(isMajorPolicyCatalyst)
+    .sort((a, b) => {
+      const rank = { High: 0, Medium: 1, Low: 2 } as const;
+      const ia = a.impact ?? "Medium";
+      const ib = b.impact ?? "Medium";
+      return rank[ia] - rank[ib];
+    })
+    .slice(0, SLOT_COUNT);
   const stillLoading = catalysts.length === 0 && catalystSourceProvider === "Loading";
 
   return (
@@ -192,8 +247,8 @@ export function HomeInsightPanels() {
             </span>
           </div>
           <p className="mt-2 text-[11px] text-zinc-400 sm:pl-4">
-            High-impact only: exchange listings/delistings and major policy. General headlines stay in In
-            the News.
+            High-impact listings and major policy · impact scores are informational heuristics, not
+            advice
           </p>
           <div className="mt-4 grid items-stretch gap-3 md:grid-cols-2">
             <CatalystColumn

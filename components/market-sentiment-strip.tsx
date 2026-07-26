@@ -2,6 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useMarkets } from "@/components/markets-provider";
+import { PersonalMarketBrief } from "@/components/personal-market-brief";
+import { MarketRegimeBadge } from "@/components/market-regime-badge";
+import { computeMarketRegime } from "@/lib/market-regime";
 
 function formatPct(n: number) {
   return `${n >= 0 ? "+" : ""}${n.toFixed(2)}%`;
@@ -136,11 +139,32 @@ export function MarketSentimentStrip() {
     ? lastUpdatedAt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
     : "—";
 
+  const btc24h =
+    topMarkets.find((c) => c.symbol.toLowerCase() === "btc")?.price_change_percentage_24h ?? null;
+  const regime = computeMarketRegime({
+    fearGreed,
+    altSeasonIndex,
+    btcChange24h: btc24h,
+    marketCapChange24h: globalMcap24h,
+  });
+
   return (
     <section
       aria-label="Market sentiment trackers"
       className="section-band border-b border-[#f4ddc3]/08 bg-[#0f131b]/70 px-4 py-16 sm:px-6 sm:py-20"
     >
+      <div className="mx-auto mb-4 flex max-w-6xl flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-500">
+            Market regime
+          </p>
+          <div className="mt-1.5">
+            <MarketRegimeBadge regime={regime.regime} summary={regime.summary} />
+          </div>
+        </div>
+        <p className="text-[11px] text-zinc-500">Informational snapshot · not financial advice</p>
+      </div>
+
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-4 rounded-xl border border-[#f4ddc3]/20 bg-[rgba(18,16,20,0.92)] p-3 sm:gap-3 md:grid-cols-2 md:gap-4 md:p-4 lg:grid-cols-3">
         <article className="rounded-xl border border-[#f4ddc3]/18 bg-[rgba(28,24,30,0.95)] px-4 py-4 sm:px-5 sm:py-5">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-[#e8d4bc]">
@@ -191,6 +215,17 @@ export function MarketSentimentStrip() {
           </p>
         </article>
       </div>
+
+      <div className="mx-auto mt-4 max-w-6xl">
+        <PersonalMarketBrief
+          fearGreed={fearGreed}
+          fearGreedLabel={fearGreedLabel}
+          altSeasonIndex={altSeasonIndex}
+          btcChange24h={btc24h}
+          marketCapChange24h={globalMcap24h}
+        />
+      </div>
+
       <div className="mx-auto mt-2 max-w-6xl px-1 text-right text-[11px] text-[#c4b09a]">
         Last updated: {lastUpdatedLabel}
       </div>

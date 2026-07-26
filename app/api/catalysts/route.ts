@@ -1,4 +1,9 @@
 import { NextResponse } from "next/server";
+import {
+  formatEventCountdown,
+  scoreCatalystImpact,
+  type CatalystImpact,
+} from "@/lib/catalyst-impact";
 
 type CatalystItem = {
   category: "Government" | "Policy" | "Listings";
@@ -6,6 +11,9 @@ type CatalystItem = {
   url: string;
   source: string;
   publishedAt: string;
+  /** When known and in the future, used for countdown. */
+  eventAt?: string | null;
+  impact: CatalystImpact;
 };
 
 /** Exchange listing / delisting signals only. */
@@ -28,6 +36,13 @@ function decodeHtml(input: string): string {
 function extractTag(block: string, tag: string): string {
   const m = block.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, "i"));
   return m?.[1]?.trim() ?? "";
+}
+
+function withImpact(
+  item: Omit<CatalystItem, "impact"> & { impact?: CatalystImpact },
+): CatalystItem {
+  const impact = item.impact ?? scoreCatalystImpact(item);
+  return { ...item, impact };
 }
 
 async function fetchRss(
@@ -54,7 +69,7 @@ async function fetchRss(
     const publishedAt = Number.isNaN(Date.parse(pubDate))
       ? new Date().toISOString()
       : new Date(pubDate).toISOString();
-    out.push({ category, title, url: link, source, publishedAt });
+    out.push(withImpact({ category, title, url: link, source, publishedAt, eventAt: null }));
   }
   return out;
 }
@@ -68,8 +83,7 @@ function onlyMajorPolicy(items: CatalystItem[]): CatalystItem[] {
 }
 
 function isHighImpact(item: CatalystItem): boolean {
-  if (item.category === "Listings") return LISTING_KEYWORDS.test(item.title);
-  return MAJOR_POLICY_KEYWORDS.test(item.title);
+  return item.impact === "High" || item.impact === "Medium";
 }
 
 function dedupe(items: CatalystItem[]): CatalystItem[] {
@@ -161,13 +175,21 @@ async function fetchCoinMarketCalEvents(limit = 12): Promise<CatalystItem[]> {
       ? new Date().toISOString()
       : new Date(dateRaw).toISOString();
 
-    out.push({
-      category,
-      title,
-      url,
-      source,
-      publishedAt,
-    });
+    const eventAt =
+      typeof r.date_event === "string" && !Number.isNaN(Date.parse(r.date_event))
+        ? new Date(r.date_event).toISOString()
+        : null;
+
+    out.push(
+      withImpact({
+        category,
+        title,
+        url,
+        source,
+        publishedAt,
+        eventAt,
+      }),
+    );
   }
 
   return dedupe(out).slice(0, limit);
@@ -206,7 +228,12 @@ export async function GET() {
         ...onlyListingSignals(listingSignals),
         ...coinMarketCalEvents.filter((e) => e.category === "Listings"),
       ]
-        .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+        .sort((a, b) => {
+          const impactRank = { High: 0, Medium: 1, Low: 2 } as const;
+          const ir = impactRank[a.impact] - impactRank[b.impact];
+          if (ir !== 0) return ir;
+          return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+        })
         .slice(0, 5),
     );
 
@@ -216,13 +243,19 @@ export async function GET() {
         ...coinMarketCalEvents.filter((e) => e.category !== "Listings"),
       ]
         .filter(isHighImpact)
-        .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+        .sort((a, b) => {
+          const impactRank = { High: 0, Medium: 1, Low: 2 } as const;
+          const ir = impactRank[a.impact] - impactRank[b.impact];
+          if (ir !== 0) return ir;
+          return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+        })
         .slice(0, 5),
     );
 
-    const items = dedupe([...listingItems, ...policyItems]).sort(
-      (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
-    );
+    const items = dedupe([...listingItems, ...policyItems]).map((item) => ({
+      ...item,
+      countdown: item.eventAt ? formatEventCountdown(item.eventAt) : null,
+    }));
 
     const usingCoinMarketCal = coinMarketCalEvents.length > 0;
 

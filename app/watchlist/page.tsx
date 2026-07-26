@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { useWatchlist } from "@/components/use-watchlist";
+import { SuggestedCoinsPanel } from "@/components/suggested-coins-panel";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
 import { readResponseJsonSafely } from "@/lib/read-response-json";
 import { removeWatchlistId } from "@/lib/watchlist-storage";
@@ -95,6 +96,7 @@ export default function WatchlistPage() {
               Star coins from any coin page to track them here. Everything stays on this device —
               no account needed.
             </p>
+            <SuggestedCoinsPanel allowWatchlistAdd title="Suggested coins to add" />
             <Link
               href="/"
               className="mt-6 inline-flex min-h-11 items-center justify-center rounded-lg border border-[#d1a173]/40 bg-[#d1a173]/12 px-5 text-sm font-semibold text-[#d7ad82]"

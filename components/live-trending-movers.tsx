@@ -5,7 +5,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { MiniCoinChart } from "@/components/mini-coin-chart";
 import { SectionHeading } from "@/components/section-heading";
+import { QuietFilterToggle, useQuietFilter } from "@/components/quiet-filter-toggle";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
+import { isQuietNoise } from "@/lib/liquidity";
 import { readResponseJsonSafely } from "@/lib/read-response-json";
 
 type Mover = {
@@ -195,7 +197,12 @@ function MoversColumn({
   );
 }
 
-export function LiveTrendingMovers() {
+export function LiveTrendingMovers({
+  variant = "home",
+}: {
+  /** `page` hides the outer section chrome duplication on /gainers-losers. */
+  variant?: "home" | "page";
+}) {
   const [gainers, setGainers] = useState<Mover[]>([]);
   const [losers, setLosers] = useState<Mover[]>([]);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
@@ -264,29 +271,73 @@ export function LiveTrendingMovers() {
   }, []);
 
   const empty = gainers.length === 0 && losers.length === 0;
-  const topGainers = gainers.slice(0, PER_SIDE);
-  const topLosers = losers.slice(0, PER_SIDE);
+  const quiet = useQuietFilter();
+  const filterQuiet = (list: Mover[]) =>
+    quiet
+      ? list.filter(
+          (c) =>
+            !isQuietNoise({
+              totalVolume: c.total_volume,
+              id: c.id,
+              symbol: c.symbol,
+              name: c.name,
+            }),
+        )
+      : list;
+  const topGainers = filterQuiet(gainers).slice(0, PER_SIDE);
+  const topLosers = filterQuiet(losers).slice(0, PER_SIDE);
+  const isPage = variant === "page";
 
   return (
     <section
       aria-labelledby="live-trending-heading"
-      className="section-band border-b border-[#f4ddc3]/08 bg-[#0f131b]/55 px-4 py-16 sm:px-6 sm:py-20"
+      className={
+        isPage
+          ? "bg-[#0f131b]/55 px-4 py-10 sm:px-6 sm:py-12"
+          : "section-band border-b border-[#f4ddc3]/08 bg-[#0f131b]/55 px-4 py-16 sm:px-6 sm:py-20"
+      }
     >
-      <div className="glass-panel mx-auto max-w-6xl rounded-2xl p-5 sm:p-6 md:p-7">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <SectionHeading id="live-trending-heading">Gainers and Losers</SectionHeading>
-            <p className="mt-2 text-sm text-zinc-400 sm:pl-4">
-              Top gainers and losers among liquid coins ($5M+ 24h volume) · refreshes about every
-              25s
-            </p>
+      <div
+        className={
+          isPage
+            ? "mx-auto max-w-6xl"
+            : "glass-panel mx-auto max-w-6xl rounded-2xl p-5 sm:p-6 md:p-7"
+        }
+      >
+        {!isPage ? (
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <SectionHeading id="live-trending-heading">Gainers and Losers</SectionHeading>
+              <p className="mt-2 text-sm text-zinc-400 sm:pl-4">
+                Top gainers and losers among liquid coins ($5M+ 24h volume) · refreshes about every
+                25s
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <QuietFilterToggle />
+              {updatedAt ? (
+                <p className="font-mono text-[10px] text-zinc-500">
+                  Updated {new Date(updatedAt).toLocaleTimeString()}
+                </p>
+              ) : null}
+              <Link
+                href="/gainers-losers"
+                className="text-sm font-semibold text-[#d7ad82] underline-offset-2 hover:underline"
+              >
+                Full board →
+              </Link>
+            </div>
           </div>
-          {updatedAt ? (
-            <p className="font-mono text-[10px] text-zinc-500">
-              Updated {new Date(updatedAt).toLocaleTimeString()}
-            </p>
-          ) : null}
-        </div>
+        ) : (
+          <div className="mb-4 flex flex-wrap items-center justify-end gap-3">
+            <QuietFilterToggle />
+            {updatedAt ? (
+              <p className="font-mono text-[10px] text-zinc-500">
+                Updated {new Date(updatedAt).toLocaleTimeString()}
+              </p>
+            ) : null}
+          </div>
+        )}
 
         {loading && empty ? <MoversSkeleton /> : null}
 

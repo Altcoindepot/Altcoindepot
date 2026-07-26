@@ -5,6 +5,7 @@ import { MarketSentimentStrip } from "@/components/market-sentiment-strip";
 import { HomeInsightPanels } from "@/components/home-insight-panels";
 import { MarketsDashboard } from "@/components/markets-dashboard";
 import { RecentlyViewedSection } from "@/components/recently-viewed-section";
+import { HomeTrendingSection } from "@/components/home-trending-section";
 import { LiveTrendingMovers } from "@/components/live-trending-movers";
 import { MarketsUnavailable } from "@/components/markets-unavailable";
 
@@ -21,6 +22,7 @@ export async function MarketsDataShell() {
       <PriceMarquee />
       <MarketSentimentStrip />
       <MarketsDashboard />
+      <HomeTrendingSection />
       <RecentlyViewedSection />
       <LiveTrendingMovers />
       <HomeInsightPanels />

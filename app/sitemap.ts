@@ -19,6 +19,8 @@ const STATIC_PATHS = [
   "/dex-trending",
   "/top-100-trending",
   "/top-200-trending",
+  "/gainers-losers",
+  "/compare",
   "/watchlist",
   "/portfolio",
   "/alerts",

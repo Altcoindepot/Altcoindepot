@@ -3,6 +3,8 @@ import Link from "next/link";
 import type { CoinMarket } from "@/lib/coingecko";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
 import { MiniCoinChart } from "@/components/mini-coin-chart";
+import { LiquidityBadge } from "@/components/liquidity-badge";
+import { NarrativeTags } from "@/components/narrative-tags";
 
 function formatUsd(n: number | null | undefined) {
   if (n == null || Number.isNaN(n)) return "—";
@@ -118,6 +120,14 @@ export function LiveTopCoins({ coins }: { coins: CoinMarket[] }) {
                   {coin.name}
                 </p>
                 <p className="text-xs uppercase tracking-wide text-zinc-500">{coin.symbol}</p>
+                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                  <NarrativeTags coinId={coin.id} />
+                  <LiquidityBadge
+                    totalVolume={coin.total_volume}
+                    marketCap={coin.market_cap}
+                    compact
+                  />
+                </div>
               </div>
             </div>
             <div className="mt-5 space-y-4">

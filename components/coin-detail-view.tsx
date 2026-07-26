@@ -15,9 +15,13 @@ import { formatShortMonthDay } from "@/lib/format-date";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
 import { CoingeckoLogoAttribution } from "@/components/coingecko-logo-attribution";
 import { WatchlistToggleButton } from "@/components/watchlist-toggle-button";
+import { CoinShareButtons } from "@/components/coin-share-buttons";
+import { NarrativeTags } from "@/components/narrative-tags";
+import { LiquidityBadge } from "@/components/liquidity-badge";
 import { PriceAlertForm } from "@/components/price-alert-form";
 import { RelatedCoins } from "@/components/related-coins";
 import { RecordRecentlyViewed } from "@/components/record-recently-viewed";
+import { inferMoveDriver } from "@/lib/move-driver";
 
 function tradingViewSymbol(symbol: string | undefined) {
   return (symbol ?? "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
@@ -417,6 +421,9 @@ export function CoinDetailView({
   youtubeSourceHint,
   showYoutubeSidebar,
   reppoStats,
+  btcChange24h,
+  btcChange7d,
+  btcChange30d,
 }: {
   coin: CoinGeckoDetail;
   twitterHref?: string;
@@ -432,6 +439,9 @@ export function CoinDetailView({
   youtubeSourceHint?: string | null;
   showYoutubeSidebar?: boolean;
   reppoStats?: ReppoStatsSnapshot;
+  btcChange24h?: number | null;
+  btcChange7d?: number | null;
+  btcChange30d?: number | null;
 }) {
   const md = coin.market_data;
   const img = coin.image?.large ?? coin.image?.small;
@@ -472,6 +482,20 @@ export function CoinDetailView({
   const maxSupply = md?.max_supply ?? null;
   const fdv = usd(md?.fully_diluted_valuation);
   const marketCap = usd(md?.market_cap);
+  const volume24 = usd(md?.total_volume);
+  const vsBtc7d =
+    ch7 != null && btcChange7d != null && Number.isFinite(btcChange7d)
+      ? ch7 - btcChange7d
+      : null;
+  const vsBtc30d =
+    ch30 != null && btcChange30d != null && Number.isFinite(btcChange30d)
+      ? ch30 - btcChange30d
+      : null;
+  const moveDriver = inferMoveDriver({
+    coinChange24h: ch24,
+    btcChange24h: btcChange24h ?? null,
+    headlines: (newsItems ?? []).map((n) => n.title).slice(0, 6),
+  });
   const circulatingVsMaxPct =
     circulating != null && maxSupply != null && maxSupply > 0 ? (circulating / maxSupply) * 100 : null;
   const circulatingVsTotalPct =
@@ -628,6 +652,10 @@ export function CoinDetailView({
           <p className="mt-1 font-mono text-base text-zinc-400">
             {(coin.symbol ?? "—").toString().toUpperCase()}
           </p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <NarrativeTags coinId={coin.id} categories={coin.categories} />
+            <LiquidityBadge totalVolume={volume24} marketCap={marketCap} />
+          </div>
           <div className="mt-3 flex flex-wrap gap-2">
             <a
               href={geckoUrl}
@@ -683,6 +711,11 @@ export function CoinDetailView({
               symbol={(coin.symbol ?? "").toString()}
               image={img}
             />
+            <CoinShareButtons
+              coinId={coin.id}
+              name={coin.name}
+              symbol={(coin.symbol ?? "").toString()}
+            />
           </div>
         </div>
           </header>
@@ -712,6 +745,48 @@ export function CoinDetailView({
                 <dd className="mt-0.5 font-mono text-sm font-semibold">{pct(ch24)}</dd>
               </div>
             </dl>
+
+            {(vsBtc7d != null || vsBtc30d != null) && coin.id !== "bitcoin" ? (
+              <div className="rounded-lg border border-[#f4ddc3]/15 bg-[#0c0e14]/80 px-3 py-2.5">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
+                  Compared to BTC
+                </p>
+                <div className="mt-1.5 flex flex-wrap gap-4">
+                  <p className="font-mono text-sm tabular-nums">
+                    <span className="mr-1.5 text-[10px] uppercase text-zinc-500">7d</span>
+                    <span className={vsBtc7d != null && vsBtc7d >= 0 ? "text-emerald-300" : "text-red-300"}>
+                      {vsBtc7d == null
+                        ? "—"
+                        : `${vsBtc7d >= 0 ? "+" : ""}${vsBtc7d.toFixed(2)}%`}
+                    </span>
+                  </p>
+                  <p className="font-mono text-sm tabular-nums">
+                    <span className="mr-1.5 text-[10px] uppercase text-zinc-500">30d</span>
+                    <span
+                      className={vsBtc30d != null && vsBtc30d >= 0 ? "text-emerald-300" : "text-red-300"}
+                    >
+                      {vsBtc30d == null
+                        ? "—"
+                        : `${vsBtc30d >= 0 ? "+" : ""}${vsBtc30d.toFixed(2)}%`}
+                    </span>
+                  </p>
+                </div>
+                <p className="mt-1 text-[10px] text-zinc-600">
+                  Coin % change minus Bitcoin’s over the same window
+                </p>
+              </div>
+            ) : null}
+
+            <div className="rounded-lg border border-white/10 bg-[#111111]/80 px-3 py-2.5">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
+                What moved this coin?
+              </p>
+              <p className="mt-1 text-sm font-medium text-zinc-100">{moveDriver.label}</p>
+              <p className="mt-0.5 text-xs leading-snug text-zinc-400">{moveDriver.detail}</p>
+              <p className="mt-1.5 text-[10px] text-zinc-600">
+                Contextual guess from price vs BTC and recent headlines · not financial advice
+              </p>
+            </div>
             <PriceAlertForm
               coinId={coin.id}
               name={coin.name}

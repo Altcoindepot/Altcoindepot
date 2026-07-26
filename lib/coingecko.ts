@@ -247,6 +247,7 @@ export type CoinGeckoDetail = {
   web_slug?: string;
   image?: { large?: string; small?: string };
   description?: { en?: string };
+  categories?: string[];
   market_cap_rank?: number | null;
   links?: {
     homepage?: string[];

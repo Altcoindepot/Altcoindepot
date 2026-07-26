@@ -12,6 +12,7 @@ import {
   type RecentlyViewedEntry,
 } from "@/lib/recently-viewed-storage";
 import { SectionHeading } from "@/components/section-heading";
+import { SuggestedCoinsPanel } from "@/components/suggested-coins-panel";
 
 type LiveCoin = {
   id: string;
@@ -144,6 +145,7 @@ export function RecentlyViewedSection() {
             <p className="mx-auto mt-2 max-w-md text-sm text-zinc-500">
               Open any coin page and it’ll show up here for quick return visits.
             </p>
+            <SuggestedCoinsPanel title="Popular coins to explore" />
             <Link
               href="/"
               className="mt-5 inline-flex min-h-11 items-center justify-center rounded-lg border border-[#d1a173]/40 bg-[#d1a173]/12 px-4 text-sm font-semibold text-[#d7ad82]"

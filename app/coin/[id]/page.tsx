@@ -106,6 +106,24 @@ export default async function CoinPage({ params }: Props) {
     permanentRedirect(`/coin/${encodeURIComponent(coin.id)}`);
   }
 
+  const btcResult =
+    coin.id === "bitcoin" ? result : await lookupCoinById("bitcoin");
+  const btcMd = btcResult.status === "ok" ? btcResult.coin.market_data : undefined;
+  const btcChange7d =
+    typeof btcMd?.price_change_percentage_7d === "number"
+      ? btcMd.price_change_percentage_7d
+      : typeof btcMd?.price_change_percentage_7d_in_currency?.usd === "number"
+        ? btcMd.price_change_percentage_7d_in_currency.usd
+        : null;
+  const btcChange30d =
+    typeof btcMd?.price_change_percentage_30d === "number"
+      ? btcMd.price_change_percentage_30d
+      : null;
+  const btcChange24h =
+    typeof btcMd?.price_change_percentage_24h === "number"
+      ? btcMd.price_change_percentage_24h
+      : null;
+
   const handle = resolveProjectTwitterHandle(coin);
   const twitterHref = handle ? `https://x.com/${handle}` : undefined;
 
@@ -183,6 +201,9 @@ export default async function CoinPage({ params }: Props) {
           youtubeSourceHint={youtubeFeed.sourceHint}
           showYoutubeSidebar={showYoutubeSidebar}
           reppoStats={reppoStats}
+          btcChange24h={btcChange24h}
+          btcChange7d={btcChange7d}
+          btcChange30d={btcChange30d}
         />
       </main>
     </>
