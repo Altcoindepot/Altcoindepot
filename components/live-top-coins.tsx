@@ -96,12 +96,12 @@ export function LiveTopCoins({ coins }: { coins: CoinMarket[] }) {
           <article
             key={coin.id}
             role="listitem"
-            className="glass-card w-[min(82vw,19rem)] shrink-0 snap-start rounded-xl border border-[#f4ddc3]/20 p-4 outline-none transition-colors hover:border-[#d1a173]/45 hover:bg-[rgba(48,35,26,0.25)] sm:w-auto sm:shrink sm:p-5"
+            className="glass-card w-[min(82vw,19rem)] shrink-0 snap-start rounded-xl border border-[#f4ddc3]/20 p-5 outline-none transition-colors hover:border-[#d1a173]/45 hover:bg-[rgba(48,35,26,0.25)] sm:w-auto sm:shrink sm:p-6"
           >
             <div className="flex items-center justify-between gap-2">
               <span className="font-mono text-xs font-semibold text-[#d7ad82]">#{rank}</span>
             </div>
-            <div className="mt-2 flex items-center gap-2.5">
+            <div className="mt-2.5 flex items-center gap-2.5">
               <span className="relative size-9 shrink-0 overflow-hidden rounded-full ring-1 ring-white/10 sm:size-8">
                 <Image
                   src={coin.image}
@@ -124,7 +124,7 @@ export function LiveTopCoins({ coins }: { coins: CoinMarket[] }) {
                 </p>
               </div>
             </div>
-            <div className="mt-3 space-y-2.5 text-xs sm:space-y-2">
+            <div className="mt-4 space-y-3 text-xs sm:space-y-3">
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <p className="text-zinc-500">Price</p>
@@ -137,22 +137,21 @@ export function LiveTopCoins({ coins }: { coins: CoinMarket[] }) {
                   <p className="font-mono text-sm sm:text-xs">{pctCell(ch24)}</p>
                 </div>
               </div>
-              <MiniCoinChart
-                change24h={coin.price_change_percentage_24h}
-                change7d={coin.price_change_percentage_7d_in_currency}
-                points={coin.sparkline_in_7d?.price}
-                className="h-9 w-full rounded border border-white/10 bg-[#0a0a0a] sm:max-w-[130px] sm:w-[120px]"
-              />
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <p className="text-zinc-500">7d</p>
-                  <p className="font-mono text-sm sm:text-xs">
+              <div className="space-y-0.5">
+                <MiniCoinChart
+                  change24h={coin.price_change_percentage_24h}
+                  change7d={coin.price_change_percentage_7d_in_currency}
+                  points={coin.sparkline_in_7d?.price}
+                />
+                <div className="flex items-baseline justify-between gap-2 pt-0.5">
+                  <p className="flex items-baseline gap-1.5 font-mono text-sm leading-none sm:text-xs">
+                    <span className="text-[10px] uppercase tracking-wide text-zinc-500">7d</span>
                     {pctCell(coin.price_change_percentage_7d_in_currency)}
                   </p>
-                </div>
-                <div>
-                  <p className="text-zinc-500">MCap</p>
-                  <p className="font-mono text-sm tabular-nums text-zinc-200 sm:text-xs">
+                  <p className="font-mono text-sm tabular-nums leading-none text-zinc-200 sm:text-xs">
+                    <span className="mr-1 text-[10px] uppercase tracking-wide text-zinc-500">
+                      MCap
+                    </span>
                     {formatCompactUsd(coin.market_cap)}
                   </p>
                 </div>

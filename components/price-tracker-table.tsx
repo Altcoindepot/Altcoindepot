@@ -80,7 +80,7 @@ export function PriceTrackerTable({
           return (
             <article
               key={coin.id}
-              className="glass-card rounded-lg border-2 border-[#f4ddc3]/45 p-3 outline outline-1 outline-[#2a1e16]/60 transition-colors hover:border-[#d1a173]/70 hover:bg-[rgba(48,35,26,0.3)]"
+              className="glass-card rounded-lg border-2 border-[#f4ddc3]/45 p-4 outline outline-1 outline-[#2a1e16]/60 transition-colors hover:border-[#d1a173]/70 hover:bg-[rgba(48,35,26,0.3)] sm:p-4"
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="font-mono text-xs font-semibold text-[#d7ad82]">#{rank}</span>
@@ -97,7 +97,7 @@ export function PriceTrackerTable({
                 ) : null}
               </div>
 
-              <div className="mt-2 flex items-center gap-2.5">
+              <div className="mt-2.5 flex items-center gap-2.5">
                 <span className="relative size-8 shrink-0 overflow-hidden rounded-full ring-1 ring-white/10">
                   <Image
                     src={coin.image}
@@ -119,7 +119,7 @@ export function PriceTrackerTable({
                 </div>
               </div>
 
-              <div className="mt-3 space-y-2 text-xs">
+              <div className="mt-4 space-y-3 text-xs">
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <p className="text-zinc-500">Price</p>
@@ -130,20 +130,23 @@ export function PriceTrackerTable({
                     <p className="font-mono">{pctCell(coin.price_change_percentage_24h)}</p>
                   </div>
                 </div>
-                <MiniCoinChart
-                  change24h={coin.price_change_percentage_24h}
-                  change7d={coin.price_change_percentage_7d_in_currency}
-                  points={coin.sparkline_in_7d?.price}
-                  className="h-9 w-full max-w-[130px] rounded border border-white/10 bg-[#0a0a0a] sm:w-[120px]"
-                />
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <p className="text-zinc-500">7d</p>
-                    <p className="font-mono">{pctCell(coin.price_change_percentage_7d_in_currency)}</p>
-                  </div>
-                  <div>
-                    <p className="text-zinc-500">MCap</p>
-                    <p className="font-mono text-zinc-200">{formatCompactUsd(coin.market_cap)}</p>
+                <div className="space-y-0.5">
+                  <MiniCoinChart
+                    change24h={coin.price_change_percentage_24h}
+                    change7d={coin.price_change_percentage_7d_in_currency}
+                    points={coin.sparkline_in_7d?.price}
+                  />
+                  <div className="flex items-baseline justify-between gap-2 pt-0.5">
+                    <p className="flex items-baseline gap-1.5 font-mono text-xs leading-none">
+                      <span className="text-[10px] uppercase tracking-wide text-zinc-500">7d</span>
+                      {pctCell(coin.price_change_percentage_7d_in_currency)}
+                    </p>
+                    <p className="font-mono text-xs tabular-nums leading-none text-zinc-200">
+                      <span className="mr-1 text-[10px] uppercase tracking-wide text-zinc-500">
+                        MCap
+                      </span>
+                      {formatCompactUsd(coin.market_cap)}
+                    </p>
                   </div>
                 </div>
               </div>

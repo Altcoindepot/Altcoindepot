@@ -72,7 +72,7 @@ export function EcosystemTickerColumn({
                 change24h={coin?.price_change_percentage_24h}
                 change7d={coin?.price_change_percentage_7d_in_currency}
                 points={coin?.sparkline_in_7d?.price}
-                className="mt-1 hidden h-8 w-full max-w-[130px] rounded border border-white/10 bg-[#0a0a0a] sm:block sm:w-[120px]"
+                className="mt-1.5 hidden h-12 w-full max-w-[168px] rounded-md border border-white/15 bg-[#06070a] sm:block sm:w-[160px]"
               />
               <span className="text-[10px] text-zinc-600">Open coin page</span>
             </Link>

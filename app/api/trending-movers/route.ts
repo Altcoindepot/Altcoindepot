@@ -7,6 +7,12 @@ type MarketRow = {
   total_volume?: number | null;
 };
 
+const PER_SIDE = 5;
+/** Skip thin books so obscure pumps don't crowd the board. */
+const MIN_VOLUME_USD = 5_000_000;
+/** Only rank within the highest-volume slice of the markets response. */
+const LIQUID_POOL = 45;
+
 function pct24(c: MarketRow): number {
   const v = c.price_change_percentage_24h;
   return typeof v === "number" && Number.isFinite(v) ? v : 0;
@@ -21,7 +27,7 @@ function volume(c: MarketRow): number {
 export async function GET() {
   try {
     const res = await coinGeckoFetch(
-      "/coins/markets?vs_currency=usd&order=volume_desc&per_page=80&page=1&sparkline=true&price_change_percentage=24h%2C1h",
+      "/coins/markets?vs_currency=usd&order=volume_desc&per_page=100&page=1&sparkline=true&price_change_percentage=24h%2C1h",
       { next: { revalidate: 20 } },
     );
     if (!res.ok) {
@@ -33,18 +39,19 @@ export async function GET() {
     const data: unknown = await res.json();
     const coins = (Array.isArray(data) ? data : []) as MarketRow[];
 
-    // Prefer liquid names so tiny illiquid pumps don't dominate.
-    const liquid = coins.filter((c) => volume(c) > 0 && typeof c.id === "string");
+    const liquid = coins
+      .filter((c) => typeof c.id === "string" && volume(c) >= MIN_VOLUME_USD)
+      .slice(0, LIQUID_POOL);
 
     const gainers = [...liquid]
       .filter((c) => pct24(c) > 0)
       .sort((a, b) => pct24(b) - pct24(a) || volume(b) - volume(a))
-      .slice(0, 6);
+      .slice(0, PER_SIDE);
 
     const losers = [...liquid]
       .filter((c) => pct24(c) < 0)
       .sort((a, b) => pct24(a) - pct24(b) || volume(b) - volume(a))
-      .slice(0, 6);
+      .slice(0, PER_SIDE);
 
     const updatedAt = new Date().toISOString();
 
@@ -54,6 +61,7 @@ export async function GET() {
       /** @deprecated kept for older clients */
       coins: [...gainers, ...losers],
       updatedAt,
+      meta: { minVolumeUsd: MIN_VOLUME_USD, perSide: PER_SIDE },
     });
   } catch {
     return NextResponse.json(

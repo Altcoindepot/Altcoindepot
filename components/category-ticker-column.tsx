@@ -96,7 +96,7 @@ export function CategoryTickerColumn({
                   change24h={coin.price_change_percentage_24h}
                   change7d={coin.price_change_percentage_7d_in_currency}
                   points={coin.sparkline_in_7d?.price}
-                  className="mt-1 hidden h-8 w-full rounded border border-white/10 bg-[#0a0a0a] sm:block"
+                  className="mt-1.5 hidden h-12 w-full rounded-md border border-white/15 bg-[#06070a] sm:block"
                 />
               </Link>
             );
