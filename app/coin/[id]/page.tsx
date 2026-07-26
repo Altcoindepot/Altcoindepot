@@ -14,6 +14,7 @@ import {
 import { SiteHeader } from "@/components/site-header";
 import { CoinDetailView } from "@/components/coin-detail-view";
 import { getReppoStatsForDisplay } from "@/lib/reppo-stats-live";
+import { getCoinSeoCopy } from "@/lib/coin-seo";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -30,6 +31,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: "Coin not found" };
   }
   const coin = result.coin;
+  const curated = getCoinSeoCopy(coin.id) ?? getCoinSeoCopy(id);
+  if (curated) {
+    return {
+      title: { absolute: curated.title },
+      description: curated.description,
+      openGraph: { title: curated.title, description: curated.description },
+      twitter: { title: curated.title, description: curated.description },
+    };
+  }
   const sym = (coin.symbol ?? "").toString().toUpperCase() || "—";
   const name = (coin.name ?? "Coin").toString();
   const title = `${name} (${sym}) — Price & stats`;
