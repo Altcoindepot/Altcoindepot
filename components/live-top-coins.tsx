@@ -84,7 +84,7 @@ export function LiveTopCoins({ coins }: { coins: CoinMarket[] }) {
     .filter((coin): coin is CoinMarket => Boolean(coin));
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+    <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-5">
       {top.map((coin, index) => {
         const ch24 = coin.price_change_percentage_24h;
         const rank = index + 1;
@@ -92,7 +92,7 @@ export function LiveTopCoins({ coins }: { coins: CoinMarket[] }) {
         return (
           <article
             key={coin.id}
-            className="glass-card rounded-lg border-2 border-[#f4ddc3]/45 p-3 outline outline-1 outline-[#2a1e16]/60 transition-colors hover:border-[#d1a173]/70 hover:bg-[rgba(48,35,26,0.3)]"
+            className="glass-card rounded-xl border border-[#f4ddc3]/20 p-4 outline-none transition-colors hover:border-[#d1a173]/45 hover:bg-[rgba(48,35,26,0.25)] sm:p-5"
           >
             <div className="flex items-center justify-between gap-2">
               <span className="font-mono text-xs font-semibold text-[#d7ad82]">#{rank}</span>

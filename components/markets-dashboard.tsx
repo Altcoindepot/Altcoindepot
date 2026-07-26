@@ -1,6 +1,7 @@
 "use client";
 
 import { LiveTopCoins } from "@/components/live-top-coins";
+import { SectionHeading } from "@/components/section-heading";
 import { useMarkets } from "@/components/markets-provider";
 
 export function MarketsDashboard() {
@@ -14,20 +15,15 @@ export function MarketsDashboard() {
     <>
       <section
         aria-labelledby="featured-heading"
-        className="border-b border-[#f4ddc3]/15 bg-[#0f131b]/65 px-4 py-10 sm:px-6"
+        className="border-b border-[#f4ddc3]/10 bg-[#0f131b]/65 px-4 py-10 sm:px-6 sm:py-12"
       >
-        <div className="glass-panel mx-auto max-w-6xl rounded-2xl p-4 sm:p-6">
-          <h2
-            id="featured-heading"
-            className="text-xl font-extrabold tracking-tight sm:text-2xl md:text-3xl"
-          >
-            <span className="text-brand-altcoindepot">Featured</span>
-          </h2>
+        <div className="glass-panel mx-auto max-w-6xl rounded-2xl p-5 sm:p-6 md:p-7">
+          <SectionHeading id="featured-heading">Featured</SectionHeading>
           {stale || refreshError ? (
             <div
               role="status"
               aria-live="polite"
-              className="mt-3 flex flex-col gap-2 rounded-lg border border-amber-400/25 bg-amber-400/10 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between"
+              className="mt-4 flex flex-col gap-2 rounded-lg border border-amber-400/20 bg-amber-400/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
             >
               <p className="text-sm text-amber-100">
                 {refreshError ??
@@ -43,7 +39,7 @@ export function MarketsDashboard() {
               </button>
             </div>
           ) : null}
-          <p className="mt-2 text-sm text-zinc-400">
+          <p className="mt-3 text-sm text-zinc-400">
             Bitcoin, Ethereum, Solana, XRP, and Injective · Tap a card for full coin info · USD
             · Refreshes every ~60s
           </p>

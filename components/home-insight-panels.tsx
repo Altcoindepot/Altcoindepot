@@ -154,31 +154,34 @@ export function HomeInsightPanels() {
   const regulatoryEvents = events.filter((e) => e.category !== "Listings");
 
   return (
-    <section className="border-b border-[#f4ddc3]/15 bg-[#0f131b]/60 px-4 py-4 sm:px-6">
-      <div className="mx-auto grid max-w-6xl gap-3">
-        <article className="glass-panel rounded-xl p-3">
+    <section className="border-b border-[#f4ddc3]/10 bg-[#0f131b]/60 px-4 py-10 sm:px-6 sm:py-12">
+      <div className="mx-auto grid max-w-6xl gap-4">
+        <article className="glass-panel rounded-xl p-5 sm:p-6">
           <div className="flex items-center justify-between gap-2">
-            <h2 className="text-sm font-semibold text-zinc-100">Catalyst Calendar</h2>
-            <span className="rounded border border-[#f4ddc3]/25 bg-[rgba(20,22,30,0.6)] px-1.5 py-0.5 text-[10px] text-zinc-300">
+            <h2 className="flex items-center gap-3 text-base font-extrabold tracking-tight text-zinc-100 sm:text-lg">
+              <span className="hidden h-6 w-1 shrink-0 rounded-full bg-[#d1a173]/80 sm:block" aria-hidden />
+              Catalyst Calendar
+            </h2>
+            <span className="rounded border border-[#f4ddc3]/15 bg-[rgba(20,22,30,0.6)] px-1.5 py-0.5 text-[10px] text-zinc-300">
               Source: {catalystSourceProvider}
             </span>
           </div>
-          <p className="mt-1 text-[11px] text-zinc-400">
+          <p className="mt-2 text-[11px] text-zinc-400 sm:pl-4">
             Prioritized: exchange token listings/delistings, then major policy/government updates.
           </p>
-          <div className="mt-2 grid gap-2 md:grid-cols-2">
-            <section className="rounded-lg border border-[#f4ddc3]/18 bg-[rgba(20,22,30,0.5)] p-2">
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <section className="rounded-lg border border-[#f4ddc3]/12 bg-[rgba(20,22,30,0.5)] p-3">
               <h3 className="px-1 text-[11px] font-semibold uppercase tracking-wide text-[#d7ad82]">
                 Listings Watch
               </h3>
-              <div className="mt-1.5 space-y-2">
+              <div className="mt-2 space-y-2.5">
                 {(listingEvents.length > 0 ? listingEvents : events.slice(0, 3)).slice(0, 4).map((event) => (
                   <a
                     key={`${event.title}-${event.publishedAt}-listing`}
                     href={event.url}
                     target={event.url.startsWith("http") ? "_blank" : undefined}
                     rel={event.url.startsWith("http") ? "noopener noreferrer" : undefined}
-                    className="glass-card block rounded-lg px-2.5 py-2 transition-colors hover:border-[#d1a173]/45"
+                    className="glass-card block rounded-lg px-3.5 py-3 transition-colors hover:border-[#d1a173]/40"
                   >
                     <p className="line-clamp-2 text-xs font-semibold text-zinc-100">{event.title}</p>
                     <p className="font-mono text-[11px] text-[#d7ad82]">
@@ -190,11 +193,11 @@ export function HomeInsightPanels() {
               </div>
             </section>
 
-            <section className="rounded-lg border border-[#f4ddc3]/18 bg-[rgba(20,22,30,0.5)] p-2">
+            <section className="rounded-lg border border-[#f4ddc3]/12 bg-[rgba(20,22,30,0.5)] p-3">
               <h3 className="px-1 text-[11px] font-semibold uppercase tracking-wide text-[#9ec8ff]">
                 CoinMarketCal Style Events
               </h3>
-              <div className="mt-1.5 space-y-2">
+              <div className="mt-2 space-y-2.5">
                 {(regulatoryEvents.length > 0 ? regulatoryEvents : events.slice(0, 3))
                   .slice(0, 4)
                   .map((event) => (
@@ -203,7 +206,7 @@ export function HomeInsightPanels() {
                       href={event.url}
                       target={event.url.startsWith("http") ? "_blank" : undefined}
                       rel={event.url.startsWith("http") ? "noopener noreferrer" : undefined}
-                      className="glass-card block rounded-lg px-2.5 py-2 transition-colors hover:border-[#d1a173]/45"
+                      className="glass-card block rounded-lg px-3.5 py-3 transition-colors hover:border-[#d1a173]/40"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <p className="line-clamp-2 text-xs font-semibold text-zinc-100">{event.title}</p>

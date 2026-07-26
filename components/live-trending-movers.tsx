@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { MiniCoinChart } from "@/components/mini-coin-chart";
+import { SectionHeading } from "@/components/section-heading";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
 import { readResponseJsonSafely } from "@/lib/read-response-json";
 
@@ -19,6 +20,8 @@ type Mover = {
 };
 
 const POLL_MS = 25_000;
+/** Keep each side short so the section stays scannable on desktop. */
+const PER_SIDE = 6;
 
 function formatUsd(n: number | null | undefined) {
   if (n == null || Number.isNaN(n)) return "—";
@@ -38,18 +41,18 @@ function MoverCard({ coin, tone }: { coin: Mover; tone: "up" | "down" }) {
   const ch = coin.price_change_percentage_24h;
   const border =
     tone === "up"
-      ? "border-emerald-500/35 hover:border-emerald-400/60"
-      : "border-red-500/35 hover:border-red-400/60";
+      ? "border-emerald-500/25 hover:border-emerald-400/45"
+      : "border-red-500/25 hover:border-red-400/45";
   const pctCls = tone === "up" ? "text-emerald-300" : "text-red-300";
   const badgeCls =
     tone === "up"
-      ? "bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/30"
-      : "bg-red-500/15 text-red-300 ring-1 ring-red-500/30";
+      ? "bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/25"
+      : "bg-red-500/15 text-red-300 ring-1 ring-red-500/25";
 
   return (
     <Link
       href={`/coin/${encodeURIComponent(coin.id)}`}
-      className={`glass-card block rounded-lg border-2 bg-[#0c0e14]/70 p-3 transition-colors ${border}`}
+      className={`glass-card block rounded-xl border bg-[#0c0e14]/70 p-4 transition-colors ${border}`}
     >
       <div className="flex items-center gap-2.5">
         {coin.image ? (
@@ -95,14 +98,14 @@ function MoversColumn({
   headingId: string;
 }) {
   const panelBorder =
-    tone === "up" ? "border-emerald-500/25 bg-emerald-950/20" : "border-red-500/25 bg-red-950/20";
+    tone === "up" ? "border-emerald-500/18 bg-emerald-950/15" : "border-red-500/18 bg-red-950/15";
   const titleCls = tone === "up" ? "text-emerald-300" : "text-red-300";
   const accentBar = tone === "up" ? "bg-emerald-400" : "bg-red-400";
 
   return (
-    <div className={`rounded-xl border ${panelBorder} p-3 sm:p-4`}>
+    <div className={`rounded-xl border ${panelBorder} p-4 sm:p-5`}>
       <div className="flex items-start gap-2.5">
-        <span className={`mt-1.5 h-8 w-1 shrink-0 rounded-full ${accentBar}`} aria-hidden />
+        <span className={`mt-1.5 h-7 w-1 shrink-0 rounded-full ${accentBar}`} aria-hidden />
         <div>
           <h3 id={headingId} className={`text-base font-extrabold tracking-tight sm:text-lg ${titleCls}`}>
             {title}
@@ -113,11 +116,11 @@ function MoversColumn({
       {coins.length === 0 ? (
         <p className="mt-4 text-sm text-zinc-500">No coins in this list right now.</p>
       ) : (
-        <ul className="mt-4 grid gap-2.5" aria-labelledby={headingId}>
+        <ul className="mt-4 grid gap-3" aria-labelledby={headingId}>
           {coins.map((coin, i) => (
             <li key={coin.id} className="relative">
               <span
-                className={`pointer-events-none absolute -left-0.5 top-3 z-10 flex size-5 items-center justify-center rounded-full font-mono text-[10px] font-bold ${
+                className={`pointer-events-none absolute -left-0.5 top-3.5 z-10 flex size-5 items-center justify-center rounded-full font-mono text-[10px] font-bold ${
                   tone === "up"
                     ? "bg-emerald-500/25 text-emerald-200"
                     : "bg-red-500/25 text-red-200"
@@ -206,22 +209,19 @@ export function LiveTrendingMovers() {
   }, []);
 
   const empty = gainers.length === 0 && losers.length === 0;
+  const topGainers = gainers.slice(0, PER_SIDE);
+  const topLosers = losers.slice(0, PER_SIDE);
 
   return (
     <section
       aria-labelledby="live-trending-heading"
-      className="border-b border-[#f4ddc3]/15 bg-[#0f131b]/55 px-4 py-8 sm:px-6"
+      className="border-b border-[#f4ddc3]/10 bg-[#0f131b]/55 px-4 py-10 sm:px-6 sm:py-12"
     >
-      <div className="glass-panel mx-auto max-w-6xl rounded-2xl p-4 sm:p-6">
-        <div className="flex flex-wrap items-end justify-between gap-2">
+      <div className="glass-panel mx-auto max-w-6xl rounded-2xl p-5 sm:p-6 md:p-7">
+        <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2
-              id="live-trending-heading"
-              className="text-xl font-extrabold tracking-tight sm:text-2xl"
-            >
-              <span className="text-brand-altcoindepot">Live movers</span>
-            </h2>
-            <p className="mt-1 text-sm text-zinc-400">
+            <SectionHeading id="live-trending-heading">Live movers</SectionHeading>
+            <p className="mt-2 text-sm text-zinc-400 sm:pl-4">
               Top gainers and losers among high-volume coins · 24h · refreshes about every 25s
             </p>
           </div>
@@ -233,11 +233,11 @@ export function LiveTrendingMovers() {
         </div>
 
         {loading && empty ? (
-          <p className="mt-4 text-sm text-zinc-500">Loading gainers and losers…</p>
+          <p className="mt-5 text-sm text-zinc-500">Loading gainers and losers…</p>
         ) : null}
 
         {error && empty ? (
-          <div className="mt-4 rounded-lg border border-amber-400/20 bg-amber-400/10 px-3 py-3 text-sm text-amber-100">
+          <div className="mt-5 rounded-lg border border-amber-400/20 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
             Movers are unavailable right now (API busy or offline). We’ll keep retrying
             automatically.
           </div>
@@ -250,20 +250,20 @@ export function LiveTrendingMovers() {
         ) : null}
 
         {!empty ? (
-          <div className="mt-5 grid gap-4 lg:grid-cols-2 lg:gap-5">
+          <div className="mt-6 grid gap-5 lg:grid-cols-2 lg:gap-6">
             <MoversColumn
               headingId="top-gainers-heading"
               title="Top gainers"
               subtitle="Biggest 24h % rises · high volume"
               tone="up"
-              coins={gainers}
+              coins={topGainers}
             />
             <MoversColumn
               headingId="top-losers-heading"
               title="Top losers"
               subtitle="Biggest 24h % declines · high volume"
               tone="down"
-              coins={losers}
+              coins={topLosers}
             />
           </div>
         ) : null}

@@ -139,21 +139,25 @@ export function MarketSentimentStrip() {
   return (
     <section
       aria-label="Market sentiment trackers"
-      className="border-b border-[#f4ddc3]/15 bg-[#0f131b]/70 px-4 py-3 sm:px-6"
+      className="border-b border-[#f4ddc3]/10 bg-[#0f131b]/70 px-4 py-8 sm:px-6 sm:py-10"
     >
-      <div className="glass-panel mx-auto grid max-w-6xl gap-2 rounded-xl p-2.5 md:grid-cols-3">
-        <article className="glass-card rounded-lg px-3 py-2">
+      <div className="glass-panel mx-auto grid max-w-6xl gap-3 rounded-xl p-3 md:grid-cols-3 md:gap-4 md:p-4">
+        <article className="glass-card rounded-xl border border-[#f4ddc3]/12 px-4 py-4 sm:px-5 sm:py-5">
           <p className="text-[10px] uppercase tracking-wide text-zinc-500">Total Crypto Market Cap</p>
-          <p className="mt-0.5 text-sm font-semibold text-zinc-100">{formatCompactUsd(globalMcap)}</p>
-          <p className={`font-mono text-[11px] ${toneClass(globalMcap24h)}`}>{formatPct(globalMcap24h)} (24h)</p>
+          <p className="mt-1.5 text-sm font-semibold text-zinc-100 sm:text-base">
+            {formatCompactUsd(globalMcap)}
+          </p>
+          <p className={`mt-1 font-mono text-[11px] ${toneClass(globalMcap24h)}`}>
+            {formatPct(globalMcap24h)} (24h)
+          </p>
           <MiniLine points={mcapSeries} />
         </article>
-        <article className="glass-card rounded-lg px-3 py-2">
+        <article className="glass-card rounded-xl border border-[#f4ddc3]/12 px-4 py-4 sm:px-5 sm:py-5">
           <p className="text-[10px] uppercase tracking-wide text-zinc-500">Fear & Greed Index</p>
-          <p className={`mt-0.5 text-sm font-semibold ${fearGreedTone(fearGreedValue)}`}>
+          <p className={`mt-1.5 text-sm font-semibold sm:text-base ${fearGreedTone(fearGreedValue)}`}>
             {fearGreedLabel} ({Math.round(fearGreedValue)})
           </p>
-          <div className="mt-1 rounded-full border border-white/15 bg-[#0a0a0a] p-1">
+          <div className="mt-2 rounded-full border border-white/10 bg-[#0a0a0a] p-1.5">
             <div className="relative h-2 rounded-full bg-gradient-to-r from-red-500/70 via-amber-400/70 to-emerald-400/70">
               <span
                 className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border border-white/40 bg-white"
@@ -161,14 +165,14 @@ export function MarketSentimentStrip() {
               />
             </div>
           </div>
-          <p className="mt-1 text-[11px] text-zinc-400">Source: Alternative.me</p>
+          <p className="mt-2 text-[11px] text-zinc-400">Source: Alternative.me</p>
         </article>
-        <article className="glass-card rounded-lg px-3 py-2">
+        <article className="glass-card rounded-xl border border-[#f4ddc3]/12 px-4 py-4 sm:px-5 sm:py-5">
           <p className="text-[10px] uppercase tracking-wide text-zinc-500">Alt Season Tracker</p>
-          <p className="mt-0.5 text-sm font-semibold text-zinc-100">
+          <p className="mt-1.5 text-sm font-semibold text-zinc-100 sm:text-base">
             {altSeasonLabel} ({altSeasonIndex.toFixed(0)})
           </p>
-          <div className="mt-1 rounded-full border border-white/15 bg-[#0a0a0a] p-1">
+          <div className="mt-2 rounded-full border border-white/10 bg-[#0a0a0a] p-1.5">
             <div className="relative h-2 rounded-full bg-gradient-to-r from-[#f59e0b]/70 via-[#60a5fa]/70 to-[#a855f7]/70">
               <span
                 className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border border-white/40 bg-white"
@@ -176,12 +180,12 @@ export function MarketSentimentStrip() {
               />
             </div>
           </div>
-          <p className="mt-1 text-[11px] text-zinc-400">
+          <p className="mt-2 text-[11px] text-zinc-400">
             {outperformers}/{Math.max(altUniverse.length, 1)} alts outperform BTC (7d)
           </p>
         </article>
       </div>
-      <div className="mx-auto mt-1 max-w-6xl px-1 text-right text-[10px] text-zinc-500">
+      <div className="mx-auto mt-2 max-w-6xl px-1 text-right text-[10px] text-zinc-500">
         Last updated: {lastUpdatedLabel}
       </div>
     </section>

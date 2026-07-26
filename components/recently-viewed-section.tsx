@@ -11,6 +11,7 @@ import {
   RECENTLY_VIEWED_CHANGE_EVENT,
   type RecentlyViewedEntry,
 } from "@/lib/recently-viewed-storage";
+import { SectionHeading } from "@/components/section-heading";
 
 type LiveCoin = {
   id: string;
@@ -91,31 +92,26 @@ export function RecentlyViewedSection() {
   return (
     <section
       aria-labelledby="recently-viewed-heading"
-      className="border-b border-[#f4ddc3]/15 bg-[#0f131b]/50 px-4 py-8 sm:px-6"
+      className="border-b border-[#f4ddc3]/10 bg-[#0f131b]/50 px-4 py-10 sm:px-6 sm:py-12"
     >
-      <div className="glass-panel mx-auto max-w-6xl rounded-2xl p-4 sm:p-6">
+      <div className="glass-panel mx-auto max-w-6xl rounded-2xl p-5 sm:p-6 md:p-7">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2
-              id="recently-viewed-heading"
-              className="text-xl font-extrabold tracking-tight sm:text-2xl"
-            >
-              <span className="text-brand-altcoindepot">Recently viewed</span>
-            </h2>
-            <p className="mt-1 text-sm text-zinc-400">
+            <SectionHeading id="recently-viewed-heading">Recently viewed</SectionHeading>
+            <p className="mt-2 text-sm text-zinc-400 sm:pl-4">
               Coins you opened on this device · saved locally, no account needed
             </p>
           </div>
           <button
             type="button"
             onClick={() => clearRecentlyViewed()}
-            className="inline-flex min-h-10 items-center rounded-lg border border-white/15 px-3 py-2 text-xs font-medium text-zinc-400 transition-colors hover:border-red-400/35 hover:text-red-300"
+            className="inline-flex min-h-10 items-center rounded-lg border border-white/10 px-3 py-2 text-xs font-medium text-zinc-400 transition-colors hover:border-red-400/35 hover:text-red-300"
           >
             Clear
           </button>
         </div>
 
-        <ul className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {visible.map((entry) => {
             const quote = live[entry.id];
             const ch = quote?.price_change_percentage_24h;
@@ -124,7 +120,7 @@ export function RecentlyViewedSection() {
               <li key={entry.id}>
                 <Link
                   href={`/coin/${encodeURIComponent(entry.id)}`}
-                  className="glass-card flex items-center gap-3 rounded-lg border-2 border-[#f4ddc3]/30 p-3.5 transition-colors hover:border-[#d1a173]/70"
+                  className="glass-card flex items-center gap-3 rounded-xl border border-[#f4ddc3]/18 p-4 transition-colors hover:border-[#d1a173]/45"
                 >
                   {img ? (
                     <Image
