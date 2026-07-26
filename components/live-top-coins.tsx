@@ -93,10 +93,11 @@ export function LiveTopCoins({ coins }: { coins: CoinMarket[] }) {
         const rank = index + 1;
 
         return (
-          <article
+          <Link
             key={coin.id}
+            href={`/coin/${encodeURIComponent(coin.id)}`}
             role="listitem"
-            className="glass-card group w-[min(85vw,21rem)] shrink-0 snap-start rounded-xl border border-[#f4ddc3]/12 p-6 outline-none transition-[border-color,background-color,box-shadow,transform] hover:-translate-y-0.5 hover:border-[#d1a173]/55 hover:bg-[rgba(48,35,26,0.32)] hover:shadow-[0_16px_40px_rgba(0,0,0,0.45)] focus-within:border-[#d1a173]/55 lg:w-auto lg:shrink lg:p-7"
+            className="glass-card group block w-[min(85vw,21rem)] shrink-0 snap-start rounded-xl border border-[#f4ddc3]/12 p-6 outline-none transition-[border-color,background-color,box-shadow,transform] hover:-translate-y-0.5 hover:border-[#d1a173]/55 hover:bg-[rgba(48,35,26,0.32)] hover:shadow-[0_16px_40px_rgba(0,0,0,0.45)] focus-visible:border-[#d1a173]/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] lg:w-auto lg:shrink lg:p-7"
           >
             <div className="flex items-center justify-between gap-2">
               <span className="font-mono text-xs font-semibold text-[#d7ad82]">#{rank}</span>
@@ -113,27 +114,21 @@ export function LiveTopCoins({ coins }: { coins: CoinMarket[] }) {
                 />
               </span>
               <div className="min-w-0">
-                <Link
-                  href={`/coin/${encodeURIComponent(coin.id)}`}
-                  className="block truncate text-base font-semibold text-zinc-100 transition-colors group-hover:text-[#d7ad82] hover:text-[#d7ad82] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173]"
-                >
+                <p className="truncate text-base font-semibold text-zinc-100 transition-colors group-hover:text-[#d7ad82]">
                   {coin.name}
-                </Link>
+                </p>
                 <p className="text-xs uppercase tracking-wide text-zinc-500">{coin.symbol}</p>
               </div>
             </div>
             <div className="mt-5 space-y-4">
-              <div className="flex items-end justify-between gap-3">
-                <div className="min-w-0">
+              <div className="min-w-0">
+                <div className="flex items-center justify-between gap-2">
                   <p className="text-[11px] uppercase tracking-wide text-zinc-500">Price</p>
-                  <p className="mt-1 font-mono text-xl font-bold tabular-nums leading-none text-zinc-50 sm:text-lg">
-                    {formatUsd(coin.current_price)}
-                  </p>
+                  {pctBadge(ch24)}
                 </div>
-                <div className="shrink-0 text-right">
-                  <p className="text-[11px] uppercase tracking-wide text-zinc-500">24h</p>
-                  <div className="mt-1">{pctBadge(ch24)}</div>
-                </div>
+                <p className="mt-1.5 truncate font-mono text-lg font-bold tabular-nums leading-tight text-zinc-50">
+                  {formatUsd(coin.current_price)}
+                </p>
               </div>
               <div className="space-y-1.5">
                 <MiniCoinChart
@@ -142,9 +137,11 @@ export function LiveTopCoins({ coins }: { coins: CoinMarket[] }) {
                   points={coin.sparkline_in_7d?.price}
                   className="h-16 w-full rounded-md border border-white/10 bg-[#06070a]"
                 />
-                <div className="flex items-center justify-between gap-2 pt-0.5">
-                  <p className="flex items-center gap-1.5 font-mono text-xs leading-none">
-                    <span className="text-[10px] uppercase tracking-wide text-zinc-500">7d</span>
+                <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5 pt-0.5">
+                  <p className="flex min-w-0 items-center gap-1.5 font-mono text-xs leading-none">
+                    <span className="shrink-0 text-[10px] uppercase tracking-wide text-zinc-500">
+                      7d
+                    </span>
                     {pctBadge(coin.price_change_percentage_7d_in_currency)}
                   </p>
                   <p className="font-mono text-xs tabular-nums leading-none text-zinc-300">
@@ -156,7 +153,7 @@ export function LiveTopCoins({ coins }: { coins: CoinMarket[] }) {
                 </div>
               </div>
             </div>
-          </article>
+          </Link>
         );
       })}
     </div>
