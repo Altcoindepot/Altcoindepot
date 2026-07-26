@@ -78,7 +78,7 @@ export default async function ComparePage({ searchParams }: Props) {
         <ul className="mt-5 grid gap-2 text-sm text-zinc-400 sm:grid-cols-3">
           <li className={ds.stat}>Live price &amp; 24h / 7d change</li>
           <li className={ds.stat}>Market cap &amp; volume side by side</li>
-          <li className={ds.stat}>Up to 3 coins in one view</li>
+          <li className={ds.stat}>Market cap parity price thought experiment</li>
         </ul>
 
         <div className="mt-8">
@@ -91,7 +91,8 @@ export default async function ComparePage({ searchParams }: Props) {
           </h2>
           <p className="mt-2 max-w-3xl text-sm leading-relaxed text-zinc-400">
             Spot relative strength quickly: see which asset is outperforming on price, breadth, and
-            liquidity without jumping between tabs. Pair this with coin pages that show{" "}
+            liquidity without jumping between tabs. Market cap parity shows what each coin’s price
+            would be at another coin’s market cap. Pair this with coin pages that show{" "}
             <strong className="font-medium text-zinc-300">Compared to BTC</strong> and{" "}
             <Link href="/" className="text-[#d7ad82] underline-offset-2 hover:underline">
               Market Regime

@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
 import { readResponseJsonSafely } from "@/lib/read-response-json";
 import { showToast } from "@/components/toast-host";
+import { DisclaimerNote } from "@/components/disclaimer-note";
 import { ds } from "@/lib/ui-classes";
 
 type SearchHit = {
@@ -38,6 +39,20 @@ function formatUsd(n: number | null | undefined) {
   }).format(n);
 }
 
+/** Price at another coin’s market cap can get huge — use compact when needed. */
+function formatImpliedUsd(n: number | null | undefined) {
+  if (n == null || !Number.isFinite(n)) return "—";
+  if (n >= 1_000_000) {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      notation: "compact",
+      maximumFractionDigits: 2,
+    }).format(n);
+  }
+  return formatUsd(n);
+}
+
 function formatPct(n: number | null | undefined) {
   if (n == null || Number.isNaN(n)) return "—";
   return `${n >= 0 ? "+" : ""}${n.toFixed(2)}%`;
@@ -46,6 +61,35 @@ function formatPct(n: number | null | undefined) {
 function pctClass(n: number | null | undefined) {
   if (n == null || Number.isNaN(n)) return "text-zinc-500";
   return n >= 0 ? "text-emerald-300" : "text-red-300";
+}
+
+/** Implied price if `coin` kept its supply but traded at `peer`’s market cap. */
+function impliedPriceAtPeerMcap(coin: LiveCoin | undefined, peer: LiveCoin | undefined): number | null {
+  const price = coin?.current_price;
+  const mcap = coin?.market_cap;
+  const peerMcap = peer?.market_cap;
+  if (
+    price == null ||
+    mcap == null ||
+    peerMcap == null ||
+    !Number.isFinite(price) ||
+    !Number.isFinite(mcap) ||
+    !Number.isFinite(peerMcap) ||
+    price <= 0 ||
+    mcap <= 0 ||
+    peerMcap <= 0
+  ) {
+    return null;
+  }
+  return price * (peerMcap / mcap);
+}
+
+function symOf(hit: SearchHit, live?: LiveCoin) {
+  return ((live?.symbol ?? hit.symbol) || hit.id).toString().toUpperCase();
+}
+
+function nameOf(hit: SearchHit, live?: LiveCoin) {
+  return (live?.name ?? hit.name ?? hit.id).toString();
 }
 
 export function CompareClient({ initialIds = [] }: { initialIds?: string[] }) {
@@ -300,56 +344,136 @@ export function CompareClient({ initialIds = [] }: { initialIds?: string[] }) {
       ) : selected.length === 1 ? (
         <p className="mt-6 text-sm text-zinc-500">Add at least one more coin to compare.</p>
       ) : (
-        <div className={`mt-6 overflow-x-auto ${ds.panel} !p-0`}>
-          {loadingLive ? (
-            <p className="px-4 py-6 text-sm text-zinc-500">Loading live stats…</p>
-          ) : (
-            <table className="w-full min-w-[32rem] border-collapse text-left">
-              <thead>
-                <tr className="border-b border-white/10">
-                  <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
-                    Metric
-                  </th>
-                  {selected.map((c) => {
-                    const quote = live[c.id];
-                    return (
-                      <th key={c.id} className="px-4 py-3">
-                        <Link
-                          href={`/coin/${encodeURIComponent(c.id)}`}
-                          className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-100 hover:text-[#d7ad82]"
-                        >
-                          {(quote?.image || c.image) && (
-                            <Image
-                              src={quote?.image || c.image!}
-                              alt=""
-                              width={24}
-                              height={24}
-                              className="rounded-full"
-                            />
-                          )}
-                          <span className="font-mono uppercase">{c.symbol}</span>
-                        </Link>
-                        <p className="mt-0.5 text-xs font-normal text-zinc-500">{c.name}</p>
-                      </th>
-                    );
-                  })}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={row.key} className="border-b border-white/5 last:border-0">
-                    <th className="px-4 py-3 text-xs font-medium text-zinc-500">{row.label}</th>
-                    {selected.map((c) => (
-                      <td key={`${row.key}-${c.id}`} className="px-4 py-3">
-                        {row.render(live[c.id])}
-                      </td>
-                    ))}
+        <>
+          <div className={`mt-6 overflow-x-auto ${ds.panel} !p-0`}>
+            {loadingLive ? (
+              <p className="px-4 py-6 text-sm text-zinc-500">Loading live stats…</p>
+            ) : (
+              <table className="w-full min-w-[32rem] border-collapse text-left">
+                <thead>
+                  <tr className="border-b border-white/10">
+                    <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+                      Metric
+                    </th>
+                    {selected.map((c) => {
+                      const quote = live[c.id];
+                      return (
+                        <th key={c.id} className="px-4 py-3">
+                          <Link
+                            href={`/coin/${encodeURIComponent(c.id)}`}
+                            className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-100 hover:text-[#d7ad82]"
+                          >
+                            {(quote?.image || c.image) && (
+                              <Image
+                                src={quote?.image || c.image!}
+                                alt=""
+                                width={24}
+                                height={24}
+                                className="rounded-full"
+                              />
+                            )}
+                            <span className="font-mono uppercase">{c.symbol}</span>
+                          </Link>
+                          <p className="mt-0.5 text-xs font-normal text-zinc-500">{c.name}</p>
+                        </th>
+                      );
+                    })}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+                </thead>
+                <tbody>
+                  {rows.map((row) => (
+                    <tr key={row.key} className="border-b border-white/5 last:border-0">
+                      <th className="px-4 py-3 text-xs font-medium text-zinc-500">{row.label}</th>
+                      {selected.map((c) => (
+                        <td key={`${row.key}-${c.id}`} className="px-4 py-3">
+                          {row.render(live[c.id])}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+          {!loadingLive ? (
+            <section className={`mt-6 ${ds.panel}`} aria-labelledby="mcap-parity-heading">
+              <h2 id="mcap-parity-heading" className="text-base font-semibold text-zinc-100">
+                Market cap parity
+              </h2>
+              <p className="mt-1 text-sm text-zinc-400">
+                What each coin’s price would be if it had another coin’s market cap (same circulating
+                supply).
+              </p>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {selected.map((subject) => {
+                  const subjectLive = live[subject.id];
+                  const subjectSym = symOf(subject, subjectLive);
+                  const peers = selected.filter((p) => p.id !== subject.id);
+                  return (
+                    <article key={subject.id} className={ds.card}>
+                      <p className={ds.label}>{subjectSym} at peers’ market caps</p>
+                      <p className="mt-1 text-xs text-zinc-500">
+                        Now {formatUsd(subjectLive?.current_price)} · mcap{" "}
+                        {formatCompactUsd(subjectLive?.market_cap ?? null)}
+                      </p>
+                      <ul className="mt-3 space-y-3">
+                        {peers.map((peer) => {
+                          const peerLive = live[peer.id];
+                          const peerSym = symOf(peer, peerLive);
+                          const peerName = nameOf(peer, peerLive);
+                          const implied = impliedPriceAtPeerMcap(subjectLive, peerLive);
+                          const multiple =
+                            implied != null &&
+                            subjectLive?.current_price != null &&
+                            subjectLive.current_price > 0
+                              ? implied / subjectLive.current_price
+                              : null;
+                          return (
+                            <li key={`${subject.id}-${peer.id}`}>
+                              <p className="text-xs leading-snug text-zinc-400">
+                                If {subjectSym} had{" "}
+                                <span className="font-medium text-zinc-300">
+                                  {peerName} ({peerSym})
+                                </span>
+                                ’s market cap
+                              </p>
+                              <p className="mt-0.5 font-mono text-lg font-bold tabular-nums text-zinc-50">
+                                {formatImpliedUsd(implied)}
+                              </p>
+                              {multiple != null ? (
+                                <p
+                                  className={`mt-0.5 font-mono text-xs tabular-nums ${
+                                    multiple >= 1 ? "text-emerald-300" : "text-red-300"
+                                  }`}
+                                >
+                                  ×
+                                  {multiple.toLocaleString("en-US", {
+                                    maximumFractionDigits: multiple >= 10 ? 1 : 2,
+                                  })}{" "}
+                                  vs current price
+                                </p>
+                              ) : (
+                                <p className="mt-0.5 text-xs text-zinc-600">
+                                  Need live price &amp; mcap
+                                </p>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </article>
+                  );
+                })}
+              </div>
+              <DisclaimerNote className="mt-3">
+                Thought experiment only · ignores unlocks, dilution, and liquidity · not financial
+                advice
+              </DisclaimerNote>
+            </section>
+          ) : null}
+        </>
       )}
     </div>
   );
