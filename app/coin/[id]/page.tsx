@@ -4,7 +4,6 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { lookupCoinById } from "@/lib/coingecko";
 import { resolveCoinIdAlias } from "@/lib/coin-id-aliases";
 import { resolveProjectTwitterHandle } from "@/lib/ecosystem-projects";
-import { getLatestXTweets } from "@/lib/x-feed";
 import { getLatestMediumPostsCached, type CachedMediumFeed } from "@/lib/medium-feed";
 import { getCoinNewsCached, type CachedCoinNews } from "@/lib/coin-news";
 import {
@@ -158,14 +157,6 @@ export default async function CoinPage({ params }: Props) {
   const handle = resolveProjectTwitterHandle(coin);
   const twitterHref = handle ? `https://x.com/${handle}` : undefined;
 
-  const tweets = await (async () => {
-    try {
-      return handle ? await getLatestXTweets(handle, 5) : [];
-    } catch {
-      return [];
-    }
-  })();
-
   const mediumFeed = await (async () => {
     try {
       return await getLatestMediumPostsCached(coin, 5);
@@ -220,7 +211,6 @@ export default async function CoinPage({ params }: Props) {
         <CoinDetailView
           coin={coin}
           twitterHref={twitterHref}
-          tweets={tweets}
           mediumPosts={mediumFeed.posts}
           mediumSourceUrl={mediumFeed.sourceUrl ?? undefined}
           mediumStale={mediumFeed.stale}

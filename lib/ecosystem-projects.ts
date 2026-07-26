@@ -12,7 +12,7 @@ export const LAYER1_ECOSYSTEM: EcosystemEntry[] = [
   { id: "bitcoin", label: "Bitcoin", twitter: "bitcoin" },
   { id: "ethereum", label: "Ethereum", twitter: "ethereum" },
   { id: "solana", label: "Solana", twitter: "solana" },
-  { id: "binancecoin", label: "BNB", twitter: "BNBCHAIN" },
+  { id: "binancecoin", label: "BNB", twitter: "binance" },
   { id: "cardano", label: "Cardano", twitter: "Cardano" },
   { id: "avalanche-2", label: "Avalanche", twitter: "avax" },
   { id: "polkadot", label: "Polkadot", twitter: "Polkadot" },
@@ -87,10 +87,34 @@ const EXTRA_TWITTER_BY_GECKO_ID: Record<string, string> = {
   "lido-dao": "LidoFinance",
   "shiba-inu": "Shibtoken",
   "matic-network": "0xPolygon",
+  "polygon-ecosystem-token": "0xPolygon",
   "ethereum-classic": "eth_classic",
   monero: "monero",
   "leo-token": "bitfinex",
-  "okb": "okx",
+  okb: "okx",
+  aave: "aave",
+  maker: "MakerDAO",
+  optimism: "Optimism",
+  arbitrum: "arbitrum",
+  "bitcoin-cash": "BITCOINCASH",
+  hyperliquid: "HyperliquidX",
+  pepe: "pepecoineth",
+  "worldcoin-wld": "worldcoin",
+  blockstack: "Stacks",
+  mantle: "Mantle_Official",
+  "immutable-x": "Immutable",
+  "the-sandbox": "TheSandboxGame",
+  "axie-infinity": "AxieInfinity",
+  "curve-dao-token": "CurveFinance",
+  "pancakeswap-token": "PancakeSwap",
+  compound: "compoundfinance",
+  "rocket-pool-eth": "Rocket_Pool",
+  kaspa: "KaspaCurrency",
+  bonk: "bonk_inu",
+  floki: "RealFlokiInu",
+  "jupiter-exchange-solana": "JupiterExchange",
+  "pyth-network": "PythNetwork",
+  "ondo-finance": "ondo_finance",
 };
 
 const HANDLE_MAP: Record<string, string> = (() => {
@@ -106,14 +130,14 @@ export function getTwitterHandleForGeckoId(id: string): string | undefined {
 }
 
 /**
- * Prefer CoinGecko’s `links.twitter_screen_name`, then the curated handle map.
- * Used so coin pages can show that project’s latest posts when X/Nitter RSS is available.
+ * Prefer CoinGecko’s `links.twitter_screen_name` (when listed), then the curated handle map.
+ * Returns undefined when no reliable official handle is known — callers should hide the X section.
  */
 export function resolveProjectTwitterHandle(coin: CoinGeckoDetail): string | undefined {
   const raw = coin.links?.twitter_screen_name?.trim();
   if (raw) {
     const cleaned = raw.replace(/^@/, "").replace(/[^a-zA-Z0-9_]/g, "");
-    if (cleaned.length >= 1) return cleaned;
+    if (cleaned.length >= 1 && cleaned.length <= 15) return cleaned;
   }
   return getTwitterHandleForGeckoId(coin.id);
 }

@@ -1,14 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { CoinGeckoDetail } from "@/lib/coingecko";
-import type { XFeedItem } from "@/lib/x-feed";
 import type { MediumFeedItem } from "@/lib/medium-feed";
 import type { CoinNewsItem } from "@/lib/coin-news";
 import type { YoutubeFeedItem } from "@/lib/youtube-feed";
 import type { ReppoStatsSnapshot } from "@/lib/reppo-stats-data";
-import { CoinXFeed } from "@/components/coin-x-feed";
 import { CoinNewsFeed } from "@/components/coin-news-feed";
 import { CoinYoutubeFeed } from "@/components/coin-youtube-feed";
+import { CoinXTimelineEmbed } from "@/components/coin-x-timeline-embed";
 import { ReppoStatsSection } from "@/components/reppo-stats-section";
 import { TradingViewChartEmbed } from "@/components/trading-view-chart-embed";
 import { formatShortMonthDay } from "@/lib/format-date";
@@ -411,7 +410,6 @@ function Stat({
 export function CoinDetailView({
   coin,
   twitterHref,
-  tweets,
   mediumPosts,
   mediumSourceUrl,
   mediumStale,
@@ -429,7 +427,6 @@ export function CoinDetailView({
 }: {
   coin: CoinGeckoDetail;
   twitterHref?: string;
-  tweets?: XFeedItem[];
   mediumPosts?: MediumFeedItem[];
   mediumSourceUrl?: string;
   mediumStale?: boolean;
@@ -485,6 +482,12 @@ export function CoinDetailView({
   const fdv = usd(md?.fully_diluted_valuation);
   const marketCap = usd(md?.market_cap);
   const volume24 = usd(md?.total_volume);
+  const twitterHandle = twitterHref
+    ? twitterHref
+        .replace(/^https?:\/\/(www\.)?(x|twitter)\.com\//i, "")
+        .split(/[/?#]/)[0]
+        ?.replace(/^@/, "")
+    : undefined;
   const vsBtc7d =
     ch7 != null && btcChange7d != null && Number.isFinite(btcChange7d)
       ? ch7 - btcChange7d
@@ -849,12 +852,14 @@ export function CoinDetailView({
         >
           Token unlocks
         </a>
-        <a
-          href="#coin-x-feed"
-          className="rounded-full border border-white/15 px-3 py-1.5 text-xs font-semibold text-zinc-300 transition-colors hover:border-[#00ff9f]/40 hover:text-[#00ff9f]"
-        >
-          X Feed
-        </a>
+        {twitterHref ? (
+          <a
+            href="#coin-x-feed"
+            className="rounded-full border border-white/15 px-3 py-1.5 text-xs font-semibold text-zinc-300 transition-colors hover:border-[#00ff9f]/40 hover:text-[#00ff9f]"
+          >
+            X Feed
+          </a>
+        ) : null}
             {coin.id === "reppo" ? (
               <a
                 href="#reppo-network-stats"
@@ -1059,17 +1064,6 @@ export function CoinDetailView({
         </div>
           </section>
 
-          <section aria-labelledby="coin-x-feed" className="mt-6">
-        <h2 id="coin-x-feed" className="text-base font-semibold text-white sm:text-lg">
-          Recent on X
-        </h2>
-        <CoinXFeed
-          coinId={coin.id}
-          initialTweets={tweets ?? []}
-          twitterHandle={twitterHref ? twitterHref.split("/").pop() : undefined}
-        />
-          </section>
-
           <section id="coin-analytics" aria-labelledby="coin-analytics-heading" className="mt-6">
         <h2 id="coin-analytics-heading" className="text-base font-semibold text-white sm:text-lg">
           Analytics
@@ -1130,6 +1124,8 @@ export function CoinDetailView({
           </article>
         </div>
           </section>
+
+          {twitterHandle ? <CoinXTimelineEmbed handle={twitterHandle} /> : null}
 
           <CoingeckoLogoAttribution className="mt-6 text-center [&_span]:text-zinc-600" />
         </div>
