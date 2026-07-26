@@ -95,7 +95,7 @@ export function HomeNewsFeed({
         General market headlines. Listings and major policy live in Catalyst Calendar.
       </p>
 
-      <ul className="mt-5 flex flex-col gap-3.5 sm:gap-4">
+      <ul className="mt-5 flex flex-col gap-4 sm:gap-5">
         {headlines.length > 0 ? (
           headlines.map((item, index) => {
             const source = cleanDisplayText(item.source) || "News";
@@ -109,15 +109,15 @@ export function HomeNewsFeed({
                   href={item.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block rounded-xl border border-white/[0.08] bg-[#111111]/70 px-4 py-4 transition-colors hover:border-[#d1a173]/35 hover:bg-[#141414] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] sm:py-3.5"
+                  className="block cursor-pointer rounded-xl border border-white/[0.08] bg-[#111111]/70 px-3.5 py-3 transition-colors hover:border-[#d1a173]/35 hover:bg-[#141414] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] active:bg-[#161616] sm:px-4 sm:py-3.5"
                 >
-                  <span className="inline-flex max-w-full truncate rounded border border-white/[0.08] bg-white/[0.03] px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-zinc-500">
+                  <span className="inline-flex max-w-[85%] truncate rounded border border-white/[0.06] bg-white/[0.02] px-1.5 py-px text-[9px] font-medium uppercase tracking-wider text-[#71717a]">
                     {source}
                   </span>
-                  <span className="mt-2.5 line-clamp-2 block text-[15px] font-semibold leading-snug text-zinc-100 sm:text-sm">
+                  <span className="mt-2 line-clamp-2 block overflow-hidden text-[14px] font-semibold leading-snug text-zinc-100 sm:mt-2.5 sm:text-sm sm:leading-snug">
                     {title}
                   </span>
-                  <span className="mt-2 block text-xs text-zinc-500 sm:text-[11px]">
+                  <span className="mt-1.5 block text-[11px] text-zinc-500 sm:mt-2 sm:text-[11px]">
                     {formatNewsTimestampEst(item.publishedAt)}
                   </span>
                 </a>
