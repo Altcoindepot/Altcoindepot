@@ -15,7 +15,6 @@ const nav = [
   { href: "/cex-trending", label: "CEX Trending" },
   { href: "/dex-trending", label: "DEX Trending" },
   { href: "/top-100-trending", label: "Top 100 Trending" },
-  { href: "/top-200-trending", label: "Top 200 Trending" },
   { href: "/podcasts", label: "Podcasts" },
 ] as const;
 
@@ -98,7 +97,7 @@ export function HeaderNavMenu() {
         <div
           ref={panelRef}
           id={listId}
-          className="absolute left-0 z-[60] mt-2 w-[min(100vw-2rem,18rem)] origin-top-left rounded-xl border border-[#f4ddc3]/35 bg-[linear-gradient(160deg,rgba(58,46,38,0.98),rgba(28,24,30,0.98))] py-2 shadow-[0_0_40px_rgba(0,0,0,0.55),0_0_20px_rgba(185,129,82,0.18)] backdrop-blur-md"
+          className="absolute left-0 z-[60] mt-2 max-h-[min(70vh,36rem)] w-[min(100vw-2rem,18rem)] origin-top-left overflow-y-auto overscroll-contain rounded-xl border border-[#f4ddc3]/35 bg-[linear-gradient(160deg,rgba(58,46,38,0.98),rgba(28,24,30,0.98))] py-2 shadow-[0_0_40px_rgba(0,0,0,0.55),0_0_20px_rgba(185,129,82,0.18)] backdrop-blur-md [scrollbar-width:thin]"
         >
           <nav aria-label="Site pages">
             <ul className="flex flex-col gap-0.5 px-1">
@@ -133,18 +132,18 @@ export function HeaderNavMenu() {
                   </svg>
                 </button>
                 {categoriesOpen ? (
-                  <ul className="mt-1 flex flex-col gap-0.5">
+                  <ul className="mt-1 flex max-h-56 flex-col gap-0.5 overflow-y-auto overscroll-contain [scrollbar-width:thin]">
                     {PUBLIC_CATEGORIES.map((category) => (
                       <li key={category.slug}>
-                      <Link
-                        href={`/category/${encodeURIComponent(category.slug)}`}
-                        onClick={close}
-                        className="block rounded-lg px-3 py-2 text-sm font-medium text-[#f0e6da] transition-colors hover:bg-[#d1a173]/15 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173]"
-                      >
-                        {category.title}
-                      </Link>
-                    </li>
-                  ))}
+                        <Link
+                          href={`/category/${encodeURIComponent(category.slug)}`}
+                          onClick={close}
+                          className="block rounded-lg px-3 py-2 text-sm font-medium text-[#f0e6da] transition-colors hover:bg-[#d1a173]/15 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173]"
+                        >
+                          {category.title}
+                        </Link>
+                      </li>
+                    ))}
                   </ul>
                 ) : null}
               </li>

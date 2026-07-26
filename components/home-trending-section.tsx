@@ -7,6 +7,7 @@ import { MiniCoinChart } from "@/components/mini-coin-chart";
 import { SectionHeading } from "@/components/section-heading";
 import { QuietFilterToggle, useQuietFilter } from "@/components/quiet-filter-toggle";
 import { LiquidityBadge } from "@/components/liquidity-badge";
+import { NarrativeTags } from "@/components/narrative-tags";
 import { isQuietNoise } from "@/lib/liquidity";
 import { readResponseJsonSafely } from "@/lib/read-response-json";
 
@@ -125,7 +126,7 @@ export function HomeTrendingSection() {
         ) : null}
 
         {coins.length > 0 ? (
-          <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <ul className="mt-6 grid auto-rows-fr gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {coins
               .filter((c) =>
                 quiet
@@ -144,10 +145,10 @@ export function HomeTrendingSection() {
               const up = (ch ?? 0) >= 0;
               const rank = coin.trending_rank ?? coin.market_cap_rank ?? "—";
               return (
-                <li key={coin.id}>
+                <li key={coin.id} className="h-full">
                   <Link
                     href={`/coin/${encodeURIComponent(coin.id)}`}
-                    className="glass-card block rounded-xl border border-[#f4ddc3]/12 p-4 transition-[border-color,transform,background-color] hover:-translate-y-0.5 hover:border-[#d1a173]/50 hover:bg-[rgba(48,35,26,0.28)]"
+                    className="glass-card flex h-full min-h-[15.5rem] flex-col rounded-xl border border-[#f4ddc3]/12 p-4 transition-[border-color,transform,background-color] hover:-translate-y-0.5 hover:border-[#d1a173]/50 hover:bg-[rgba(48,35,26,0.28)]"
                   >
                     <div className="flex items-center gap-2.5">
                       <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#d1a173]/15 font-mono text-[11px] font-bold text-[#d7ad82]">
@@ -169,7 +170,8 @@ export function HomeTrendingSection() {
                         <p className="font-mono text-[11px] uppercase text-zinc-500">
                           {coin.symbol}
                         </p>
-                        <div className="mt-1">
+                        <div className="mt-1 flex min-h-[1.25rem] flex-wrap items-center gap-1">
+                          <NarrativeTags coinId={coin.id} max={1} />
                           <LiquidityBadge
                             totalVolume={coin.total_volume}
                             marketCap={coin.market_cap}
@@ -178,21 +180,21 @@ export function HomeTrendingSection() {
                         </div>
                       </div>
                     </div>
-                    <div className="mt-3 flex items-end justify-between gap-2">
-                      <p className="font-mono text-base font-bold tabular-nums text-zinc-50">
-                        {formatUsd(coin.current_price)}
-                      </p>
-                      <span
-                        className={`rounded-md px-2 py-1 font-mono text-xs font-bold tabular-nums ${
-                          up
-                            ? "bg-emerald-500/20 text-emerald-200 ring-1 ring-emerald-400/35"
-                            : "bg-red-500/20 text-red-200 ring-1 ring-red-400/35"
-                        }`}
-                      >
-                        {formatPct(ch)}
-                      </span>
-                    </div>
-                    <div className="mt-3">
+                    <div className="mt-auto space-y-3 pt-3">
+                      <div className="flex items-end justify-between gap-2">
+                        <p className="truncate font-mono text-base font-bold tabular-nums text-zinc-50">
+                          {formatUsd(coin.current_price)}
+                        </p>
+                        <span
+                          className={`shrink-0 rounded-md px-2 py-1 font-mono text-xs font-bold tabular-nums ${
+                            up
+                              ? "bg-emerald-500/20 text-emerald-200 ring-1 ring-emerald-400/35"
+                              : "bg-red-500/20 text-red-200 ring-1 ring-red-400/35"
+                          }`}
+                        >
+                          {formatPct(ch)}
+                        </span>
+                      </div>
                       <MiniCoinChart
                         change24h={ch}
                         points={coin.sparkline_in_7d?.price}

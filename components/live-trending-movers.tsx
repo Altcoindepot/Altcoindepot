@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { MiniCoinChart } from "@/components/mini-coin-chart";
 import { SectionHeading } from "@/components/section-heading";
 import { QuietFilterToggle, useQuietFilter } from "@/components/quiet-filter-toggle";
+import { NarrativeTags } from "@/components/narrative-tags";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
 import { isQuietNoise } from "@/lib/liquidity";
 import { readResponseJsonSafely } from "@/lib/read-response-json";
@@ -94,7 +95,7 @@ function MoverCard({ coin, tone, rank }: { coin: Mover; tone: "up" | "down"; ran
   return (
     <Link
       href={`/coin/${encodeURIComponent(coin.id)}`}
-      className={`glass-card block rounded-xl border bg-[#0c0e14]/80 p-4 transition-[border-color,background-color,transform] hover:-translate-y-0.5 hover:bg-[#10131a] sm:p-5 ${border}`}
+      className={`glass-card flex h-full min-h-[11.5rem] flex-col rounded-xl border bg-[#0c0e14]/80 p-4 transition-[border-color,background-color,transform] hover:-translate-y-0.5 hover:bg-[#10131a] sm:p-5 ${border}`}
     >
       <div className="flex items-start gap-3">
         <span
@@ -120,6 +121,9 @@ function MoverCard({ coin, tone, rank }: { coin: Mover; tone: "up" | "down"; ran
                 {coin.symbol}
               </p>
               <p className="truncate text-xs text-zinc-500">{coin.name}</p>
+              <div className="mt-1 min-h-[1.25rem]">
+                <NarrativeTags coinId={coin.id} max={1} />
+              </div>
             </div>
             <span
               className={`shrink-0 rounded-lg px-3 py-2 font-mono text-base font-extrabold tabular-nums leading-none ${badgeCls}`}
@@ -136,7 +140,7 @@ function MoverCard({ coin, tone, rank }: { coin: Mover; tone: "up" | "down"; ran
           </p>
         </div>
       </div>
-      <div className="mt-3.5">
+      <div className="mt-auto pt-3.5">
         <MiniCoinChart
           change24h={ch}
           points={coin.sparkline_in_7d?.price}

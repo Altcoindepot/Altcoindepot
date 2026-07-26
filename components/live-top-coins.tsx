@@ -87,7 +87,7 @@ export function LiveTopCoins({ coins }: { coins: CoinMarket[] }) {
 
   return (
     <div
-      className="-mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-3 [scrollbar-width:thin] [-webkit-overflow-scrolling:touch] sm:mx-0 sm:gap-5 lg:grid lg:snap-none lg:grid-cols-5 lg:overflow-visible lg:px-0 lg:pb-0"
+      className="-mx-1 flex snap-x snap-mandatory items-stretch gap-4 overflow-x-auto px-1 pb-3 [scrollbar-width:thin] [-webkit-overflow-scrolling:touch] sm:mx-0 sm:gap-5 lg:grid lg:snap-none lg:grid-cols-5 lg:overflow-visible lg:px-0 lg:pb-0"
       role="list"
     >
       {top.map((coin, index) => {
@@ -99,7 +99,7 @@ export function LiveTopCoins({ coins }: { coins: CoinMarket[] }) {
             key={coin.id}
             href={`/coin/${encodeURIComponent(coin.id)}`}
             role="listitem"
-            className="glass-card group block w-[min(85vw,21rem)] shrink-0 snap-start rounded-xl border border-[#f4ddc3]/12 p-6 outline-none transition-[border-color,background-color,box-shadow,transform] hover:-translate-y-0.5 hover:border-[#d1a173]/55 hover:bg-[rgba(48,35,26,0.32)] hover:shadow-[0_16px_40px_rgba(0,0,0,0.45)] focus-visible:border-[#d1a173]/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] lg:w-auto lg:shrink lg:p-7"
+            className="glass-card group flex h-full min-h-[22rem] w-[min(85vw,21rem)] shrink-0 snap-start flex-col rounded-xl border border-[#f4ddc3]/12 p-6 outline-none transition-[border-color,background-color,box-shadow,transform] hover:-translate-y-0.5 hover:border-[#d1a173]/55 hover:bg-[rgba(48,35,26,0.32)] hover:shadow-[0_16px_40px_rgba(0,0,0,0.45)] focus-visible:border-[#d1a173]/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] lg:w-auto lg:min-w-0 lg:shrink lg:p-7"
           >
             <div className="flex items-center justify-between gap-2">
               <span className="font-mono text-xs font-semibold text-[#d7ad82]">#{rank}</span>
@@ -115,13 +115,13 @@ export function LiveTopCoins({ coins }: { coins: CoinMarket[] }) {
                   className="object-cover"
                 />
               </span>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="truncate text-base font-semibold text-zinc-100 transition-colors group-hover:text-[#d7ad82]">
                   {coin.name}
                 </p>
                 <p className="text-xs uppercase tracking-wide text-zinc-500">{coin.symbol}</p>
-                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                  <NarrativeTags coinId={coin.id} />
+                <div className="mt-1.5 flex min-h-[1.5rem] flex-wrap items-center gap-1.5">
+                  <NarrativeTags coinId={coin.id} max={2} />
                   <LiquidityBadge
                     totalVolume={coin.total_volume}
                     marketCap={coin.market_cap}
@@ -130,7 +130,7 @@ export function LiveTopCoins({ coins }: { coins: CoinMarket[] }) {
                 </div>
               </div>
             </div>
-            <div className="mt-5 space-y-4">
+            <div className="mt-auto space-y-4 pt-5">
               <div className="min-w-0">
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-[11px] uppercase tracking-wide text-zinc-500">Price</p>
@@ -147,7 +147,7 @@ export function LiveTopCoins({ coins }: { coins: CoinMarket[] }) {
                   points={coin.sparkline_in_7d?.price}
                   className="h-16 w-full rounded-md border border-white/10 bg-[#06070a]"
                 />
-                <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5 pt-0.5">
+                <div className="flex min-h-[1.75rem] flex-wrap items-center justify-between gap-x-2 gap-y-1.5 pt-0.5">
                   <p className="flex min-w-0 items-center gap-1.5 font-mono text-xs leading-none">
                     <span className="shrink-0 text-[10px] uppercase tracking-wide text-zinc-500">
                       7d
