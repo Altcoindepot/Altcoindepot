@@ -25,11 +25,11 @@ export const metadata: Metadata = {
     template: "%s · AltCoin Depot",
   },
   description:
-    "Track real-time cryptocurrency prices, charts, and market data for Bitcoin, Ethereum, and top altcoins. Free and updated live.",
+    "Track live cryptocurrency prices, charts, market cap, gainers, losers, and market sentiment. Free real-time crypto data on AltCoin Depot.",
   openGraph: {
     title: "AltCoin Depot – Live Crypto Prices, Charts & Market Data",
     description:
-      "Track real-time cryptocurrency prices, charts, and market data for Bitcoin, Ethereum, and top altcoins. Free and updated live.",
+      "Track live cryptocurrency prices, charts, market cap, gainers, losers, and market sentiment. Free real-time crypto data on AltCoin Depot.",
     url: "https://altcoindepot.com",
     siteName: "AltCoin Depot",
     locale: "en_US",
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "AltCoin Depot – Live Crypto Prices, Charts & Market Data",
     description:
-      "Track real-time cryptocurrency prices, charts, and market data for Bitcoin, Ethereum, and top altcoins. Free and updated live.",
+      "Track live cryptocurrency prices, charts, market cap, gainers, losers, and market sentiment. Free real-time crypto data on AltCoin Depot.",
   },
   robots: { index: true, follow: true },
 };

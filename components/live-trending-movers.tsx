@@ -235,7 +235,7 @@ export function LiveTrendingMovers() {
       <div className="glass-panel mx-auto max-w-6xl rounded-2xl p-5 sm:p-6 md:p-7">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <SectionHeading id="live-trending-heading">Live movers</SectionHeading>
+            <SectionHeading id="live-trending-heading">Gainers and Losers</SectionHeading>
             <p className="mt-2 text-sm text-zinc-400 sm:pl-4">
               Top gainers and losers among liquid coins ($5M+ 24h volume) · refreshes about every
               25s
