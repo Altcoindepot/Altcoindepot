@@ -69,12 +69,13 @@ function MoverCard({ coin, tone }: { coin: Mover; tone: "up" | "down" }) {
       </div>
       <div className="mt-2.5 flex items-center justify-between text-[11px]">
         <span className={`font-mono ${pctCls}`}>{formatUsd(coin.current_price)}</span>
-        <span className="text-zinc-500">Vol {formatCompactUsd(coin.total_volume)}</span>
+        <span className={`font-mono text-xs font-semibold ${pctCls}`}>{formatPct(ch)}</span>
       </div>
+      <p className="mt-0.5 text-[10px] text-zinc-500">Vol {formatCompactUsd(coin.total_volume)}</p>
       <MiniCoinChart
         change24h={ch}
         points={coin.sparkline_in_7d?.price}
-        className="mt-2 h-7 w-full rounded border border-white/10 bg-[#0a0a0a]"
+        className="mt-2 h-9 w-full max-w-[130px] rounded border border-white/10 bg-[#0a0a0a] sm:w-[120px]"
       />
     </Link>
   );

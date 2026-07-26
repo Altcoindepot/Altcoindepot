@@ -224,7 +224,7 @@ export default async function CexTrendingPage() {
                           change24h={row.change24hPct}
                           change7d={row.change1hPct}
                           points={row.miniSeries}
-                          className="mt-2 h-7 w-full rounded border border-white/10 bg-[#0a0a0a]"
+                          className="mt-2 h-9 w-full max-w-[130px] rounded border border-white/10 bg-[#0a0a0a] sm:w-[120px]"
                         />
                       </a>
                     ))}

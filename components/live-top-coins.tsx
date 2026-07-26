@@ -118,30 +118,34 @@ export function LiveTopCoins({ coins }: { coins: CoinMarket[] }) {
                 <p className="text-[10px] uppercase tracking-wide text-zinc-500">{coin.symbol}</p>
               </div>
             </div>
-            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-              <div>
-                <p className="text-zinc-500">Price</p>
-                <p className="font-mono text-zinc-100">{formatUsd(coin.current_price)}</p>
+            <div className="mt-3 space-y-2 text-xs">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <p className="text-zinc-500">Price</p>
+                  <p className="font-mono text-zinc-100">{formatUsd(coin.current_price)}</p>
+                </div>
+                <div>
+                  <p className="text-zinc-500">24h</p>
+                  <p className="font-mono">{pctCell(ch24)}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-zinc-500">24h</p>
-                <p className="font-mono">{pctCell(ch24)}</p>
-              </div>
-              <div>
-                <p className="text-zinc-500">7d</p>
-                <p className="font-mono">{pctCell(coin.price_change_percentage_7d_in_currency)}</p>
-              </div>
-              <div>
-                <p className="text-zinc-500">MCap</p>
-                <p className="font-mono text-zinc-200">{formatCompactUsd(coin.market_cap)}</p>
+              <MiniCoinChart
+                change24h={coin.price_change_percentage_24h}
+                change7d={coin.price_change_percentage_7d_in_currency}
+                points={coin.sparkline_in_7d?.price}
+                className="h-9 w-full max-w-[130px] rounded border border-white/10 bg-[#0a0a0a] sm:w-[120px]"
+              />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <p className="text-zinc-500">7d</p>
+                  <p className="font-mono">{pctCell(coin.price_change_percentage_7d_in_currency)}</p>
+                </div>
+                <div>
+                  <p className="text-zinc-500">MCap</p>
+                  <p className="font-mono text-zinc-200">{formatCompactUsd(coin.market_cap)}</p>
+                </div>
               </div>
             </div>
-            <MiniCoinChart
-              change24h={coin.price_change_percentage_24h}
-              change7d={coin.price_change_percentage_7d_in_currency}
-              points={coin.sparkline_in_7d?.price}
-              className="mt-2 h-7 w-full rounded border border-white/10 bg-[#0a0a0a]"
-            />
           </article>
         );
       })}

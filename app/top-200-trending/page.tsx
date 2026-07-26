@@ -170,7 +170,7 @@ export default async function Top200TrendingPage() {
                       <MiniCoinChart
                         change24h={coin.price_change_percentage_24h}
                         points={coin.sparkline_in_7d?.price}
-                        className="mt-1.5 h-6 w-full rounded border border-white/10 bg-[#0a0a0a]"
+                        className="mt-1.5 h-8 w-full max-w-[130px] rounded border border-white/10 bg-[#0a0a0a] sm:h-9 sm:w-[120px]"
                       />
                     </Link>
                   ))}
