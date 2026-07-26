@@ -10,6 +10,8 @@ type CatalystItem = {
   publishedAt: string;
 };
 
+const SLOT_COUNT = 4;
+
 function formatWhen(ts: Date) {
   return ts.toLocaleString([], {
     month: "short",
@@ -30,6 +32,99 @@ function isListingCatalyst(item: CatalystItem) {
 
 function isMajorPolicyCatalyst(item: CatalystItem) {
   return item.category !== "Listings" && MAJOR_POLICY_SIGNAL.test(item.title);
+}
+
+function padSlots(items: CatalystItem[]): (CatalystItem | null)[] {
+  const slots: (CatalystItem | null)[] = items.slice(0, SLOT_COUNT);
+  while (slots.length < SLOT_COUNT) slots.push(null);
+  return slots;
+}
+
+function CatalystCard({
+  event,
+  accent,
+}: {
+  event: CatalystItem;
+  accent: "listing" | "policy";
+}) {
+  const dateCls = accent === "listing" ? "text-[#d7ad82]" : "text-[#9ec8ff]";
+  const chipCls =
+    accent === "listing"
+      ? "border-[#d7ad82]/35 bg-[#d7ad82]/10 text-[#d7ad82]"
+      : "border-[#9ec8ff]/35 bg-[#9ec8ff]/10 text-[#9ec8ff]";
+
+  return (
+    <a
+      href={event.url}
+      target={event.url.startsWith("http") ? "_blank" : undefined}
+      rel={event.url.startsWith("http") ? "noopener noreferrer" : undefined}
+      className="glass-card flex h-[5.75rem] flex-col justify-between rounded-lg px-3.5 py-3 transition-colors hover:border-[#d1a173]/40"
+    >
+      <p className="line-clamp-2 text-xs font-semibold leading-snug text-zinc-100">{event.title}</p>
+      <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px]">
+        <span className={`rounded border px-1.5 py-0.5 font-semibold ${chipCls}`}>
+          {event.category}
+        </span>
+        <span className="rounded border border-white/15 px-1.5 py-0.5 text-zinc-300">
+          {event.source}
+        </span>
+        <span className={`font-mono ${dateCls}`}>{formatWhen(new Date(event.publishedAt))}</span>
+      </div>
+    </a>
+  );
+}
+
+function EmptySlot({ message }: { message?: string }) {
+  return (
+    <div className="flex h-[5.75rem] items-center rounded-lg border border-dashed border-white/10 bg-[rgba(12,14,20,0.35)] px-3.5 py-3">
+      {message ? <p className="text-[11px] text-zinc-500">{message}</p> : null}
+    </div>
+  );
+}
+
+function CatalystColumn({
+  title,
+  titleClass,
+  accent,
+  events,
+  emptyMessage,
+  loadingMessage,
+  stillLoading,
+}: {
+  title: string;
+  titleClass: string;
+  accent: "listing" | "policy";
+  events: CatalystItem[];
+  emptyMessage: string;
+  loadingMessage: string;
+  stillLoading: boolean;
+}) {
+  const slots = padSlots(events);
+  const placeholder = stillLoading ? loadingMessage : emptyMessage;
+
+  return (
+    <section className="flex h-full flex-col rounded-lg border border-[#f4ddc3]/12 bg-[rgba(20,22,30,0.5)] p-3">
+      <h3 className={`px-1 text-[11px] font-semibold uppercase tracking-wide ${titleClass}`}>
+        {title}
+      </h3>
+      <div className="mt-2 grid flex-1 grid-rows-4 gap-2.5">
+        {slots.map((event, i) =>
+          event ? (
+            <CatalystCard
+              key={`${event.title}-${event.publishedAt}-${accent}-${i}`}
+              event={event}
+              accent={accent}
+            />
+          ) : (
+            <EmptySlot
+              key={`${accent}-empty-${i}`}
+              message={events.length === 0 && i === 0 ? placeholder : undefined}
+            />
+          ),
+        )}
+      </div>
+    </section>
+  );
 }
 
 export function HomeInsightPanels() {
@@ -79,8 +174,8 @@ export function HomeInsightPanels() {
     };
   }, []);
 
-  const listingEvents = catalysts.filter(isListingCatalyst).slice(0, 4);
-  const policyEvents = catalysts.filter(isMajorPolicyCatalyst).slice(0, 4);
+  const listingEvents = catalysts.filter(isListingCatalyst).slice(0, SLOT_COUNT);
+  const policyEvents = catalysts.filter(isMajorPolicyCatalyst).slice(0, SLOT_COUNT);
   const stillLoading = catalysts.length === 0 && catalystSourceProvider === "Loading";
 
   return (
@@ -100,76 +195,25 @@ export function HomeInsightPanels() {
             High-impact only: exchange listings/delistings and major policy. General headlines stay in In
             the News.
           </p>
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <section className="rounded-lg border border-[#f4ddc3]/12 bg-[rgba(20,22,30,0.5)] p-3">
-              <h3 className="px-1 text-[11px] font-semibold uppercase tracking-wide text-[#d7ad82]">
-                Exchange Listings
-              </h3>
-              <div className="mt-2 space-y-2.5">
-                {listingEvents.length > 0 ? (
-                  listingEvents.map((event) => (
-                    <a
-                      key={`${event.title}-${event.publishedAt}-listing`}
-                      href={event.url}
-                      target={event.url.startsWith("http") ? "_blank" : undefined}
-                      rel={event.url.startsWith("http") ? "noopener noreferrer" : undefined}
-                      className="glass-card block rounded-lg px-3.5 py-3 transition-colors hover:border-[#d1a173]/40"
-                    >
-                      <p className="line-clamp-2 text-xs font-semibold text-zinc-100">{event.title}</p>
-                      <p className="font-mono text-[11px] text-[#d7ad82]">
-                        {formatWhen(new Date(event.publishedAt))}
-                      </p>
-                      <p className="text-[11px] text-zinc-400">{event.source}</p>
-                    </a>
-                  ))
-                ) : (
-                  <p className="px-1 py-2 text-[11px] text-zinc-500">
-                    {stillLoading ? "Loading listings…" : "No high-impact listings right now."}
-                  </p>
-                )}
-              </div>
-            </section>
-
-            <section className="rounded-lg border border-[#f4ddc3]/12 bg-[rgba(20,22,30,0.5)] p-3">
-              <h3 className="px-1 text-[11px] font-semibold uppercase tracking-wide text-[#9ec8ff]">
-                Major Policy
-              </h3>
-              <div className="mt-2 space-y-2.5">
-                {policyEvents.length > 0 ? (
-                  policyEvents.map((event) => (
-                    <a
-                      key={`${event.title}-${event.publishedAt}-reg`}
-                      href={event.url}
-                      target={event.url.startsWith("http") ? "_blank" : undefined}
-                      rel={event.url.startsWith("http") ? "noopener noreferrer" : undefined}
-                      className="glass-card block rounded-lg px-3.5 py-3 transition-colors hover:border-[#d1a173]/40"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="line-clamp-2 text-xs font-semibold text-zinc-100">{event.title}</p>
-                        <span className="shrink-0 rounded border border-red-400/35 bg-red-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-red-200">
-                          High
-                        </span>
-                      </div>
-                      <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px]">
-                        <span className="rounded border border-[#9ec8ff]/35 bg-[#9ec8ff]/10 px-1.5 py-0.5 text-[#9ec8ff]">
-                          {event.category}
-                        </span>
-                        <span className="rounded border border-white/15 px-1.5 py-0.5 text-zinc-300">
-                          {event.source}
-                        </span>
-                        <span className="font-mono text-[#9ec8ff]">
-                          {formatWhen(new Date(event.publishedAt))}
-                        </span>
-                      </div>
-                    </a>
-                  ))
-                ) : (
-                  <p className="px-1 py-2 text-[11px] text-zinc-500">
-                    {stillLoading ? "Loading policy…" : "No major policy catalysts right now."}
-                  </p>
-                )}
-              </div>
-            </section>
+          <div className="mt-4 grid items-stretch gap-3 md:grid-cols-2">
+            <CatalystColumn
+              title="Exchange Listings"
+              titleClass="text-[#d7ad82]"
+              accent="listing"
+              events={listingEvents}
+              emptyMessage="No high-impact listings right now."
+              loadingMessage="Loading listings…"
+              stillLoading={stillLoading}
+            />
+            <CatalystColumn
+              title="Major Policy"
+              titleClass="text-[#9ec8ff]"
+              accent="policy"
+              events={policyEvents}
+              emptyMessage="No major policy catalysts right now."
+              loadingMessage="Loading policy…"
+              stillLoading={stillLoading}
+            />
           </div>
         </article>
       </div>
