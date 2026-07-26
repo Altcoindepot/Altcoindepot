@@ -139,7 +139,7 @@ export function MarketSentimentStrip() {
   return (
     <section
       aria-label="Market sentiment trackers"
-      className="border-b border-[#f4ddc3]/10 bg-[#0f131b]/70 px-4 py-12 sm:px-6 sm:py-14"
+      className="section-band border-b border-[#f4ddc3]/08 bg-[#0f131b]/70 px-4 py-16 sm:px-6 sm:py-20"
     >
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-4 rounded-xl border border-[#f4ddc3]/20 bg-[rgba(18,16,20,0.92)] p-3 sm:gap-3 md:grid-cols-2 md:gap-4 md:p-4 lg:grid-cols-3">
         <article className="rounded-xl border border-[#f4ddc3]/18 bg-[rgba(28,24,30,0.95)] px-4 py-4 sm:px-5 sm:py-5">

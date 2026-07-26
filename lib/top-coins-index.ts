@@ -7,6 +7,8 @@ export type TopCoinSearchEntry = {
   symbol: string;
   image: string;
   rank: number;
+  current_price: number | null;
+  price_change_percentage_24h: number | null;
 };
 
 export const TOP_COINS_SEARCH_LIMIT = 3000;
@@ -24,6 +26,8 @@ type MarketsRow = {
   symbol?: string;
   image?: string;
   market_cap_rank?: number | null;
+  current_price?: number | null;
+  price_change_percentage_24h?: number | null;
 };
 
 async function fetchTopMarketsPage(page: number): Promise<TopCoinSearchEntry[]> {
@@ -54,6 +58,15 @@ async function fetchTopMarketsPage(page: number): Promise<TopCoinSearchEntry[]> 
         typeof row.market_cap_rank === "number" && !Number.isNaN(row.market_cap_rank)
           ? row.market_cap_rank
           : (page - 1) * PER_PAGE + out.length + 1,
+      current_price:
+        typeof row.current_price === "number" && Number.isFinite(row.current_price)
+          ? row.current_price
+          : null,
+      price_change_percentage_24h:
+        typeof row.price_change_percentage_24h === "number" &&
+        Number.isFinite(row.price_change_percentage_24h)
+          ? row.price_change_percentage_24h
+          : null,
     });
   }
   return out;
@@ -73,7 +86,7 @@ async function buildTopCoinsSearchIndex(): Promise<TopCoinSearchEntry[]> {
 
 export const getTopCoinsSearchIndex = unstable_cache(
   buildTopCoinsSearchIndex,
-  ["top-coins-search-index-v1"],
+  ["top-coins-search-index-v2"],
   { revalidate: 3600 },
 );
 

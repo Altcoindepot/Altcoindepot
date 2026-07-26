@@ -19,7 +19,6 @@ const CACHE_TTL_MS = 10 * 60_000;
 const mediumCache = new Map<string, { posts: MediumFeedItem[]; fetchedAt: number }>();
 const MEDIUM_FALLBACK_BY_GECKO_ID: Record<string, string> = {
   solana: "https://medium.com/solana-labs",
-  injective: "https://medium.com/injective-labs",
   "injective-protocol": "https://medium.com/injective-labs",
 };
 

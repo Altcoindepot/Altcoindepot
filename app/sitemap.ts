@@ -45,6 +45,7 @@ const TOP_COIN_IDS = [
   "uniswap",
   "hedera-hashgraph",
   "shiba-inu",
+  "injective-protocol",
 ] as const;
 
 export default function sitemap(): MetadataRoute.Sitemap {

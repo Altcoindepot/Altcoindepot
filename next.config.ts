@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { COIN_ID_ALIASES } from "./lib/coin-id-aliases";
 
 const nextConfig: NextConfig = {
   images: {
@@ -26,18 +27,12 @@ const nextConfig: NextConfig = {
       })),
     ],
   },
-  async headers() {
-    return [
-      {
-        source: "/:path*",
-        headers: [
-          {
-            key: "X-Robots-Tag",
-            value: "index, follow",
-          },
-        ],
-      },
-    ];
+  async redirects() {
+    return Object.entries(COIN_ID_ALIASES).map(([from, to]) => ({
+      source: `/coin/${from}`,
+      destination: `/coin/${to}`,
+      permanent: true,
+    }));
   },
 };
 

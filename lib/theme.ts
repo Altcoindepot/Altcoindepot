@@ -1,4 +1,5 @@
 export const THEME_STORAGE_KEY = "altcoindepot-theme";
+export const THEME_COOKIE_KEY = "altcoindepot-theme";
 
 /** Resolved appearance applied to the document. */
 export type Theme = "dark" | "light";
@@ -36,6 +37,30 @@ export function applyTheme(theme: Theme) {
   document.documentElement.style.colorScheme = theme;
 }
 
+function readCookiePreference(): ThemePreference | null {
+  if (typeof document === "undefined") return null;
+  try {
+    const match = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith(`${THEME_COOKIE_KEY}=`));
+    if (!match) return null;
+    const value = decodeURIComponent(match.split("=").slice(1).join("="));
+    return isThemePreference(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCookiePreference(preference: ThemePreference) {
+  if (typeof document === "undefined") return;
+  try {
+    const maxAge = 60 * 60 * 24 * 365;
+    document.cookie = `${THEME_COOKIE_KEY}=${encodeURIComponent(preference)}; path=/; max-age=${maxAge}; SameSite=Lax`;
+  } catch {
+    /* ignore */
+  }
+}
+
 export function readStoredPreference(): ThemePreference {
   try {
     const stored = localStorage.getItem(THEME_STORAGE_KEY);
@@ -43,6 +68,8 @@ export function readStoredPreference(): ThemePreference {
   } catch {
     /* private browsing / blocked storage */
   }
+  const fromCookie = readCookiePreference();
+  if (fromCookie) return fromCookie;
   return DEFAULT_THEME_PREFERENCE;
 }
 
@@ -57,6 +84,7 @@ export function persistThemePreference(preference: ThemePreference) {
   } catch {
     /* ignore */
   }
+  writeCookiePreference(preference);
   const theme = resolveTheme(preference);
   applyTheme(theme);
   if (typeof window !== "undefined") {

@@ -1,5 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
+
+/**
+ * Real HTTP 404 responses: Next.js injects noindex automatically.
+ * Do not set index/follow here — that caused Soft 404 conflicts in Search Console.
+ */
+export const metadata: Metadata = {
+  title: "Coin not found",
+  description: "That coin id does not exist on CoinGecko.",
+};
 
 export default function CoinNotFound() {
   return (

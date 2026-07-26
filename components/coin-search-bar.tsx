@@ -271,37 +271,64 @@ export function CoinSearchBar({
                     No matches in the top 3000. Try another symbol or name.
                   </li>
                 ) : null}
-                {results.map((coin, idx) => (
-                  <li key={coin.id} role="option" aria-selected={idx === activeIndex}>
-                    <button
-                      type="button"
-                      className={`flex min-h-11 w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm transition-colors hover:bg-white/[0.06] ${
-                        idx === activeIndex ? "bg-white/[0.06]" : ""
-                      }`}
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => goToCoin(coin.id)}
-                    >
-                      {coin.image ? (
-                        <Image
-                          src={coin.image}
-                          alt=""
-                          width={24}
-                          height={24}
-                          className="rounded-full"
-                        />
-                      ) : (
-                        <span className="h-6 w-6 rounded-full bg-zinc-700" />
-                      )}
-                      <span className="min-w-0 flex-1 truncate text-zinc-100">{coin.name}</span>
-                      <span className="shrink-0 font-mono text-xs uppercase text-zinc-400">
-                        {coin.symbol}
-                      </span>
-                      <span className="shrink-0 font-mono text-[10px] text-zinc-600">
-                        #{coin.rank}
-                      </span>
-                    </button>
-                  </li>
-                ))}
+                {results.map((coin, idx) => {
+                  const ch = coin.price_change_percentage_24h;
+                  const price =
+                    coin.current_price != null && Number.isFinite(coin.current_price)
+                      ? new Intl.NumberFormat("en-US", {
+                          style: "currency",
+                          currency: "USD",
+                          maximumFractionDigits: coin.current_price < 1 ? 6 : 2,
+                        }).format(coin.current_price)
+                      : "—";
+                  const pct =
+                    ch != null && Number.isFinite(ch)
+                      ? `${ch >= 0 ? "+" : ""}${ch.toFixed(2)}%`
+                      : "—";
+                  return (
+                    <li key={coin.id} role="option" aria-selected={idx === activeIndex}>
+                      <button
+                        type="button"
+                        className={`flex min-h-11 w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm transition-colors hover:bg-white/[0.06] ${
+                          idx === activeIndex ? "bg-white/[0.06]" : ""
+                        }`}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => goToCoin(coin.id)}
+                      >
+                        {coin.image ? (
+                          <Image
+                            src={coin.image}
+                            alt=""
+                            width={24}
+                            height={24}
+                            className="rounded-full"
+                          />
+                        ) : (
+                          <span className="h-6 w-6 rounded-full bg-zinc-700" />
+                        )}
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-zinc-100">{coin.name}</span>
+                          <span className="font-mono text-[10px] uppercase text-zinc-500">
+                            {coin.symbol}
+                            <span className="mx-1 text-zinc-700">·</span>#{coin.rank}
+                          </span>
+                        </span>
+                        <span className="shrink-0 text-right">
+                          <span className="block font-mono text-xs font-semibold tabular-nums text-zinc-100">
+                            {price}
+                          </span>
+                          <span
+                            className={`block font-mono text-[11px] font-semibold tabular-nums ${
+                              (ch ?? 0) >= 0 ? "text-emerald-300" : "text-red-300"
+                            }`}
+                          >
+                            {pct}
+                          </span>
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             ) : null}
           </div>

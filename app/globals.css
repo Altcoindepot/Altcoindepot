@@ -141,20 +141,55 @@ a.text-metallic:active {
 
 .glass-panel {
   background: linear-gradient(155deg, rgba(255, 246, 235, 0.16), rgba(126, 93, 69, 0.14));
-  border: 1px solid rgba(244, 221, 195, 0.18);
+  border: 1px solid rgba(244, 221, 195, 0.12);
   box-shadow: 0 24px 50px rgba(0, 0, 0, 0.44), inset 0 1px 0 rgba(255, 255, 255, 0.22);
   backdrop-filter: blur(24px) saturate(150%);
 }
 
 .glass-card {
   background: linear-gradient(155deg, rgba(255, 246, 235, 0.13), rgba(99, 72, 52, 0.13));
-  border: 1px solid rgba(244, 221, 195, 0.16);
+  border: 1px solid rgba(244, 221, 195, 0.1);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.16);
   backdrop-filter: blur(18px) saturate(135%);
 }
 
 .bronze-ring {
   box-shadow: 0 0 0 1px rgba(185, 129, 82, 0.14), 0 0 24px rgba(185, 129, 82, 0.1);
+}
+
+/* Soft hierarchy between major homepage bands */
+.section-band {
+  position: relative;
+}
+
+.section-band::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: min(72rem, calc(100% - 2rem));
+  height: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(209, 161, 115, 0.35) 20%,
+    rgba(244, 221, 195, 0.55) 50%,
+    rgba(209, 161, 115, 0.35) 80%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.section-divider {
+  height: 1px;
+  margin: 0.25rem 0.25rem 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(244, 221, 195, 0.28),
+    transparent
+  );
 }
 
 .text-bronze {

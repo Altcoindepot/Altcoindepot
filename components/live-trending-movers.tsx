@@ -37,25 +37,62 @@ function formatPct(n: number | null | undefined) {
   return `${n >= 0 ? "+" : ""}${n.toFixed(2)}%`;
 }
 
+function MoversSkeleton() {
+  return (
+    <div className="mt-8 flex flex-col gap-8 lg:grid lg:grid-cols-2 lg:gap-6">
+      {(["up", "down"] as const).map((tone) => (
+        <div
+          key={tone}
+          className={`rounded-2xl border p-4 sm:p-5 ${
+            tone === "up"
+              ? "border-emerald-500/20 bg-emerald-950/15"
+              : "border-red-500/20 bg-red-950/15"
+          }`}
+        >
+          <div className="h-6 w-36 rounded-md bg-zinc-800/40" />
+          <div className="mt-2 h-3 w-48 rounded bg-zinc-800/25" />
+          <ul className="mt-5 flex flex-col gap-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <li
+                key={i}
+                className="rounded-xl border border-white/8 bg-[#0c0e14]/60 p-4"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="size-6 rounded-full bg-zinc-800/40" />
+                  <div className="size-9 rounded-full bg-zinc-800/35" />
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <div className="h-4 w-20 rounded bg-zinc-800/40" />
+                    <div className="h-3 w-28 rounded bg-zinc-800/25" />
+                  </div>
+                  <div className="h-8 w-16 rounded-lg bg-zinc-800/35" />
+                </div>
+                <div className="mt-3.5 h-14 w-full rounded-md bg-zinc-800/25" />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function MoverCard({ coin, tone, rank }: { coin: Mover; tone: "up" | "down"; rank: number }) {
   const ch = coin.price_change_percentage_24h;
   const border =
     tone === "up"
-      ? "border-emerald-500/30 hover:border-emerald-400/50"
-      : "border-red-500/30 hover:border-red-400/50";
+      ? "border-emerald-500/25 hover:border-emerald-400/55"
+      : "border-red-500/25 hover:border-red-400/55";
   const badgeCls =
     tone === "up"
-      ? "bg-emerald-500/20 text-emerald-200 ring-1 ring-emerald-400/35"
-      : "bg-red-500/20 text-red-200 ring-1 ring-red-400/35";
+      ? "bg-emerald-500/25 text-emerald-100 ring-1 ring-emerald-400/40"
+      : "bg-red-500/25 text-red-100 ring-1 ring-red-400/40";
   const rankCls =
-    tone === "up"
-      ? "bg-emerald-500/25 text-emerald-100"
-      : "bg-red-500/25 text-red-100";
+    tone === "up" ? "bg-emerald-500/25 text-emerald-100" : "bg-red-500/25 text-red-100";
 
   return (
     <Link
       href={`/coin/${encodeURIComponent(coin.id)}`}
-      className={`glass-card block rounded-xl border bg-[#0c0e14]/80 p-4 transition-colors sm:p-5 ${border}`}
+      className={`glass-card block rounded-xl border bg-[#0c0e14]/80 p-4 transition-[border-color,background-color,transform] hover:-translate-y-0.5 hover:bg-[#10131a] sm:p-5 ${border}`}
     >
       <div className="flex items-start gap-3">
         <span
@@ -83,15 +120,17 @@ function MoverCard({ coin, tone, rank }: { coin: Mover; tone: "up" | "down"; ran
               <p className="truncate text-xs text-zinc-500">{coin.name}</p>
             </div>
             <span
-              className={`shrink-0 rounded-lg px-2.5 py-1.5 font-mono text-sm font-bold tabular-nums ${badgeCls}`}
+              className={`shrink-0 rounded-lg px-3 py-2 font-mono text-base font-extrabold tabular-nums leading-none ${badgeCls}`}
             >
               {formatPct(ch)}
             </span>
           </div>
-          <p className="mt-2 font-mono text-sm tabular-nums text-zinc-200">
+          <p className="mt-2.5 font-mono text-base font-semibold tabular-nums text-zinc-100">
             {formatUsd(coin.current_price)}
             <span className="mx-1.5 text-zinc-600">·</span>
-            <span className="text-xs text-zinc-500">Vol {formatCompactUsd(coin.total_volume)}</span>
+            <span className="text-xs font-normal text-zinc-500">
+              Vol {formatCompactUsd(coin.total_volume)}
+            </span>
           </p>
         </div>
       </div>
@@ -99,7 +138,8 @@ function MoverCard({ coin, tone, rank }: { coin: Mover; tone: "up" | "down"; ran
         <MiniCoinChart
           change24h={ch}
           points={coin.sparkline_in_7d?.price}
-          className="h-14 w-full rounded-md border border-white/12 bg-[#06070a]"
+          tone={tone}
+          className="h-14 w-full rounded-md border border-white/10 bg-[#06070a]"
         />
       </div>
     </Link>
@@ -230,7 +270,7 @@ export function LiveTrendingMovers() {
   return (
     <section
       aria-labelledby="live-trending-heading"
-      className="border-b border-[#f4ddc3]/10 bg-[#0f131b]/55 px-4 py-12 sm:px-6 sm:py-14"
+      className="section-band border-b border-[#f4ddc3]/08 bg-[#0f131b]/55 px-4 py-16 sm:px-6 sm:py-20"
     >
       <div className="glass-panel mx-auto max-w-6xl rounded-2xl p-5 sm:p-6 md:p-7">
         <div className="flex flex-wrap items-end justify-between gap-3">
@@ -248,9 +288,7 @@ export function LiveTrendingMovers() {
           ) : null}
         </div>
 
-        {loading && empty ? (
-          <p className="mt-5 text-sm text-zinc-500">Loading gainers and losers…</p>
-        ) : null}
+        {loading && empty ? <MoversSkeleton /> : null}
 
         {error && empty ? (
           <div className="mt-5 rounded-lg border border-amber-400/20 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
@@ -266,7 +304,7 @@ export function LiveTrendingMovers() {
         ) : null}
 
         {!empty ? (
-          <div className="mt-6 flex flex-col gap-10 lg:grid lg:grid-cols-2 lg:gap-6">
+          <div className="mt-8 flex flex-col gap-8 lg:grid lg:grid-cols-2 lg:gap-6">
             <MoversColumn
               headingId="top-gainers-heading"
               title="Top gainers"
@@ -274,10 +312,7 @@ export function LiveTrendingMovers() {
               tone="up"
               coins={topGainers}
             />
-            <div
-              className="mx-1 border-t border-[#f4ddc3]/15 pt-2 lg:hidden"
-              aria-hidden
-            />
+            <div className="section-divider lg:hidden" aria-hidden />
             <MoversColumn
               headingId="top-losers-heading"
               title="Top losers"

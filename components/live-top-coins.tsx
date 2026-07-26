@@ -13,10 +13,10 @@ function formatUsd(n: number | null | undefined) {
   }).format(n);
 }
 
-function pctCell(v: number | null | undefined) {
+function pctBadge(v: number | null | undefined) {
   if (v == null || Number.isNaN(v)) {
     return (
-      <span className="rounded bg-zinc-800/50 px-1.5 py-0.5 text-xs text-zinc-500 sm:px-1.5 sm:text-xs">
+      <span className="inline-block rounded-md bg-zinc-800/50 px-2 py-1 text-xs text-zinc-500">
         —
       </span>
     );
@@ -26,8 +26,8 @@ function pctCell(v: number | null | undefined) {
     <span
       className={
         positive
-          ? "inline-block rounded bg-emerald-500/20 px-1.5 py-1 text-xs font-semibold text-emerald-300 ring-1 ring-emerald-500/35 sm:py-0.5 sm:text-xs"
-          : "inline-block rounded bg-red-500/20 px-1.5 py-1 text-xs font-semibold text-red-300 ring-1 ring-red-500/35 sm:py-0.5 sm:text-xs"
+          ? "inline-block rounded-md bg-emerald-500/25 px-2.5 py-1.5 text-sm font-bold tabular-nums text-emerald-200 ring-1 ring-emerald-400/40"
+          : "inline-block rounded-md bg-red-500/25 px-2.5 py-1.5 text-sm font-bold tabular-nums text-red-200 ring-1 ring-red-400/40"
       }
     >
       {positive ? "+" : ""}
@@ -51,7 +51,7 @@ export function LiveTopCoins({ coins }: { coins: CoinMarket[] }) {
       names: ["xrp", "ripple"],
     },
     {
-      ids: ["injective", "injective-protocol"],
+      ids: ["injective-protocol"],
       symbols: ["inj"],
       names: ["injective"],
     },
@@ -96,59 +96,58 @@ export function LiveTopCoins({ coins }: { coins: CoinMarket[] }) {
           <article
             key={coin.id}
             role="listitem"
-            className="glass-card w-[min(85vw,20rem)] shrink-0 snap-start rounded-xl border border-[#f4ddc3]/20 p-5 outline-none transition-colors hover:border-[#d1a173]/45 hover:bg-[rgba(48,35,26,0.25)] lg:w-auto lg:shrink lg:p-6"
+            className="glass-card group w-[min(85vw,21rem)] shrink-0 snap-start rounded-xl border border-[#f4ddc3]/12 p-6 outline-none transition-[border-color,background-color,box-shadow,transform] hover:-translate-y-0.5 hover:border-[#d1a173]/55 hover:bg-[rgba(48,35,26,0.32)] hover:shadow-[0_16px_40px_rgba(0,0,0,0.45)] focus-within:border-[#d1a173]/55 lg:w-auto lg:shrink lg:p-7"
           >
             <div className="flex items-center justify-between gap-2">
               <span className="font-mono text-xs font-semibold text-[#d7ad82]">#{rank}</span>
             </div>
-            <div className="mt-2.5 flex items-center gap-2.5">
-              <span className="relative size-9 shrink-0 overflow-hidden rounded-full ring-1 ring-white/10 sm:size-8">
+            <div className="mt-3 flex items-center gap-3">
+              <span className="relative size-10 shrink-0 overflow-hidden rounded-full ring-1 ring-white/10 sm:size-9">
                 <Image
                   src={coin.image}
                   alt=""
-                  width={36}
-                  height={36}
-                  sizes="36px"
+                  width={40}
+                  height={40}
+                  sizes="40px"
                   className="object-cover"
                 />
               </span>
               <div className="min-w-0">
                 <Link
                   href={`/coin/${encodeURIComponent(coin.id)}`}
-                  className="block truncate text-base font-semibold text-zinc-100 transition-colors hover:text-[#d7ad82] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] sm:text-sm"
+                  className="block truncate text-base font-semibold text-zinc-100 transition-colors group-hover:text-[#d7ad82] hover:text-[#d7ad82] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173]"
                 >
                   {coin.name}
                 </Link>
-                <p className="text-xs uppercase tracking-wide text-zinc-500 sm:text-[10px]">
-                  {coin.symbol}
-                </p>
+                <p className="text-xs uppercase tracking-wide text-zinc-500">{coin.symbol}</p>
               </div>
             </div>
-            <div className="mt-4 space-y-3 text-xs sm:space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <p className="text-zinc-500">Price</p>
-                  <p className="font-mono text-base tabular-nums text-zinc-100 sm:text-sm">
+            <div className="mt-5 space-y-4">
+              <div className="flex items-end justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[11px] uppercase tracking-wide text-zinc-500">Price</p>
+                  <p className="mt-1 font-mono text-xl font-bold tabular-nums leading-none text-zinc-50 sm:text-lg">
                     {formatUsd(coin.current_price)}
                   </p>
                 </div>
-                <div>
-                  <p className="text-zinc-500">24h</p>
-                  <p className="font-mono text-sm sm:text-xs">{pctCell(ch24)}</p>
+                <div className="shrink-0 text-right">
+                  <p className="text-[11px] uppercase tracking-wide text-zinc-500">24h</p>
+                  <div className="mt-1">{pctBadge(ch24)}</div>
                 </div>
               </div>
-              <div className="space-y-0.5">
+              <div className="space-y-1.5">
                 <MiniCoinChart
                   change24h={coin.price_change_percentage_24h}
                   change7d={coin.price_change_percentage_7d_in_currency}
                   points={coin.sparkline_in_7d?.price}
+                  className="h-16 w-full rounded-md border border-white/10 bg-[#06070a]"
                 />
-                <div className="flex items-baseline justify-between gap-2 pt-0.5">
-                  <p className="flex items-baseline gap-1.5 font-mono text-sm leading-none sm:text-xs">
+                <div className="flex items-center justify-between gap-2 pt-0.5">
+                  <p className="flex items-center gap-1.5 font-mono text-xs leading-none">
                     <span className="text-[10px] uppercase tracking-wide text-zinc-500">7d</span>
-                    {pctCell(coin.price_change_percentage_7d_in_currency)}
+                    {pctBadge(coin.price_change_percentage_7d_in_currency)}
                   </p>
-                  <p className="font-mono text-sm tabular-nums leading-none text-zinc-200 sm:text-xs">
+                  <p className="font-mono text-xs tabular-nums leading-none text-zinc-300">
                     <span className="mr-1 text-[10px] uppercase tracking-wide text-zinc-500">
                       MCap
                     </span>

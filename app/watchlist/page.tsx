@@ -74,15 +74,34 @@ export default function WatchlistPage() {
         </p>
 
         {!mounted ? (
-          <p className="mt-8 text-sm text-zinc-500">Loading…</p>
+          <ul className="mt-8 space-y-2" aria-hidden>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <li
+                key={i}
+                className="flex items-center gap-3 rounded-xl border border-white/8 bg-[#0f131b]/70 px-3 py-3"
+              >
+                <div className="size-8 rounded-full bg-zinc-800/40" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-20 rounded bg-zinc-800/40" />
+                  <div className="h-3 w-28 rounded bg-zinc-800/25" />
+                </div>
+              </li>
+            ))}
+          </ul>
         ) : entries.length === 0 ? (
-          <p className="mt-8 rounded-lg border border-white/10 bg-[#111111] p-6 text-sm text-zinc-400">
-            Your watchlist is empty.{" "}
-            <Link href="/" className="text-[#d7ad82] underline-offset-2 hover:underline">
+          <div className="mt-8 rounded-xl border border-dashed border-[#f4ddc3]/18 bg-[#0f131b]/60 px-5 py-10 text-center">
+            <p className="text-base font-semibold text-zinc-100">Your watchlist is empty</p>
+            <p className="mx-auto mt-2 max-w-md text-sm text-zinc-400">
+              Star coins from any coin page to track them here. Everything stays on this device —
+              no account needed.
+            </p>
+            <Link
+              href="/"
+              className="mt-6 inline-flex min-h-11 items-center justify-center rounded-lg border border-[#d1a173]/40 bg-[#d1a173]/12 px-5 text-sm font-semibold text-[#d7ad82]"
+            >
               Browse markets
-            </Link>{" "}
-            and star coins you want to track.
-          </p>
+            </Link>
+          </div>
         ) : (
           <ul className="mt-8 space-y-2">
             {entries.map((entry) => {

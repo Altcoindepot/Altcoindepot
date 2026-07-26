@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { lookupCoinById } from "@/lib/coingecko";
+import { resolveCoinIdAlias } from "@/lib/coin-id-aliases";
 import { resolveProjectTwitterHandle } from "@/lib/ecosystem-projects";
 import { getLatestXTweets } from "@/lib/x-feed";
 import { getLatestMediumPostsCached, type CachedMediumFeed } from "@/lib/medium-feed";
@@ -18,17 +19,28 @@ import { buildCoinSeoCopy } from "@/lib/coin-seo";
 
 type Props = { params: Promise<{ id: string }> };
 
+async function resolveCoinParam(rawId: string) {
+  const requested = rawId.trim().toLowerCase();
+  const id = resolveCoinIdAlias(requested);
+  if (id !== requested) {
+    permanentRedirect(`/coin/${encodeURIComponent(id)}`);
+  }
+  return id;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params;
+  const { id: rawId } = await params;
+  const id = await resolveCoinParam(rawId);
   const result = await lookupCoinById(id);
   if (result.status === "unavailable") {
     return {
       title: "Price data temporarily unavailable",
       description: "CoinGecko could not be reached. Try again shortly.",
+      robots: { index: true, follow: true },
     };
   }
   if (result.status === "not_found") {
-    return { title: "Coin not found" };
+    notFound();
   }
   const coin = result.coin;
   const sym = (coin.symbol ?? "").toString().toUpperCase() || "—";
@@ -42,13 +54,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       follow: true,
       googleBot: { index: true, follow: true },
     },
+    alternates: {
+      canonical: `/coin/${encodeURIComponent(coin.id)}`,
+    },
     openGraph: { title, description },
     twitter: { title, description },
   };
 }
 
 export default async function CoinPage({ params }: Props) {
-  const { id } = await params;
+  const { id: rawId } = await params;
+  const id = await resolveCoinParam(rawId);
   const result = await lookupCoinById(id);
   if (result.status === "unavailable") {
     return (
@@ -84,6 +100,11 @@ export default async function CoinPage({ params }: Props) {
     notFound();
   }
   const coin = result.coin;
+
+  // Prefer the CoinGecko canonical id in the URL when it differs (casing / drift).
+  if (coin.id !== id) {
+    permanentRedirect(`/coin/${encodeURIComponent(coin.id)}`);
+  }
 
   const handle = resolveProjectTwitterHandle(coin);
   const twitterHref = handle ? `https://x.com/${handle}` : undefined;

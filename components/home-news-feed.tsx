@@ -109,12 +109,12 @@ export function HomeNewsFeed({
                   href={item.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block cursor-pointer rounded-xl border border-white/[0.08] bg-[#111111]/70 px-3.5 py-3 transition-colors hover:border-[#d1a173]/35 hover:bg-[#141414] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] active:bg-[#161616] sm:px-4 sm:py-3.5"
+                  className="block cursor-pointer rounded-xl border border-white/[0.06] bg-[#111111]/70 px-3.5 py-3 transition-colors hover:border-[#d1a173]/35 hover:bg-[#141414] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] active:bg-[#161616] sm:px-4 sm:py-3.5"
                 >
                   <span className="inline-flex max-w-[85%] truncate rounded border border-white/[0.06] bg-white/[0.02] px-1.5 py-px text-[9px] font-medium uppercase tracking-wider text-[#71717a]">
                     {source}
                   </span>
-                  <span className="mt-2 line-clamp-2 block overflow-hidden text-[14px] font-semibold leading-tight text-zinc-100 sm:mt-2.5 sm:text-sm sm:leading-snug">
+                  <span className="mt-2 line-clamp-2 block overflow-hidden break-words text-[14px] font-semibold leading-snug text-zinc-100 sm:mt-2.5 sm:text-sm">
                     {title}
                   </span>
                   <span className="mt-1.5 block text-[11px] text-zinc-500 sm:mt-2 sm:text-[11px]">

@@ -6,6 +6,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeScript } from "@/components/theme-script";
 import { PriceAlertWatcher } from "@/components/price-alert-watcher";
 import { SiteFooter } from "@/components/site-footer";
+import { ToastHost } from "@/components/toast-host";
+import { BackToTop } from "@/components/back-to-top";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -41,14 +43,9 @@ export const metadata: Metadata = {
     description:
       "Track live cryptocurrency prices, charts, market cap, gainers, losers, and market sentiment. Free real-time crypto data on AltCoin Depot.",
   },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-    },
-  },
+  // Do not set robots here: parent `index, follow` conflicts with Next.js
+  // auto-`noindex` on real 404s (soft-404 / conflicting signals in Search Console).
+  // Public pages are indexable by default; coin pages set robots explicitly.
 };
 
 export default function RootLayout({
@@ -72,6 +69,8 @@ export default function RootLayout({
             <SiteFooter />
           </div>
           <PriceAlertWatcher />
+          <ToastHost />
+          <BackToTop />
         </ThemeProvider>
         <Analytics />
         <SpeedInsights />

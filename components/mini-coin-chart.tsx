@@ -22,7 +22,7 @@ const RED = "#fda4af";
 
 /** Default outer size — taller for clearer presence on coin cards. */
 export const MINI_CHART_DEFAULT_CLASS =
-  "h-14 w-full max-w-[168px] rounded-md border border-white/15 bg-[#06070a] sm:w-[160px]";
+  "h-16 w-full max-w-[200px] rounded-md border border-white/12 bg-[#06070a] sm:w-[180px]";
 
 /** Compact 7d-oriented sparkline with strong stroke + fill presence. */
 export function MiniCoinChart({
@@ -30,11 +30,14 @@ export function MiniCoinChart({
   change7d,
   points,
   className,
+  /** Force stroke color (e.g. red for losers even if the series wiggles up). */
+  tone,
 }: {
   change24h: number | null | undefined;
   change7d?: number | null;
   points?: number[] | null;
   className?: string;
+  tone?: "up" | "down";
 }) {
   const gradId = useId().replace(/:/g, "");
   const chartPoints =
@@ -45,11 +48,12 @@ export function MiniCoinChart({
   const first = chartPoints[0] ?? 0;
   const last = chartPoints[chartPoints.length - 1] ?? 0;
   const sevenDay = toNum(change7d);
-  const positive = sevenDay != null ? sevenDay >= 0 : last >= first;
+  const positive =
+    tone === "up" ? true : tone === "down" ? false : sevenDay != null ? sevenDay >= 0 : last >= first;
   const color = positive ? GREEN : RED;
 
-  const width = 160;
-  const height = 58;
+  const width = 180;
+  const height = 64;
   const padY = 5;
   const min = Math.min(...chartPoints);
   const max = Math.max(...chartPoints);
