@@ -38,7 +38,7 @@ function parseNum(value: unknown): number | null {
 async function fetchJson(url: string): Promise<unknown> {
   let lastStatus: number | null = null;
   for (let attempt = 0; attempt < 4; attempt++) {
-    const res = await fetch(url, { next: { revalidate: 60 }, headers: { Accept: "application/json" } });
+    const res = await fetch(url, { next: { revalidate: 3600 }, headers: { Accept: "application/json" } });
     if (res.ok) {
       return res.json();
     }

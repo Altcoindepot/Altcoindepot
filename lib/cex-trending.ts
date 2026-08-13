@@ -61,7 +61,7 @@ function parseNum(value: unknown): number | null {
 
 async function fetchJson(url: string): Promise<unknown> {
   const res = await fetch(url, {
-    next: { revalidate: 60 },
+    next: { revalidate: 3600 },
     headers: FETCH_HEADERS,
   });
   if (!res.ok) {
@@ -222,7 +222,7 @@ async function momentumCoinbase(symbol: string): Promise<{ h1: number | null; se
 async function topFromCoinGeckoExchange(exchangeId: string): Promise<RawMover[]> {
   const tickersRes = await coinGeckoFetch(
     `/exchanges/${encodeURIComponent(exchangeId)}/tickers?order=volume_desc&page=1`,
-    { next: { revalidate: 60 } },
+    { next: { revalidate: 3600 } },
   );
   if (!tickersRes.ok) throw new Error(`CoinGecko exchange ${exchangeId}: ${tickersRes.status}`);
   const tickersJson = (await tickersRes.json()) as {
@@ -261,7 +261,7 @@ async function topFromCoinGeckoExchange(exchangeId: string): Promise<RawMover[]>
 
   const marketsRes = await coinGeckoFetch(
     `/coins/markets?vs_currency=usd&ids=${encodeURIComponent(ids.join(","))}&order=price_change_percentage_24h_desc&per_page=80&page=1&sparkline=false&price_change_percentage=24h`,
-    { next: { revalidate: 60 } },
+    { next: { revalidate: 3600 } },
   );
   if (!marketsRes.ok) throw new Error(`CoinGecko markets fallback: ${marketsRes.status}`);
   const markets = (await marketsRes.json()) as Array<{

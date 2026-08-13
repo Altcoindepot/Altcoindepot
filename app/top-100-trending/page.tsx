@@ -17,7 +17,7 @@ const TOP_100_PATH =
 async function fetchTop100Trending(): Promise<CoinMarket[]> {
   for (let attempt = 0; attempt < 3; attempt++) {
     const res = await coinGeckoFetch(TOP_100_PATH, {
-      next: { revalidate: 60 },
+      next: { revalidate: 3600 },
     });
     if (res.ok) {
       const data: unknown = await res.json();

@@ -19,7 +19,7 @@ type TrendingItem = {
 export async function GET() {
   try {
     const trendRes = await coinGeckoFetch("/search/trending", {
-      next: { revalidate: 120 },
+      next: { revalidate: 3600 },
     });
     if (!trendRes.ok) {
       return NextResponse.json(
@@ -49,7 +49,7 @@ export async function GET() {
 
     const marketsRes = await coinGeckoFetch(
       `/coins/markets?vs_currency=usd&ids=${encodeURIComponent(ids.join(","))}&order=market_cap_desc&per_page=25&page=1&sparkline=true&price_change_percentage=24h%2C7d`,
-      { next: { revalidate: 60 } },
+      { next: { revalidate: 3600 } },
     );
     if (!marketsRes.ok) {
       return NextResponse.json(

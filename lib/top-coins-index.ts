@@ -87,7 +87,7 @@ async function buildTopCoinsSearchIndex(): Promise<TopCoinSearchEntry[]> {
 export const getTopCoinsSearchIndex = unstable_cache(
   buildTopCoinsSearchIndex,
   ["top-coins-search-index-v2"],
-  { revalidate: 3600 },
+  { revalidate: 14400 },
 );
 
 function rankBonus(rank: number): number {

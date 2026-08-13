@@ -173,7 +173,7 @@ export async function getLatestMediumPostsCached(
   try {
     for (const feedUrl of feedUrls) {
       const res = await fetch(feedUrl, {
-        next: { revalidate: 600 },
+        next: { revalidate: 14400 },
         headers: {
           Accept: "application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.1",
           "User-Agent": "AltcoinDepot/1.0 (medium-feed)",

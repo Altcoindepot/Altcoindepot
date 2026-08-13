@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     "Top 24h DEX movers by venue with 1h momentum and 24h volume context.",
 };
 
-export const revalidate = 60;
+export const revalidate = 3600;
 
 const DEX_BRAND: Record<string, { logoUrl: string; panelClass: string; badgeClass: string }> = {
   uniswap: {

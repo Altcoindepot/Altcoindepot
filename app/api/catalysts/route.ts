@@ -52,7 +52,7 @@ async function fetchRss(
   limit = 4,
 ): Promise<CatalystItem[]> {
   const res = await fetch(url, {
-    next: { revalidate: 900 },
+    next: { revalidate: 3600 },
     headers: { Accept: "application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.1" },
   });
   if (!res.ok) return [];
@@ -120,7 +120,7 @@ async function fetchCoinMarketCalEvents(limit = 12): Promise<CatalystItem[]> {
   let payload: unknown = null;
   for (const url of endpoints) {
     const res = await fetch(url, {
-      next: { revalidate: 900 },
+      next: { revalidate: 3600 },
       headers: {
         Accept: "application/json",
         "x-api-key": apiKey,

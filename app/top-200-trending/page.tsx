@@ -48,7 +48,7 @@ export default async function Top200TrendingPage() {
   let loadError = false;
   try {
     const res = await coinGeckoFetch(TOP_200_PATH, {
-      next: { revalidate: 60 },
+      next: { revalidate: 3600 },
     });
     if (!res.ok) throw new Error(`CoinGecko error: ${res.status}`);
     const data: unknown = await res.json();

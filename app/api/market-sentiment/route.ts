@@ -3,7 +3,7 @@ import { coinGeckoFetch } from "@/lib/coingecko";
 
 async function fetchCoinGeckoGlobal() {
   const res = await coinGeckoFetch("/global", {
-    next: { revalidate: 120 },
+    next: { revalidate: 3600 },
   });
   if (!res.ok) throw new Error(`CoinGecko global failed (${res.status})`);
   const data = await res.json();
@@ -15,7 +15,7 @@ async function fetchCoinGeckoGlobal() {
 
 async function fetchFearGreed() {
   const res = await fetch("https://api.alternative.me/fng/?limit=1&format=json", {
-    next: { revalidate: 600 },
+    next: { revalidate: 3600 },
     headers: { Accept: "application/json" },
   });
   if (!res.ok) throw new Error(`Fear & Greed failed (${res.status})`);

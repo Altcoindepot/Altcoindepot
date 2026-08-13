@@ -236,7 +236,7 @@ export async function loadMarketsBundle(
 }
 
 export const getMarketsBundle = cache(async (): Promise<MarketsBundle> => {
-  return loadMarketsBundle({ next: { revalidate: 45 } });
+  return loadMarketsBundle({ next: { revalidate: 3600 } });
 });
 
 /** CoinGecko `/coins/{id}` — trimmed to fields we render */
@@ -316,7 +316,7 @@ async function fetchCoinDetailWithRetries(safe: string): Promise<CoinLookupResul
       let res: Response;
       try {
         res = await coinGeckoFetch(`/coins/${encodeURIComponent(safe)}?${q}`, {
-          next: { revalidate: 60 },
+          next: { revalidate: 14400 },
         });
       } catch {
         continue;
@@ -350,7 +350,7 @@ async function fetchCoinDetailWithRetries(safe: string): Promise<CoinLookupResul
 const getCachedCoinDetailLookup = unstable_cache(
   async (safe: string) => fetchCoinDetailWithRetries(safe),
   ["coingecko-coin-detail"],
-  { revalidate: 120 },
+  { revalidate: 14400 },
 );
 
 /** Result of fetching `/coins/{id}` — never throws; use this when you must distinguish API failure from missing coin. */

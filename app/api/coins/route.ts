@@ -20,7 +20,7 @@ export async function GET(request: Request) {
   try {
     const res = await coinGeckoFetch(
       `/coins/markets?vs_currency=usd&ids=${encodeURIComponent(ids.join(","))}&order=market_cap_desc&per_page=50&page=1&sparkline=false&price_change_percentage=24h%2C7d`,
-      { next: { revalidate: 30 } },
+      { next: { revalidate: 3600 } },
     );
     if (!res.ok) {
       return NextResponse.json({ coins: [], error: `CoinGecko ${res.status}` }, { status: 502 });

@@ -28,7 +28,7 @@ export async function GET() {
   try {
     const res = await coinGeckoFetch(
       "/coins/markets?vs_currency=usd&order=volume_desc&per_page=100&page=1&sparkline=true&price_change_percentage=24h%2C1h",
-      { next: { revalidate: 20 } },
+      { next: { revalidate: 3600 } },
     );
     if (!res.ok) {
       return NextResponse.json(

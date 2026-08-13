@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   try {
     const res = await coinGeckoFetch(
       "/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h",
-      { next: { revalidate: 90 } },
+      { next: { revalidate: 14400 } },
     );
     if (!res.ok) {
       return NextResponse.json({ coins: [], error: `CoinGecko ${res.status}` }, { status: 502 });

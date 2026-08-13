@@ -51,7 +51,7 @@ export async function getLatestXTweets(
     try {
       const res = await fetch(url, {
         headers: { Accept: "application/rss+xml, application/xml;q=0.9, */*;q=0.8" },
-        next: { revalidate: 60 },
+        next: { revalidate: 14400 },
       });
       if (!res.ok) continue;
       const xml = await res.text();

@@ -194,7 +194,7 @@ function newsFeedUrl(query: string): string {
 async function fetchNewsByQuery(query: string, limit: number): Promise<CoinNewsItem[]> {
   const sourceUrl = newsFeedUrl(query);
   const res = await fetch(sourceUrl, {
-    next: { revalidate: 600 },
+    next: { revalidate: 14400 },
     headers: {
       Accept: "application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.1",
       "Accept-Language": "en-US,en;q=0.9",

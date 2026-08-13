@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     "Top 24h movers across major CEX venues with 1m, 15m, and 1h momentum checks.",
 };
 
-export const revalidate = 60;
+export const revalidate = 3600;
 
 const EXCHANGE_BRAND: Record<
   string,

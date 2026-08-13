@@ -37,7 +37,7 @@ async function fetchHandleRss(handle: string): Promise<ProjectUpdate[]> {
     try {
       const res = await fetch(url, {
         headers: { Accept: "application/rss+xml, application/xml;q=0.9, */*;q=0.8" },
-        next: { revalidate: 60 },
+        next: { revalidate: 3600 },
       });
       if (!res.ok) continue;
       const xml = await res.text();
@@ -52,7 +52,7 @@ async function fetchHandleRss(handle: string): Promise<ProjectUpdate[]> {
 
 export async function getFeaturedCoinFeed(): Promise<ProjectUpdate[]> {
   try {
-    const bundle = await loadMarketsBundle({ next: { revalidate: 60 } });
+    const bundle = await loadMarketsBundle({ next: { revalidate: 3600 } });
     const handles = [
       ...new Set(
         bundle.topMarkets

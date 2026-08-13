@@ -49,7 +49,7 @@ function pctTone(v: number | null | undefined) {
   return v >= 0 ? "text-emerald-300" : "text-red-300";
 }
 
-export const revalidate = 60;
+export const revalidate = 7200;
 
 export default async function CategoryPage({ params }: PageProps) {
   const { slug } = await params;
@@ -62,7 +62,7 @@ export default async function CategoryPage({ params }: PageProps) {
   let loadError = false;
   try {
     coins = await loadMarketsByGeckoCategory(cat.coingeckoCategoryId, 100, {
-      next: { revalidate: 60 },
+      next: { revalidate: 7200 },
     });
   } catch {
     loadError = true;

@@ -78,7 +78,7 @@ function collectYoutubeLinks(coin: CoinGeckoDetail): string[] {
 async function resolveHandleToChannelId(handle: string): Promise<string | null> {
   try {
     const res = await fetch(`https://www.youtube.com/@${encodeURIComponent(handle)}`, {
-      next: { revalidate: 3600 },
+      next: { revalidate: 14400 },
       headers: {
         Accept: "text/html,application/xhtml+xml",
         "User-Agent": "AltcoinDepot/1.0 (youtube-discovery)",
@@ -161,7 +161,7 @@ export async function getLatestYoutubeVideosForChannel(
 async function fetchChannelFeed(channelId: string, limit: number): Promise<YoutubeFeedItem[]> {
   const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(channelId)}`;
   const res = await fetch(feedUrl, {
-    next: { revalidate: 600 },
+    next: { revalidate: 14400 },
     headers: {
       Accept: "application/atom+xml, application/xml, text/xml;q=0.9, */*;q=0.1",
       "User-Agent": "AltcoinDepot/1.0 (youtube-feed)",
@@ -220,7 +220,7 @@ async function searchVideosViaApi(coin: CoinGeckoDetail, limit: number): Promise
 
   try {
     const res = await fetch(url.toString(), {
-      next: { revalidate: 600 },
+      next: { revalidate: 14400 },
       headers: { Accept: "application/json" },
     });
     if (!res.ok) return [];

@@ -310,7 +310,7 @@ async function fetchReppoStatsHtml(): Promise<ParsedReppoPartial | null> {
         Accept: "text/html,application/xhtml+xml",
         "User-Agent": "AltcoinDepot/1.0 (+https://altcoindepot.com; reppo-stats-mirror)",
       },
-      next: { revalidate: 300 },
+      next: { revalidate: 14400 },
     });
     if (!res.ok) return null;
     const html = await res.text();
@@ -323,7 +323,7 @@ async function fetchReppoStatsHtml(): Promise<ParsedReppoPartial | null> {
 const getCachedReppoParse = unstable_cache(
   async () => fetchReppoStatsHtml(),
   ["reppo-stats-parse-v2"],
-  { revalidate: 300 },
+  { revalidate: 14400 },
 );
 
 export async function getReppoStatsForDisplay(): Promise<ReppoStatsSnapshot> {

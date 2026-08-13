@@ -3,7 +3,7 @@ import { loadMarketsBundle } from "@/lib/coingecko";
 
 export async function GET() {
   try {
-    const data = await loadMarketsBundle({ next: { revalidate: 60 } });
+    const data = await loadMarketsBundle({ next: { revalidate: 3600 } });
     return NextResponse.json(data);
   } catch {
     return NextResponse.json(
