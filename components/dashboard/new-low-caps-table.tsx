@@ -16,6 +16,22 @@ function formatPct(n: number | null) {
   return `${n >= 0 ? "+" : ""}${n.toFixed(1)}%`;
 }
 
+/** Left-edge accent for mobile New & Low Caps cards. */
+function mobileCardRailClass(row: LowCapRow): string {
+  if (row.status === "FADING") {
+    return "border-l-[3px] border-l-[#fb7185]";
+  }
+  const slug = row.narrativeSlug.toLowerCase();
+  const title = row.narrativeTitle.toLowerCase();
+  if (slug.includes("ai") || title.includes("ai")) {
+    return "border-l-[3px] border-l-[#34d399]";
+  }
+  if (slug === "rwa" || title.includes("rwa")) {
+    return "border-l-[3px] border-l-[#6366f1]";
+  }
+  return "border-l-[3px] border-l-[#3f3f46]";
+}
+
 export function NewLowCapsTable({
   rows,
   className = "",
@@ -100,7 +116,7 @@ export function NewLowCapsTable({
                       strongInflow
                         ? "border-emerald-400/25 bg-gradient-to-r from-emerald-500/[0.08] to-[#0c0e14] shadow-[0_0_15px_rgba(16,185,129,0.12)]"
                         : ""
-                    }`}
+                    } ${mobileCardRailClass(row)}`}
                   >
                     <WatchlistStarButton
                       coinId={row.id}
@@ -182,7 +198,7 @@ export function NewLowCapsTable({
                 return (
                   <tr
                     key={`${row.id}-${row.narrativeSlug}`}
-                    className={`border-b border-white/5 last:border-0 ${
+                    className={`border-b border-white/5 last:border-0 transition-all duration-200 hover:bg-slate-800/30 hover:shadow-[0_0_12px_rgba(255,255,255,0.02)] ${
                       strongInflow
                         ? "bg-gradient-to-r from-emerald-500/[0.07] to-transparent shadow-[0_0_15px_rgba(16,185,129,0.15)]"
                         : ""

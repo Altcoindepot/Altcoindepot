@@ -130,7 +130,7 @@ export function NarrativeRotationTracker({
               <Link
                 key={n.slug}
                 href={`/narrative/${n.slug}`}
-                className="absolute z-20 flex w-[5.5rem] -translate-x-1/2 -translate-y-1/2 cursor-pointer flex-col items-center rounded-full border bg-[#12141a]/95 px-2 py-2 text-center shadow-[0_0_18px_var(--node-glow)] transition-all duration-300 ease-in-out hover:z-30 hover:scale-105 hover:shadow-[0_0_28px_var(--node-glow-strong),0_0_48px_var(--node-glow)]"
+                className="absolute z-20 flex w-[5.5rem] -translate-x-1/2 -translate-y-1/2 cursor-pointer flex-col items-center overflow-visible rounded-full border bg-[#12141a]/95 px-2 py-2 text-center shadow-[0_0_18px_var(--node-glow)] transition-all duration-300 ease-in-out hover:z-30 hover:scale-105 hover:shadow-[0_0_28px_var(--node-glow-strong),0_0_48px_var(--node-glow)]"
                 style={
                   {
                     left: `${x}%`,
@@ -141,6 +141,25 @@ export function NarrativeRotationTracker({
                   } as CSSProperties
                 }
               >
+                {n.status === "LEADING" ? (
+                  <span
+                    className="absolute right-1.5 top-1.5 z-10 flex size-1.5"
+                    aria-hidden
+                    title="Active narrative"
+                  >
+                    <span
+                      className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
+                      style={{ backgroundColor: n.color }}
+                    />
+                    <span
+                      className="relative inline-flex size-1.5 rounded-full ring-1 ring-[#12141a]"
+                      style={{
+                        backgroundColor: n.color,
+                        boxShadow: `0 0 8px ${n.color}`,
+                      }}
+                    />
+                  </span>
+                ) : null}
                 <span
                   className="mb-1 h-2.5 w-2.5 rounded-full"
                   style={{ backgroundColor: n.color, boxShadow: `0 0 8px ${n.color}` }}
