@@ -43,7 +43,7 @@ const MORE_NAV = [
 ] as const;
 
 function linkClass(active: boolean) {
-  return `relative rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+  return `relative inline-flex min-h-[44px] items-center rounded-lg px-3 py-3 text-sm font-medium transition-colors ${
     active
       ? "bg-[rgba(45,212,191,0.12)] text-teal-200 shadow-[inset_3px_0_0_0_#2dd4bf]"
       : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
@@ -78,7 +78,7 @@ function NavLinks({
             key={item.id}
             href={item.href}
             onClick={onNavigate}
-            className={compact ? linkClass(active).replace("py-2.5", "py-2") : linkClass(active)}
+            className={compact ? `${linkClass(active)} !min-h-10 !py-2` : linkClass(active)}
           >
             {item.label}
           </Link>
@@ -94,7 +94,7 @@ function NavLinks({
             key={item.id}
             href={item.href}
             onClick={onNavigate}
-            className={compact ? linkClass(active).replace("py-2.5", "py-2") : linkClass(active)}
+            className={compact ? `${linkClass(active)} !min-h-10 !py-2` : linkClass(active)}
           >
             {item.label}
           </Link>
@@ -106,7 +106,7 @@ function NavLinks({
           type="button"
           aria-expanded={categoriesOpen}
           onClick={() => setCategoriesOpen((v) => !v)}
-          className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-widest text-zinc-500 transition-colors hover:bg-white/5 hover:text-zinc-300"
+          className="flex min-h-[44px] w-full items-center justify-between rounded-lg px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-widest text-zinc-500 transition-colors hover:bg-white/5 hover:text-zinc-300"
         >
           <span>Categories</span>
           <svg
@@ -127,7 +127,7 @@ function NavLinks({
                 key={category.slug}
                 href={`/category/${encodeURIComponent(category.slug)}`}
                 onClick={onNavigate}
-                className={`rounded-lg px-3 py-2 text-sm ${
+                className={`inline-flex min-h-[44px] items-center rounded-lg px-3 py-3 text-sm ${
                   pathname === `/category/${category.slug}`
                     ? "bg-white/5 text-teal-200"
                     : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
@@ -187,7 +187,7 @@ export function DashboardSidebar({
               <Link
                 key={item.id}
                 href={item.href}
-                className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap ${
+                className={`inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-full px-3 py-3 text-xs font-semibold whitespace-nowrap ${
                   active
                     ? "bg-teal-500/15 text-teal-200"
                     : "bg-white/5 text-zinc-400 hover:text-zinc-200"
@@ -199,7 +199,7 @@ export function DashboardSidebar({
           })}
           <Link
             href="/sectors"
-            className="shrink-0 rounded-full bg-white/5 px-3 py-1.5 text-xs font-semibold whitespace-nowrap text-zinc-400 hover:text-zinc-200"
+            className="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-full bg-white/5 px-3 py-3 text-xs font-semibold whitespace-nowrap text-zinc-400 hover:text-zinc-200"
           >
             Sectors
           </Link>

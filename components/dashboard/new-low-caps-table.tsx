@@ -89,7 +89,68 @@ export function NewLowCapsTable({
         </div>
       ) : (
         <div className="min-h-0 flex-1 overflow-auto">
-          <table className="w-full min-w-[44rem] border-collapse text-left">
+          <ul className="flex flex-col gap-2.5 p-3 md:hidden">
+            {visibleRows.map((row) => {
+              const signal = rotationSignalLabel(row.status);
+              const strongInflow = signal === "STRONG INFLOW";
+              return (
+                <li key={`${row.id}-${row.narrativeSlug}-card`}>
+                  <article
+                    className={`flex items-center gap-3 rounded-xl border border-white/10 bg-[#0c0e14] px-3 py-3 ${
+                      strongInflow
+                        ? "border-emerald-400/25 bg-gradient-to-r from-emerald-500/[0.08] to-[#0c0e14] shadow-[0_0_15px_rgba(16,185,129,0.12)]"
+                        : ""
+                    }`}
+                  >
+                    <WatchlistStarButton
+                      coinId={row.id}
+                      name={row.name}
+                      symbol={row.symbol}
+                      image={row.image || undefined}
+                    />
+                    <Link
+                      href={`/coin/${encodeURIComponent(row.id)}`}
+                      className="flex min-w-0 flex-1 items-center gap-3"
+                    >
+                      {row.image ? (
+                        <Image
+                          src={row.image}
+                          alt=""
+                          width={36}
+                          height={36}
+                          className="shrink-0 rounded-full"
+                        />
+                      ) : (
+                        <span className="size-9 shrink-0 rounded-full bg-zinc-800" />
+                      )}
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-semibold text-zinc-100">
+                          {row.name}
+                        </span>
+                        <span className="mt-0.5 block font-mono text-[11px] uppercase text-zinc-500">
+                          {row.symbol}
+                        </span>
+                      </span>
+                      <span className="shrink-0 text-right">
+                        <span
+                          className={`block font-mono text-sm font-bold tabular-nums ${
+                            (row.change7d ?? 0) >= 0 ? "text-emerald-300" : "text-red-300"
+                          }`}
+                        >
+                          {formatPct(row.change7d)}
+                        </span>
+                        <span className="mt-0.5 block text-[10px] uppercase tracking-wide text-zinc-500">
+                          7D
+                        </span>
+                      </span>
+                    </Link>
+                  </article>
+                </li>
+              );
+            })}
+          </ul>
+
+          <table className="hidden w-full min-w-[44rem] border-collapse text-left md:table">
             <thead>
               <tr className="border-b border-white/10 text-[10px] uppercase tracking-wider text-zinc-500">
                 <th className="w-11 px-2 py-2.5 text-center font-semibold sm:px-3">

@@ -43,7 +43,7 @@ export function NarrativeRotationTracker({
     <section
       id="narrative-tracker"
       aria-labelledby="narrative-tracker-heading"
-      className={`${ds.panelLg} relative flex min-h-0 flex-col overflow-hidden ${className}`.trim()}
+      className={`${ds.panelLg} relative hidden min-h-0 flex-col overflow-hidden md:flex ${className}`.trim()}
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 id="narrative-tracker-heading" className="text-base font-semibold text-zinc-100">

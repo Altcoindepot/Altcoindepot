@@ -61,7 +61,7 @@ export function NarrativeRotationSection({
               role="tab"
               aria-selected={active}
               onClick={() => setWindow(w.id)}
-              className={`min-h-9 rounded-md px-3 text-xs font-semibold transition-colors sm:min-h-8 ${
+              className={`min-h-[44px] min-w-[44px] rounded-md px-3 py-3 text-xs font-semibold transition-colors md:min-h-9 md:py-2 ${
                 active
                   ? "bg-teal-500/20 text-teal-200 shadow-[0_0_12px_rgba(45,212,191,0.2)]"
                   : "text-zinc-400 hover:text-zinc-200"
@@ -79,7 +79,7 @@ export function NarrativeRotationSection({
     <div>
       {windowToggle}
 
-      {/* Desktop: one 6-row grid — left pair each spans 3, right trio each spans 2 */}
+      {/* Desktop (lg+): one 6-row grid — left pair each spans 3, right trio each spans 2 */}
       <div className="hidden h-[46rem] gap-4 lg:grid lg:grid-cols-[minmax(0,1.45fr)_minmax(17rem,0.9fr)] lg:grid-rows-6">
         <NarrativeRotationTracker
           narratives={trackerNodes}
@@ -106,8 +106,21 @@ export function NarrativeRotationSection({
         />
       </div>
 
-      {/* Mobile / tablet stack */}
-      <div className="space-y-4 lg:hidden">
+      {/* Tablet (md–lg): node diagram on top, then stacked panels */}
+      <div className="hidden space-y-4 md:block lg:hidden">
+        <NarrativeRotationTracker
+          narratives={trackerNodes}
+          regimeLabel={regimeLabel}
+          window={window}
+        />
+        <TrendingAssetsToday rows={trendingAssets} watchlistOnly={watchlistOnly} />
+        <MarketPulseCard pulse={pulse} />
+        {lowCapsSlot}
+        <TopRotations narratives={top} window={window} />
+      </div>
+
+      {/* Mobile (< md): hide node diagram; Top Rotations cards replace it */}
+      <div className="space-y-4 md:hidden">
         <TopRotations narratives={top} variant="mobile-primary" window={window} />
         <TrendingAssetsToday rows={trendingAssets} watchlistOnly={watchlistOnly} />
         <MarketPulseCard pulse={pulse} />

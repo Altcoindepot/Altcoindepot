@@ -56,7 +56,7 @@ export function WatchlistStarButton({
             : `Removed ${symbol.toUpperCase()} from watchlist`,
         );
       }}
-      className={`inline-flex size-9 shrink-0 items-center justify-center rounded-lg border transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400 ${
+      className={`inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-lg border p-3 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400 ${
         onList
           ? "border-teal-400/45 bg-teal-500/15 text-teal-200"
           : "border-white/10 bg-transparent text-zinc-500 hover:border-white/25 hover:text-zinc-200"
@@ -65,7 +65,7 @@ export function WatchlistStarButton({
       aria-label={onList ? `Remove ${symbol} from watchlist` : `Add ${symbol} to watchlist`}
       title={onList ? "Remove from watchlist" : "Add to watchlist"}
     >
-      <StarIcon filled={onList} className="size-4" />
+      <StarIcon filled={onList} className="size-5" />
     </button>
   );
 }
