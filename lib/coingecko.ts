@@ -176,10 +176,12 @@ export async function loadMarketsByGeckoCategory(
   categoryId: string,
   perPage: number,
   init?: RequestInit & { next?: { revalidate?: number } },
+  opts?: { sparkline?: boolean },
 ): Promise<CoinMarket[]> {
+  const sparkline = opts?.sparkline !== false;
   const path = `/coins/markets?vs_currency=usd&category=${encodeURIComponent(
     categoryId,
-  )}&order=market_cap_desc&per_page=${perPage}&page=1&sparkline=true&price_change_percentage=24h%2C7d%2C30d`;
+  )}&order=market_cap_desc&per_page=${perPage}&page=1&sparkline=${sparkline ? "true" : "false"}&price_change_percentage=24h%2C7d%2C30d`;
   const res = await coinGeckoFetch(path, init);
   if (res.status === 429) {
     throw new CoinGeckoRateLimitError(`CoinGecko category ${categoryId}: 429`);
@@ -193,6 +195,28 @@ export async function loadMarketsByGeckoCategory(
   }
   return data as CoinMarket[];
 }
+
+async function loadCategoryPageMarketsUncached(categoryId: string): Promise<CoinMarket[]> {
+  let lastError: Error | null = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) {
+      await sleep(450 + attempt * 600);
+    }
+    try {
+      return await loadMarketsByGeckoCategory(categoryId, 100, undefined, { sparkline: false });
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+    }
+  }
+  throw lastError ?? new Error(`CoinGecko category ${categoryId}: retries exhausted`);
+}
+
+/** Hourly cache for `/category/[slug]` — lighter payload (no sparkline). */
+export const getCachedCategoryPageMarkets = unstable_cache(
+  loadCategoryPageMarketsUncached,
+  ["category-page-markets-v1"],
+  { revalidate: 3600 },
+);
 
 async function loadCategoryHomeColumns(
   init?: RequestInit & { next?: { revalidate?: number } },

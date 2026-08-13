@@ -9,7 +9,7 @@ import {
   PUBLIC_CATEGORIES,
   sortCoinsBy24hChangeDesc,
 } from "@/lib/coin-categories";
-import { loadMarketsByGeckoCategory, type CoinMarket } from "@/lib/coingecko";
+import { getCachedCategoryPageMarkets, type CoinMarket } from "@/lib/coingecko";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
 
 type PageProps = { params: Promise<{ slug: string }> };
@@ -61,9 +61,7 @@ export default async function CategoryPage({ params }: PageProps) {
   let coins: CoinMarket[] = [];
   let loadError = false;
   try {
-    coins = await loadMarketsByGeckoCategory(cat.coingeckoCategoryId, 100, {
-      next: { revalidate: 7200 },
-    });
+    coins = await getCachedCategoryPageMarkets(cat.coingeckoCategoryId);
   } catch {
     loadError = true;
   }
@@ -111,7 +109,14 @@ export default async function CategoryPage({ params }: PageProps) {
             </div>
           ) : null}
 
-          {!loadError ? (
+          {!loadError && sorted.length === 0 ? (
+            <p className="mt-6 text-sm text-zinc-400">
+              No coins returned for this sector yet. CoinGecko may still be syncing — try again in a
+              minute.
+            </p>
+          ) : null}
+
+          {!loadError && sorted.length > 0 ? (
             <div className="mt-6 overflow-x-auto rounded-xl border border-white/10">
               <table className="w-full min-w-[640px] border-collapse text-left text-sm">
                 <thead>
@@ -135,14 +140,21 @@ export default async function CategoryPage({ params }: PageProps) {
                           href={`/coin/${encodeURIComponent(coin.id)}`}
                           className="flex items-center gap-2.5 rounded-md py-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a855f7]"
                         >
-                          <Image
-                            src={coin.image}
-                            alt=""
-                            width={26}
-                            height={26}
-                            className="rounded-full"
-                            sizes="26px"
-                          />
+                          {coin.image ? (
+                            <Image
+                              src={coin.image}
+                              alt=""
+                              width={26}
+                              height={26}
+                              className="rounded-full"
+                              sizes="26px"
+                            />
+                          ) : (
+                            <span
+                              className="inline-block size-[26px] shrink-0 rounded-full bg-zinc-800"
+                              aria-hidden
+                            />
+                          )}
                           <span>
                             <span className="block font-medium text-zinc-100">{coin.name}</span>
                             <span className="text-[11px] uppercase text-zinc-500">{coin.symbol}</span>

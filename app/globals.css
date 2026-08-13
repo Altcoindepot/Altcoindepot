@@ -180,10 +180,11 @@ a.text-metallic:active {
     #94a3b8 94%,
     #dce3ec 100%
   ) !important;
-  background-size: 160% 160% !important;
+  /* 100% keeps chrome bright on narrow mobile widths; 160% looked muddy/dark */
+  background-size: 100% 100% !important;
 }
 
-/* Dashboard H1 — same clipped-gradient treatment as the header wordmark, bronze site palette */
+/* Dashboard H1 — same silver chrome as the AltCoinDepot header wordmark */
 .text-dashboard-hero {
   display: block;
   max-width: 100%;
@@ -197,18 +198,26 @@ a.text-metallic:active {
   -webkit-font-smoothing: antialiased;
   background-image: linear-gradient(
     118deg,
-    #6f5a45 0%,
-    #a88968 8%,
-    #d7ad82 18%,
-    #f0dcc4 28%,
-    #c4a07a 40%,
-    #d1a173 52%,
-    #e8d0b6 64%,
-    #b98152 76%,
-    #dcc4a8 88%,
-    #c9ae90 100%
+    #4a5568 0%,
+    #718096 6%,
+    #a0aec0 11%,
+    #e2e8f0 17%,
+    #f7fafc 22%,
+    #cbd5e0 28%,
+    #edf2f7 34%,
+    #718096 40%,
+    #f1f5f9 46%,
+    #94a3b8 52%,
+    #ffffff 57%,
+    #cbd5e1 63%,
+    #64748b 69%,
+    #e8edf3 75%,
+    #a8b4c5 82%,
+    #f8fafc 88%,
+    #94a3b8 94%,
+    #dce3ec 100%
   ) !important;
-  background-size: 160% 160% !important;
+  background-size: 100% 100% !important;
 }
 
 /* Wraps `.text-brand-altcoindepot` span so UA link colors never hit the gradient text. */
@@ -539,20 +548,27 @@ html[data-theme="light"] .text-brand-altcoindepot {
     #57534e 88%,
     #1c1917 100%
   ) !important;
+  background-size: 100% 100% !important;
 }
 
 html[data-theme="light"] .text-dashboard-hero {
   background-image: linear-gradient(
     118deg,
-    #5c4030 0%,
-    #8b6914 12%,
-    #b98152 24%,
-    #7c5a3a 40%,
-    #4a3728 52%,
-    #a88968 68%,
-    #6f5a45 82%,
-    #3f2e22 100%
+    #44403c 0%,
+    #78716c 8%,
+    #a8a29e 16%,
+    #57534e 24%,
+    #292524 32%,
+    #78716c 40%,
+    #1c1917 48%,
+    #57534e 56%,
+    #44403c 64%,
+    #78716c 72%,
+    #292524 80%,
+    #57534e 88%,
+    #1c1917 100%
   ) !important;
+  background-size: 100% 100% !important;
 }
 
 html[data-theme="light"] .text-zinc-100:not(.text-metallic):not(.text-metallic-hero):not(.text-brand-altcoindepot) {
@@ -691,8 +707,8 @@ html:not([data-theme="light"]) .text-dashboard-hero {
 
   .text-dashboard-hero {
     background-image: none !important;
-    color: #d7ad82 !important;
-    -webkit-text-fill-color: #d7ad82 !important;
+    color: #e2e8f0 !important;
+    -webkit-text-fill-color: #e2e8f0 !important;
   }
 
   html[data-theme="light"] .text-metallic,
@@ -703,7 +719,7 @@ html:not([data-theme="light"]) .text-dashboard-hero {
   }
 
   html[data-theme="light"] .text-dashboard-hero {
-    color: #7c5a3a !important;
-    -webkit-text-fill-color: #7c5a3a !important;
+    color: #292524 !important;
+    -webkit-text-fill-color: #292524 !important;
   }
 }

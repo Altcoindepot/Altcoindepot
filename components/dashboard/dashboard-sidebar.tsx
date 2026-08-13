@@ -176,7 +176,7 @@ export function DashboardSidebar({
       {/* Mobile / tablet: horizontal strip (replaces header menu button) */}
       <nav
         aria-label="Site navigation"
-        className="sticky top-[4.25rem] z-40 border-b border-[#f4ddc3]/10 bg-[#0b0d11]/95 backdrop-blur-xl sm:top-[4.75rem] lg:hidden"
+        className="sticky top-[4.25rem] z-40 border-b border-[#f4ddc3]/20 bg-[#0b0d11]/95 backdrop-blur-xl sm:top-[4.75rem] lg:hidden"
       >
         <div className="flex gap-1 overflow-x-auto px-2 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {[...PRIMARY_NAV, ...MORE_NAV].map((item) => {
