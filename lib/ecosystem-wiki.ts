@@ -232,3 +232,60 @@ export function wikiDisplayName(id: string): string {
   };
   return names[id] ?? id;
 }
+
+const CG = "https://coin-images.coingecko.com/coins/images";
+
+const WIKI_LOGOS: Record<string, string> = {
+  bitcoin: `${CG}/1/small/bitcoin.png`,
+  ethereum: `${CG}/279/small/ethereum.png`,
+  solana: `${CG}/4128/small/solana.png`,
+  ripple: `${CG}/44/small/xrp-symbol-white-128.png`,
+  cardano: `${CG}/975/small/cardano.png`,
+  "avalanche-2": `${CG}/12559/small/Avalanche_Circle_RedWhite_Trans.png`,
+  chainlink: `${CG}/877/small/chainlink-new-logo.png`,
+  aave: `${CG}/12645/small/aave-token-round.png`,
+  uniswap: `${CG}/12504/small/uniswap-logo.png`,
+  near: `${CG}/10365/small/near.jpg`,
+  sui: `${CG}/26375/small/sui_asset.jpeg`,
+  "render-token": `${CG}/11636/small/rndr.png`,
+  "fetch-ai": `${CG}/5680/small/Fetch.jpg`,
+  "ondo-finance": `${CG}/26536/small/ONDO.png`,
+  bittensor: `${CG}/28452/small/ARUsPeNQ_400x400.jpeg`,
+  filecoin: `${CG}/12817/small/filecoin.png`,
+  dogecoin: `${CG}/5/small/dogecoin.png`,
+  polkadot: `${CG}/12171/small/polkadot.png`,
+  cosmos: `${CG}/1481/small/cosmos_hub.png`,
+  "injective-protocol": `${CG}/12882/small/Secondary_Symbol.png`,
+  binancecoin: `${CG}/825/small/bnb-icon2_2x.png`,
+};
+
+export function wikiLogoUrl(id: string): string | null {
+  return WIKI_LOGOS[id] ?? null;
+}
+
+export function wikiSymbol(id: string): string {
+  const symbols: Record<string, string> = {
+    bitcoin: "BTC",
+    ethereum: "ETH",
+    solana: "SOL",
+    ripple: "XRP",
+    cardano: "ADA",
+    "avalanche-2": "AVAX",
+    chainlink: "LINK",
+    aave: "AAVE",
+    uniswap: "UNI",
+    near: "NEAR",
+    sui: "SUI",
+    "render-token": "RENDER",
+    "fetch-ai": "FET",
+    "ondo-finance": "ONDO",
+    bittensor: "TAO",
+    filecoin: "FIL",
+    dogecoin: "DOGE",
+    polkadot: "DOT",
+    cosmos: "ATOM",
+    "injective-protocol": "INJ",
+    binancecoin: "BNB",
+  };
+  return symbols[id] ?? id.slice(0, 4).toUpperCase();
+}

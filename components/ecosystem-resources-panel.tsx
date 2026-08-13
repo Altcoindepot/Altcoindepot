@@ -1,13 +1,17 @@
 import Link from "next/link";
 import { ds } from "@/lib/ui-classes";
+import { WikiCoinLogo } from "@/components/wiki-coin-logo";
+import { WikiChange24h } from "@/components/wiki-change-24h";
 import {
   allWikiEntries,
   resolveTokenResources,
   wikiDisplayName,
   wikiEntriesForNarrative,
+  wikiSymbol,
   type TokenResources,
   type WikiFallbackLinks,
 } from "@/lib/ecosystem-wiki";
+import type { WikiChange24hMap } from "@/lib/ecosystem-quotes";
 
 function ArrowUpRight({ className }: { className?: string }) {
   return (
@@ -75,6 +79,7 @@ export function EcosystemResourcesPanel({
   narrativeSlug,
   entries: entriesProp,
   hideHeading = false,
+  change24h = {},
   className = "",
 }: {
   coinId?: string;
@@ -83,6 +88,7 @@ export function EcosystemResourcesPanel({
   narrativeSlug?: string;
   entries?: Array<{ id: string; resources: TokenResources }>;
   hideHeading?: boolean;
+  change24h?: WikiChange24hMap;
   className?: string;
 }) {
   if (coinId) {
@@ -143,11 +149,23 @@ export function EcosystemResourcesPanel({
       <div className={`${hideHeading ? "" : "mt-5"} grid grid-cols-1 gap-4 md:grid-cols-2`}>
         {entries.map(({ id, resources }) => (
           <article key={id} className="rounded-xl border border-white/10 bg-[#0c0e14] p-4">
-            <div className="mb-3 flex items-center justify-between gap-2 border-b border-white/10 pb-2">
-              <h3 className="text-sm font-semibold text-zinc-100">{wikiDisplayName(id)}</h3>
+            <div className="mb-3 flex items-center justify-between gap-2 border-b border-white/10 pb-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <WikiCoinLogo id={id} size={40} />
+                <div className="min-w-0">
+                  <h3 className="truncate text-sm font-semibold text-zinc-100">
+                    {wikiDisplayName(id)}
+                  </h3>
+                  <p className="mt-0.5 flex items-center gap-2 font-mono text-[10px] tracking-wider text-zinc-500">
+                    <span>{wikiSymbol(id)}</span>
+                    <WikiChange24h value={change24h[id]} className="text-xs font-semibold" />
+                    <span className="text-zinc-600">24h</span>
+                  </p>
+                </div>
+              </div>
               <Link
                 href={`/coin/${encodeURIComponent(id)}`}
-                className="text-[11px] font-medium text-teal-300/90 underline-offset-2 hover:underline"
+                className="shrink-0 text-[11px] font-medium text-teal-300/90 underline-offset-2 hover:underline"
               >
                 Profile →
               </Link>

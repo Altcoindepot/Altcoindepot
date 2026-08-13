@@ -36,7 +36,7 @@ const PRIMARY_NAV = [
 ] as const;
 
 const MORE_NAV = [
-  { href: "/ecosystem", label: "Ecosystem", id: "ecosystem" },
+  { href: "/ecosystem", label: "Ecosystem Research", id: "ecosystem" },
   { href: "/portfolio", label: "Portfolio", id: "portfolio" },
   { href: "/cex-trending", label: "CEX Trending", id: "cex" },
   { href: "/top-100-trending", label: "Top 100 Trending", id: "top100" },
