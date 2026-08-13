@@ -6,33 +6,52 @@ import { ecosystemWikiData } from "@/lib/ecosystem-wiki";
 /** CoinGecko id → 24h price change %. */
 export type WikiChange24hMap = Record<string, number | null>;
 
-async function loadWikiChange24h(): Promise<WikiChange24hMap> {
-  if (isProductionBuild()) return {};
+/** CoinGecko id → live logo URL from markets payload. */
+export type WikiLogoMap = Record<string, string>;
+
+export type WikiMarketMeta = {
+  change24h: WikiChange24hMap;
+  logos: WikiLogoMap;
+};
+
+async function loadWikiMarketMeta(): Promise<WikiMarketMeta> {
+  if (isProductionBuild()) return { change24h: {}, logos: {} };
   const ids = Object.keys(ecosystemWikiData);
-  if (ids.length === 0) return {};
+  if (ids.length === 0) return { change24h: {}, logos: {} };
 
   try {
     const res = await coinGeckoFetch(
       `/coins/markets?vs_currency=usd&ids=${encodeURIComponent(ids.join(","))}&order=market_cap_desc&per_page=250&page=1&sparkline=false&price_change_percentage=24h`,
     );
-    if (!res.ok) return {};
+    if (!res.ok) return { change24h: {}, logos: {} };
     const data: unknown = await res.json();
-    if (!Array.isArray(data)) return {};
+    if (!Array.isArray(data)) return { change24h: {}, logos: {} };
 
-    const out: WikiChange24hMap = {};
+    const change24h: WikiChange24hMap = {};
+    const logos: WikiLogoMap = {};
     for (const row of data) {
       if (!row || typeof row !== "object") continue;
       const id = (row as { id?: unknown }).id;
-      const ch = (row as { price_change_percentage_24h?: unknown }).price_change_percentage_24h;
       if (typeof id !== "string" || !id) continue;
-      out[id] = typeof ch === "number" && Number.isFinite(ch) ? ch : null;
+      const ch = (row as { price_change_percentage_24h?: unknown }).price_change_percentage_24h;
+      change24h[id] = typeof ch === "number" && Number.isFinite(ch) ? ch : null;
+      const image = (row as { image?: unknown }).image;
+      if (typeof image === "string" && /^https?:\/\//i.test(image)) {
+        logos[id] = image;
+      }
     }
-    return out;
+    return { change24h, logos };
   } catch {
-    return {};
+    return { change24h: {}, logos: {} };
   }
 }
 
-export const getWikiChange24h = unstable_cache(loadWikiChange24h, ["wiki-change-24h-v1"], {
+export const getWikiMarketMeta = unstable_cache(loadWikiMarketMeta, ["wiki-market-meta-v1"], {
   revalidate: 3600,
 });
+
+/** @deprecated Prefer getWikiMarketMeta — kept for call-site clarity. */
+export async function getWikiChange24h(): Promise<WikiChange24hMap> {
+  const meta = await getWikiMarketMeta();
+  return meta.change24h;
+}

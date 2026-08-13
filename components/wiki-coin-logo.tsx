@@ -1,21 +1,29 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { wikiDisplayName, wikiLogoUrl } from "@/lib/ecosystem-wiki";
 
+/**
+ * Coin logo for Ecosystem Research.
+ * Uses a plain <img> (not next/image) so CoinGecko CDN loads in the browser —
+ * Next's image optimizer often gets 403 from coingecko.com and falls back to letters.
+ */
 export function WikiCoinLogo({
   id,
+  src: srcProp,
   size = 40,
   className = "",
 }: {
   id: string;
+  /** Live CoinGecko markets image URL when available. */
+  src?: string | null;
   size?: number;
   className?: string;
 }) {
   const [failed, setFailed] = useState(false);
-  const src = wikiLogoUrl(id);
+  const src = (srcProp && srcProp.trim()) || wikiLogoUrl(id);
   const letter = wikiDisplayName(id).charAt(0).toUpperCase();
+  const name = wikiDisplayName(id);
 
   if (!src || failed) {
     return (
@@ -30,12 +38,17 @@ export function WikiCoinLogo({
   }
 
   return (
-    <Image
+    // eslint-disable-next-line @next/next/no-img-element -- CoinGecko CDN blocks Next image optimizer
+    <img
       src={src}
-      alt=""
+      alt={`${name} logo`}
       width={size}
       height={size}
-      className={`shrink-0 rounded-full bg-[#0c0e14] ring-1 ring-white/15 ${className}`.trim()}
+      loading="lazy"
+      decoding="async"
+      referrerPolicy="no-referrer"
+      className={`shrink-0 rounded-full bg-[#0c0e14] object-cover ring-1 ring-white/15 ${className}`.trim()}
+      style={{ width: size, height: size }}
       onError={() => setFailed(true)}
     />
   );

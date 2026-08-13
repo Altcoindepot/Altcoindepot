@@ -3,7 +3,7 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { EcosystemWikiBrowser } from "@/components/ecosystem-wiki-browser";
 import { DisclaimerNote } from "@/components/disclaimer-note";
-import { getWikiChange24h } from "@/lib/ecosystem-quotes";
+import { getWikiMarketMeta } from "@/lib/ecosystem-quotes";
 import { ds } from "@/lib/ui-classes";
 
 const TITLE = "Ecosystem & Developer Resources | AltCoin Depot";
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function EcosystemPage() {
-  const change24h = await getWikiChange24h();
+  const { change24h, logos } = await getWikiMarketMeta();
 
   return (
     <>
@@ -58,7 +58,7 @@ export default async function EcosystemPage() {
           </DisclaimerNote>
 
           <div className="mt-8">
-            <EcosystemWikiBrowser change24h={change24h} />
+            <EcosystemWikiBrowser change24h={change24h} logos={logos} />
           </div>
         </div>
       </main>

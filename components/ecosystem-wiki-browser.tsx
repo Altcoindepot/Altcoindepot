@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { allWikiEntries, wikiDisplayName } from "@/lib/ecosystem-wiki";
-import type { WikiChange24hMap } from "@/lib/ecosystem-quotes";
+import type { WikiChange24hMap, WikiLogoMap } from "@/lib/ecosystem-quotes";
 import { EcosystemResourcesPanel } from "@/components/ecosystem-resources-panel";
 import { WikiCoinLogo } from "@/components/wiki-coin-logo";
 import { WikiChange24h } from "@/components/wiki-change-24h";
@@ -10,8 +10,10 @@ import { ds } from "@/lib/ui-classes";
 
 export function EcosystemWikiBrowser({
   change24h = {},
+  logos = {},
 }: {
   change24h?: WikiChange24hMap;
+  logos?: WikiLogoMap;
 }) {
   const all = useMemo(() => allWikiEntries(), []);
   const [selected, setSelected] = useState("all");
@@ -47,7 +49,7 @@ export function EcosystemWikiBrowser({
                   : "border-white/10 bg-[#0c0e14] text-zinc-300 hover:border-white/20 hover:text-zinc-100"
               }`}
             >
-              <WikiCoinLogo id={row.id} size={22} />
+              <WikiCoinLogo id={row.id} src={logos[row.id]} size={22} />
               <span>{wikiDisplayName(row.id)}</span>
               <WikiChange24h value={change24h[row.id]} className="text-[11px] font-semibold" />
             </button>
@@ -56,7 +58,12 @@ export function EcosystemWikiBrowser({
       </div>
 
       <div className="mt-6">
-        <EcosystemResourcesPanel entries={entries} hideHeading change24h={change24h} />
+        <EcosystemResourcesPanel
+          entries={entries}
+          hideHeading
+          change24h={change24h}
+          logos={logos}
+        />
       </div>
     </div>
   );

@@ -11,7 +11,7 @@ import {
   type TokenResources,
   type WikiFallbackLinks,
 } from "@/lib/ecosystem-wiki";
-import type { WikiChange24hMap } from "@/lib/ecosystem-quotes";
+import type { WikiChange24hMap, WikiLogoMap } from "@/lib/ecosystem-quotes";
 
 function ArrowUpRight({ className }: { className?: string }) {
   return (
@@ -80,6 +80,7 @@ export function EcosystemResourcesPanel({
   entries: entriesProp,
   hideHeading = false,
   change24h = {},
+  logos = {},
   className = "",
 }: {
   coinId?: string;
@@ -89,6 +90,7 @@ export function EcosystemResourcesPanel({
   entries?: Array<{ id: string; resources: TokenResources }>;
   hideHeading?: boolean;
   change24h?: WikiChange24hMap;
+  logos?: WikiLogoMap;
   className?: string;
 }) {
   if (coinId) {
@@ -151,7 +153,7 @@ export function EcosystemResourcesPanel({
           <article key={id} className="rounded-xl border border-white/10 bg-[#0c0e14] p-4">
             <div className="mb-3 flex items-center justify-between gap-2 border-b border-white/10 pb-3">
               <div className="flex min-w-0 items-center gap-3">
-                <WikiCoinLogo id={id} size={40} />
+                <WikiCoinLogo id={id} src={logos[id]} size={40} />
                 <div className="min-w-0">
                   <h3 className="truncate text-sm font-semibold text-zinc-100">
                     {wikiDisplayName(id)}
