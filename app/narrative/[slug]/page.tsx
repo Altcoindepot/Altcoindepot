@@ -15,7 +15,7 @@ import { ds } from "@/lib/ui-classes";
 
 type Props = { params: Promise<{ slug: string }> };
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return NARRATIVES.map((n) => ({ slug: n.slug }));

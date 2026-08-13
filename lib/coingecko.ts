@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
+import { isProductionBuild } from "@/lib/build-phase";
 import { PUBLIC_CATEGORIES } from "@/lib/coin-categories";
 
 /**
@@ -41,14 +42,27 @@ export async function coinGeckoFetch(
   path: string,
   init?: RequestInit & { next?: { revalidate?: number } },
 ): Promise<Response> {
+  // Skip live CoinGecko during `next build` so Vercel prerender does not hang
+  // or write ISR/Data Cache units (Hobby 200k write cap).
+  if (isProductionBuild()) {
+    return new Response("[]", {
+      status: 503,
+      statusText: "Build-time CoinGecko skipped",
+      headers: { "content-type": "application/json" },
+    });
+  }
+
   const normalized = path.startsWith("http")
     ? path
     : `${getCoinGeckoApiBase()}${path.startsWith("/") ? path : `/${path}`}`;
-  const revalidate = init?.next?.revalidate ?? 3600;
+  const { next: _ignoredNext, cache: _ignoredCache, ...rest } = init ?? {};
+  void _ignoredNext;
+  void _ignoredCache;
   return fetch(normalized, {
-    ...init,
-    // Free-tier friendly: cache on the Next.js server for 1 hour by default.
-    next: { ...init?.next, revalidate },
+    ...rest,
+    // Avoid Vercel ISR / Data Cache writes; callers already use unstable_cache
+    // or in-process fallbacks for freshness.
+    cache: "no-store",
     headers: {
       ...coinGeckoHeaders(),
       ...(init?.headers as Record<string, string> | undefined),

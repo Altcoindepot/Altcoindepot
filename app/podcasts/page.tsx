@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     "Crypto podcasts — Bankless, The Milk Road Show, The Pomp Podcast, and The Wolf of All Streets. Latest YouTube episodes with links to Spotify and Amazon Music.",
 };
 
-export const revalidate = 14400;
+export const dynamic = "force-dynamic";
 
 export default async function PodcastsPage() {
   const podcasts = await loadPodcastsWithEpisodes();

@@ -1,4 +1,5 @@
 import { unstable_cache } from "next/cache";
+import { isProductionBuild } from "@/lib/build-phase";
 import {
   CoinGeckoRateLimitError,
   coinGeckoFetch,
@@ -446,6 +447,9 @@ const getCachedDashboardSnapshot = unstable_cache(
  * rate limits (429), network failures, or empty payloads.
  */
 export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
+  if (isProductionBuild()) {
+    return getMockDashboardSnapshot();
+  }
   try {
     return await getCachedDashboardSnapshot();
   } catch (err) {

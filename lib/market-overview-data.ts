@@ -1,4 +1,5 @@
 import { unstable_cache } from "next/cache";
+import { isProductionBuild } from "@/lib/build-phase";
 import {
   coinGeckoFetch,
   loadMarketsByGeckoCategory,
@@ -239,11 +240,32 @@ async function buildMarketOverview(): Promise<MarketOverviewSnapshot> {
   };
 }
 
-export const getMarketOverviewSnapshot = unstable_cache(
+const getCachedMarketOverviewSnapshot = unstable_cache(
   buildMarketOverview,
   ["market-overview-v2-ages"],
   { revalidate: REVALIDATE },
 );
+
+export async function getMarketOverviewSnapshot(): Promise<MarketOverviewSnapshot> {
+  if (isProductionBuild()) {
+    return {
+      pulse: {
+        totalMarketCapUsd: null,
+        marketCapChange24h: null,
+        totalVolumeUsd: null,
+        btcDominance: null,
+        ethDominance: null,
+        btcDominanceChange: null,
+        ethDominanceChange: null,
+      },
+      sectors: [],
+      newCoins: [],
+      updatedAt: new Date().toISOString(),
+      stale: true,
+    };
+  }
+  return getCachedMarketOverviewSnapshot();
+}
 
 /** Map change % to a heatmap cell background. */
 export function sectorHeatStyle(change: number | null): {

@@ -4,11 +4,7 @@ import { SiteHeader } from "@/components/site-header";
 import { DashboardHome } from "@/components/dashboard/dashboard-home";
 import { MarketsDataShell } from "@/components/markets-data-shell";
 import { HomeMarketsFallback } from "@/components/home-markets-fallback";
-import {
-  DASHBOARD_REVALIDATE_SECONDS,
-  getDashboardSnapshot,
-  type DashboardSnapshot,
-} from "@/lib/dashboard-data";
+import { getDashboardSnapshot, type DashboardSnapshot } from "@/lib/dashboard-data";
 import { getMockDashboardSnapshot } from "@/lib/dashboard-mock";
 
 const TITLE = "AltCoin Depot – Narrative Rotation Dashboard";
@@ -34,11 +30,10 @@ export const metadata: Metadata = {
 };
 
 /**
- * Route-level ISR: Next.js regenerates this server page at most once per hour.
- * Combined with `fetch(..., { next: { revalidate: 3600 } })` inside the data layer,
- * this keeps CoinGecko free-tier usage low and shields API keys from the browser.
+ * Dynamic so `?watchlist=` works and Vercel Hobby does not spend ISR writes
+ * prerendering live CoinGecko payloads (that quota already failed last night's deploys).
  */
-export const revalidate = DASHBOARD_REVALIDATE_SECONDS;
+export const dynamic = "force-dynamic";
 
 function relativeUpdated(iso: string): string {
   const t = Date.parse(iso);

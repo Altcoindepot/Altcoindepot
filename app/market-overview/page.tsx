@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   },
 };
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 function formatPct(n: number | null) {
   if (n == null || !Number.isFinite(n)) return "—";

@@ -49,7 +49,7 @@ function pctTone(v: number | null | undefined) {
   return v >= 0 ? "text-emerald-300" : "text-red-300";
 }
 
-export const revalidate = 7200;
+export const dynamic = "force-dynamic";
 
 export default async function CategoryPage({ params }: PageProps) {
   const { slug } = await params;

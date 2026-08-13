@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { isProductionBuild } from "@/lib/build-phase";
 import { coinGeckoFetch } from "@/lib/coingecko";
 import { PUBLIC_CATEGORIES } from "@/lib/coin-categories";
 import { NARRATIVES } from "@/lib/narratives";
@@ -99,6 +100,7 @@ const FALLBACK_TOP_COIN_IDS = [
 ] as const;
 
 async function fetchTop200CoinIds(): Promise<string[]> {
+  if (isProductionBuild()) return [...FALLBACK_TOP_COIN_IDS];
   try {
     const res = await coinGeckoFetch(
       "/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=200&page=1&sparkline=false",
