@@ -179,16 +179,26 @@ export function wikiEntriesForNarrative(slug: string): Array<{ id: string; resou
 }
 
 export function featuredWikiEntries(): Array<{ id: string; resources: TokenResources }> {
-  return [
+  return allWikiEntries();
+}
+
+/** Every curated wiki chain, majors first (includes Solana + Injective). */
+export function allWikiEntries(): Array<{ id: string; resources: TokenResources }> {
+  const priority = [
     "bitcoin",
     "ethereum",
     "solana",
+    "injective-protocol",
     "ripple",
-    "chainlink",
-    "aave",
-    "bittensor",
-    "ondo-finance",
-  ]
+    "binancecoin",
+    "cardano",
+    "avalanche-2",
+  ];
+  const ids = Object.keys(ecosystemWikiData);
+  const rest = ids
+    .filter((id) => !priority.includes(id))
+    .sort((a, b) => wikiDisplayName(a).localeCompare(wikiDisplayName(b)));
+  return [...priority.filter((id) => ids.includes(id)), ...rest]
     .map((id) => {
       const resources = ecosystemWikiData[id];
       return resources ? { id, resources } : null;

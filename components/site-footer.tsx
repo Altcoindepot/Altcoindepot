@@ -14,6 +14,7 @@ const PRIMARY_LINKS = [
   { href: "/gainers-losers", label: "Gainers & Losers" },
   { href: "/market-overview", label: "Market overview" },
   { href: "/podcasts", label: "Podcasts" },
+  { href: "/ecosystem", label: "Ecosystem" },
   { href: "/contact", label: "Contact" },
   { href: "/affiliate-disclosure", label: "Affiliate disclosure" },
 ] as const;

@@ -5,7 +5,6 @@ import { DashboardHero } from "@/components/dashboard/dashboard-hero";
 import { NarrativeRotationSection } from "@/components/dashboard/narrative-rotation-section";
 import { NewLowCapsTable } from "@/components/dashboard/new-low-caps-table";
 import { MarketSentimentWidget } from "@/components/dashboard/market-sentiment-widget";
-import { EcosystemResourcesPanel } from "@/components/ecosystem-resources-panel";
 import { DisclaimerNote } from "@/components/disclaimer-note";
 
 export function DashboardHome({
@@ -28,6 +27,8 @@ export function DashboardHome({
           regimeLabel={snapshot.regimeLabel}
           summary={snapshot.regimeSummary}
         />
+
+        <MarketSentimentWidget pulse={snapshot.pulse} className="mb-4" />
 
         {watchlistOnly ? (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-teal-400/25 bg-teal-500/10 px-4 py-3">
@@ -54,17 +55,12 @@ export function DashboardHome({
         <NarrativeRotationSection
           narratives={snapshot.narratives}
           regimeLabel={snapshot.regimeLabel}
-          pulse={snapshot.pulse}
           trendingAssets={snapshot.trendingAssets}
           watchlistOnly={watchlistOnly}
           lowCapsSlot={
             <NewLowCapsTable rows={snapshot.lowCaps} watchlistOnly={watchlistOnly} />
           }
         />
-
-        <MarketSentimentWidget className="mt-4" />
-
-        <EcosystemResourcesPanel className="mt-4" />
 
         <DisclaimerNote className="mt-6">
           Narrative baskets are CoinGecko category averages · switch 24H / 7D / 1M on the tracker ·

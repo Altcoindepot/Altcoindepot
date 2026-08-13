@@ -183,6 +183,34 @@ a.text-metallic:active {
   background-size: 160% 160% !important;
 }
 
+/* Dashboard H1 — same clipped-gradient treatment as the header wordmark, bronze site palette */
+.text-dashboard-hero {
+  display: block;
+  max-width: 100%;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+  background-color: transparent !important;
+  background-repeat: no-repeat !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+  background-image: linear-gradient(
+    118deg,
+    #6f5a45 0%,
+    #a88968 8%,
+    #d7ad82 18%,
+    #f0dcc4 28%,
+    #c4a07a 40%,
+    #d1a173 52%,
+    #e8d0b6 64%,
+    #b98152 76%,
+    #dcc4a8 88%,
+    #c9ae90 100%
+  ) !important;
+  background-size: 160% 160% !important;
+}
+
 /* Wraps `.text-brand-altcoindepot` span so UA link colors never hit the gradient text. */
 .header-home-link {
   text-decoration: none;
@@ -513,6 +541,20 @@ html[data-theme="light"] .text-brand-altcoindepot {
   ) !important;
 }
 
+html[data-theme="light"] .text-dashboard-hero {
+  background-image: linear-gradient(
+    118deg,
+    #5c4030 0%,
+    #8b6914 12%,
+    #b98152 24%,
+    #7c5a3a 40%,
+    #4a3728 52%,
+    #a88968 68%,
+    #6f5a45 82%,
+    #3f2e22 100%
+  ) !important;
+}
+
 html[data-theme="light"] .text-zinc-100:not(.text-metallic):not(.text-metallic-hero):not(.text-brand-altcoindepot) {
   color: #1c1917 !important;
 }
@@ -623,12 +665,15 @@ html[data-theme="light"] [class*="bg-[rgba(20,22,30"] {
 html[data-theme="light"] .text-metallic,
 html[data-theme="light"] .text-metallic-hero,
 html[data-theme="light"] .text-brand-altcoindepot,
+html[data-theme="light"] .text-dashboard-hero,
 html[data-theme="dark"] .text-metallic,
 html[data-theme="dark"] .text-metallic-hero,
 html[data-theme="dark"] .text-brand-altcoindepot,
+html[data-theme="dark"] .text-dashboard-hero,
 html:not([data-theme="light"]) .text-metallic,
 html:not([data-theme="light"]) .text-metallic-hero,
-html:not([data-theme="light"]) .text-brand-altcoindepot {
+html:not([data-theme="light"]) .text-brand-altcoindepot,
+html:not([data-theme="light"]) .text-dashboard-hero {
   color: transparent !important;
   -webkit-text-fill-color: transparent !important;
   -webkit-background-clip: text !important;
@@ -644,10 +689,21 @@ html:not([data-theme="light"]) .text-brand-altcoindepot {
     -webkit-text-fill-color: #cbd5e1 !important;
   }
 
+  .text-dashboard-hero {
+    background-image: none !important;
+    color: #d7ad82 !important;
+    -webkit-text-fill-color: #d7ad82 !important;
+  }
+
   html[data-theme="light"] .text-metallic,
   html[data-theme="light"] .text-metallic-hero,
   html[data-theme="light"] .text-brand-altcoindepot {
     color: #44403c !important;
     -webkit-text-fill-color: #44403c !important;
+  }
+
+  html[data-theme="light"] .text-dashboard-hero {
+    color: #7c5a3a !important;
+    -webkit-text-fill-color: #7c5a3a !important;
   }
 }

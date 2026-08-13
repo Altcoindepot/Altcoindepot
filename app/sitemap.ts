@@ -30,6 +30,7 @@ const STATIC_PATHS = [
   "/watchlist",
   "/portfolio",
   "/alerts",
+  "/ecosystem",
 ] as const;
 
 /**

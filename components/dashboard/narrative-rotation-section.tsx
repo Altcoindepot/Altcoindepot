@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
-import type { MarketPulse, NarrativeSnapshot, TrendingAssetRow } from "@/lib/dashboard-data";
+import type { NarrativeSnapshot, TrendingAssetRow } from "@/lib/dashboard-data";
 import { rankNarrativesForWindow } from "@/lib/dashboard-data";
 import {
   DEFAULT_ROTATION_WINDOW,
@@ -11,21 +11,18 @@ import {
 import { NarrativeRotationTracker } from "@/components/dashboard/narrative-rotation-tracker";
 import { TrendingAssetsToday } from "@/components/dashboard/trending-assets-today";
 import { TopRotations } from "@/components/dashboard/top-rotations";
-import { MarketPulseCard } from "@/components/dashboard/market-pulse";
 import { ds } from "@/lib/ui-classes";
 
 /** Shared 24H / 7D / 1M controls for tracker and top rotations. */
 export function NarrativeRotationSection({
   narratives,
   regimeLabel,
-  pulse,
   trendingAssets,
   lowCapsSlot,
   watchlistOnly = false,
 }: {
   narratives: NarrativeSnapshot[];
   regimeLabel: string;
-  pulse: MarketPulse;
   trendingAssets: TrendingAssetRow[];
   lowCapsSlot: ReactNode;
   watchlistOnly?: boolean;
@@ -79,7 +76,7 @@ export function NarrativeRotationSection({
     <div>
       {windowToggle}
 
-      {/* Desktop (lg+): one 6-row grid — left pair each spans 3, right trio each spans 2 */}
+      {/* Desktop (lg+): two columns, each stacked pair spans 3 of 6 rows */}
       <div className="hidden h-[46rem] gap-4 lg:grid lg:grid-cols-[minmax(0,1.45fr)_minmax(17rem,0.9fr)] lg:grid-rows-6">
         <NarrativeRotationTracker
           narratives={trackerNodes}
@@ -90,11 +87,7 @@ export function NarrativeRotationSection({
         <TrendingAssetsToday
           rows={trendingAssets}
           watchlistOnly={watchlistOnly}
-          className="col-start-2 row-span-2 row-start-1 h-full min-h-0"
-        />
-        <MarketPulseCard
-          pulse={pulse}
-          className="col-start-2 row-span-2 row-start-3 h-full min-h-0"
+          className="col-start-2 row-span-3 row-start-1 h-full min-h-0"
         />
         <div className="col-start-1 row-span-3 row-start-4 h-full min-h-0">
           {lowCapsSlot}
@@ -102,7 +95,7 @@ export function NarrativeRotationSection({
         <TopRotations
           narratives={top}
           window={window}
-          className="col-start-2 row-span-2 row-start-5 h-full min-h-0"
+          className="col-start-2 row-span-3 row-start-4 h-full min-h-0"
         />
       </div>
 
@@ -114,7 +107,6 @@ export function NarrativeRotationSection({
           window={window}
         />
         <TrendingAssetsToday rows={trendingAssets} watchlistOnly={watchlistOnly} />
-        <MarketPulseCard pulse={pulse} />
         {lowCapsSlot}
         <TopRotations narratives={top} window={window} />
       </div>
@@ -123,7 +115,6 @@ export function NarrativeRotationSection({
       <div className="space-y-4 md:hidden">
         <TopRotations narratives={top} variant="mobile-primary" window={window} />
         <TrendingAssetsToday rows={trendingAssets} watchlistOnly={watchlistOnly} />
-        <MarketPulseCard pulse={pulse} />
         {lowCapsSlot}
       </div>
     </div>

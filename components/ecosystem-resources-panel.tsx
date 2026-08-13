@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ds } from "@/lib/ui-classes";
 import {
-  featuredWikiEntries,
+  allWikiEntries,
   resolveTokenResources,
   wikiDisplayName,
   wikiEntriesForNarrative,
@@ -73,12 +73,16 @@ export function EcosystemResourcesPanel({
   title,
   fallback,
   narrativeSlug,
+  entries: entriesProp,
+  hideHeading = false,
   className = "",
 }: {
   coinId?: string;
   title?: string;
   fallback?: WikiFallbackLinks;
   narrativeSlug?: string;
+  entries?: Array<{ id: string; resources: TokenResources }>;
+  hideHeading?: boolean;
   className?: string;
 }) {
   if (coinId) {
@@ -89,35 +93,54 @@ export function EcosystemResourcesPanel({
         aria-labelledby="ecosystem-wiki-heading"
         className={`${ds.panelLg} ${className}`.trim()}
       >
-        <h2 id="ecosystem-wiki-heading" className="text-base font-semibold text-zinc-100">
-          {title ?? "Ecosystem & Developer Resources"}
-        </h2>
-        <p className="mt-1 text-xs text-zinc-500">
-          Verified off-chain portals for {wikiDisplayName(coinId)}. Outbound links open in a new tab.
-        </p>
-        <div className="mt-4 border-t border-white/10 pt-4">
+        {hideHeading ? (
+          <h2 id="ecosystem-wiki-heading" className="sr-only">
+            {title ?? "Ecosystem & Developer Resources"}
+          </h2>
+        ) : (
+          <>
+            <h2 id="ecosystem-wiki-heading" className="text-base font-semibold text-zinc-100">
+              {title ?? "Ecosystem & Developer Resources"}
+            </h2>
+            <p className="mt-1 text-xs text-zinc-500">
+              Verified off-chain portals for {wikiDisplayName(coinId)}. Outbound links open in a new
+              tab.
+            </p>
+          </>
+        )}
+        <div className={`${hideHeading ? "" : "mt-4 border-t border-white/10 pt-4"}`}>
           <ResourceLinks resources={resources} />
         </div>
       </section>
     );
   }
 
-  const entries = narrativeSlug ? wikiEntriesForNarrative(narrativeSlug) : featuredWikiEntries();
+  const entries =
+    entriesProp ??
+    (narrativeSlug ? wikiEntriesForNarrative(narrativeSlug) : allWikiEntries());
   if (entries.length === 0) return null;
 
   return (
     <section
       aria-labelledby="ecosystem-wiki-heading"
-      className={`${ds.panelLg} ${className}`.trim()}
+      className={`${hideHeading ? className : `${ds.panelLg} ${className}`.trim()}`}
     >
-      <h2 id="ecosystem-wiki-heading" className="text-base font-semibold text-zinc-100">
-        {title ?? "Ecosystem & Developer Resources"}
-      </h2>
-      <p className="mt-1 text-xs text-zinc-500">
-        Curated documentation and explorers for core assets — served from a local wiki map, not a live
-        API.
-      </p>
-      <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+      {hideHeading ? (
+        <h2 id="ecosystem-wiki-heading" className="sr-only">
+          {title ?? "Ecosystem & Developer Resources"}
+        </h2>
+      ) : (
+        <>
+          <h2 id="ecosystem-wiki-heading" className="text-base font-semibold text-zinc-100">
+            {title ?? "Ecosystem & Developer Resources"}
+          </h2>
+          <p className="mt-1 text-xs text-zinc-500">
+            Curated documentation and explorers for core assets — served from a local wiki map, not a
+            live API.
+          </p>
+        </>
+      )}
+      <div className={`${hideHeading ? "" : "mt-5"} grid grid-cols-1 gap-4 md:grid-cols-2`}>
         {entries.map(({ id, resources }) => (
           <article key={id} className="rounded-xl border border-white/10 bg-[#0c0e14] p-4">
             <div className="mb-3 flex items-center justify-between gap-2 border-b border-white/10 pb-2">

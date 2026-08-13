@@ -16,6 +16,25 @@ export type FearGreedBand = {
   stroke: string;
 };
 
+export type AltseasonBand = {
+  label: string;
+  textClass: string;
+};
+
+export function altseasonBand(value: number): AltseasonBand {
+  const v = clampSentimentScore(value);
+  if (v >= 75) {
+    return { label: `AltCoin Season (${v})`, textClass: "text-[#c4b5fd]" };
+  }
+  if (v >= 50) {
+    return { label: `AltCoin Season (${v})`, textClass: "text-zinc-100" };
+  }
+  if (v >= 25) {
+    return { label: `Transition (${v})`, textClass: "text-[#67e8f9]" };
+  }
+  return { label: `Bitcoin Season (${v})`, textClass: "text-[#fb923c]" };
+}
+
 export function clampSentimentScore(n: number): number {
   if (!Number.isFinite(n)) return 0;
   return Math.min(100, Math.max(0, Math.round(n)));
