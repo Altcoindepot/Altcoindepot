@@ -1,11 +1,12 @@
 import type { MetadataRoute } from "next";
+import { coinGeckoFetch } from "@/lib/coingecko";
 import { PUBLIC_CATEGORIES } from "@/lib/coin-categories";
 import { NARRATIVES } from "@/lib/narratives";
 
 const SITE = "https://altcoindepot.com";
 
+/** Core static routes (homepage + trending handled separately for priority/frequency). */
 const STATIC_PATHS = [
-  "/",
   "/about",
   "/contact",
   "/privacy",
@@ -19,7 +20,6 @@ const STATIC_PATHS = [
   "/cex-trending",
   "/dex-trending",
   "/top-100-trending",
-  "/top-200-trending",
   "/gainers-losers",
   "/market-overview",
   "/compare",
@@ -29,45 +29,135 @@ const STATIC_PATHS = [
   "/alerts",
 ] as const;
 
-const TOP_COIN_IDS = [
+/**
+ * Offline / rate-limit fallback IDs (same slug shape as `/coin/[id]`).
+ * Live sitemap prefers CoinGecko top-200 by market cap when available.
+ */
+const FALLBACK_TOP_COIN_IDS = [
   "bitcoin",
   "ethereum",
   "tether",
-  "binancecoin",
-  "usd-coin",
   "ripple",
+  "binancecoin",
   "solana",
-  "tron",
+  "usd-coin",
+  "staked-ether",
   "dogecoin",
+  "tron",
   "cardano",
   "chainlink",
   "hyperliquid",
+  "sui",
   "avalanche-2",
   "stellar",
-  "monero",
-  "litecoin",
   "bitcoin-cash",
-  "uniswap",
   "hedera-hashgraph",
   "shiba-inu",
+  "litecoin",
+  "toncoin",
+  "polkadot",
+  "uniswap",
+  "bitget-token",
+  "pepe",
+  "mantle",
+  "aave",
+  "near",
+  "internet-computer",
+  "crypto-com-chain",
+  "ethereum-classic",
+  "render-token",
+  "vechain",
+  "polygon-ecosystem-token",
+  "kaspa",
+  "fetch-ai",
+  "filecoin",
+  "aptos",
+  "algorand",
+  "arbitrum",
+  "cosmos",
+  "maker",
   "injective-protocol",
+  "optimism",
+  "blockstack",
+  "immutable-x",
+  "the-graph",
+  "theta-token",
+  "bonk",
+  "lido-dao",
+  "monero",
+  "fantom",
+  "sei-network",
+  "worldcoin-wld",
+  "floki",
+  "jupiter-exchange-solana",
+  "ondo-finance",
+  "bittensor",
+  "celestia",
+  "pyth-network",
 ] as const;
 
-export default function sitemap(): MetadataRoute.Sitemap {
+async function fetchTop200CoinIds(): Promise<string[]> {
+  try {
+    const res = await coinGeckoFetch(
+      "/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=200&page=1&sparkline=false",
+      { next: { revalidate: 3600 } },
+    );
+    if (!res.ok) return [...FALLBACK_TOP_COIN_IDS];
+    const data: unknown = await res.json();
+    if (!Array.isArray(data)) return [...FALLBACK_TOP_COIN_IDS];
+
+    const ids: string[] = [];
+    const seen = new Set<string>();
+    for (const row of data) {
+      if (!row || typeof row !== "object") continue;
+      const id = (row as { id?: unknown }).id;
+      if (typeof id !== "string" || !id.trim()) continue;
+      const slug = id.trim().toLowerCase();
+      if (seen.has(slug)) continue;
+      seen.add(slug);
+      ids.push(slug);
+      if (ids.length >= 200) break;
+    }
+    return ids.length > 0 ? ids : [...FALLBACK_TOP_COIN_IDS];
+  } catch {
+    return [...FALLBACK_TOP_COIN_IDS];
+  }
+}
+
+/**
+ * Native Next.js Metadata sitemap — homepage, trending, top-200 coin pages,
+ * plus remaining static / category / narrative routes.
+ */
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
+  const coinIds = await fetchTop200CoinIds();
 
-  const staticEntries: MetadataRoute.Sitemap = STATIC_PATHS.map((path) => ({
-    url: `${SITE}${path === "/" ? "" : path}`,
+  const homepage: MetadataRoute.Sitemap[number] = {
+    url: SITE,
     lastModified: now,
-    changeFrequency: path === "/" ? "hourly" : "daily",
-    priority: path === "/" ? 1 : 0.7,
-  }));
+    changeFrequency: "daily",
+    priority: 1,
+  };
 
-  const coinEntries: MetadataRoute.Sitemap = TOP_COIN_IDS.map((id) => ({
-    url: `${SITE}/coin/${id}`,
+  const trending: MetadataRoute.Sitemap[number] = {
+    url: `${SITE}/top-200-trending`,
     lastModified: now,
     changeFrequency: "hourly",
     priority: 0.9,
+  };
+
+  const coinEntries: MetadataRoute.Sitemap = coinIds.map((coinId) => ({
+    url: `${SITE}/coin/${encodeURIComponent(coinId)}`,
+    lastModified: now,
+    changeFrequency: "daily",
+    priority: 0.7,
+  }));
+
+  const staticEntries: MetadataRoute.Sitemap = STATIC_PATHS.map((path) => ({
+    url: `${SITE}${path}`,
+    lastModified: now,
+    changeFrequency: "daily",
+    priority: 0.6,
   }));
 
   const categoryEntries: MetadataRoute.Sitemap = PUBLIC_CATEGORIES.map((category) => ({
@@ -84,5 +174,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.75,
   }));
 
-  return [...staticEntries, ...coinEntries, ...categoryEntries, ...narrativeEntries];
+  return [
+    homepage,
+    trending,
+    ...coinEntries,
+    ...staticEntries,
+    ...categoryEntries,
+    ...narrativeEntries,
+  ];
 }

@@ -14,7 +14,7 @@ import {
 import { SiteHeader } from "@/components/site-header";
 import { CoinDetailView } from "@/components/coin-detail-view";
 import { getReppoStatsForDisplay } from "@/lib/reppo-stats-live";
-import { buildCoinSeoCopy } from "@/lib/coin-seo";
+import { buildCoinSeoCopy, getBaselineCoinSeoCopy } from "@/lib/coin-seo";
 import { resolveNarrativeTags } from "@/lib/coin-narratives";
 
 type Props = { params: Promise<{ id: string }> };
@@ -28,68 +28,81 @@ async function resolveCoinParam(rawId: string) {
   return id;
 }
 
+/**
+ * Server-only dynamic metadata for `/coin/[id]`.
+ * Uses Name, Ticker, and Narrative Category for high-CTR title/description.
+ */
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id: rawId } = await params;
-  const id = await resolveCoinParam(rawId);
-  const result = await lookupCoinById(id);
-  if (result.status === "unavailable") {
+  try {
+    const { id: rawId } = await params;
+    const id = resolveCoinIdAlias((rawId ?? "").trim().toLowerCase()) || "unknown";
+
+    const result = await lookupCoinById(id);
+
+    if (result.status === "unavailable") {
+      const fallback = getBaselineCoinSeoCopy();
+      return {
+        title: { absolute: fallback.title },
+        description: fallback.description,
+        robots: { index: true, follow: true },
+      };
+    }
+
+    if (result.status === "not_found") {
+      return {
+        title: { absolute: "Coin not found | AltCoin Depot" },
+        description:
+          "This coin page could not be found. Browse live markets and narrative data on AltCoin Depot.",
+        robots: { index: false, follow: true },
+      };
+    }
+
+    const coin = result.coin;
+    const name = (coin.name ?? "").toString().trim() || "Crypto Asset";
+    const ticker = (coin.symbol ?? "").toString().trim().toUpperCase() || "TOKEN";
+    const tags = resolveNarrativeTags({
+      id: coin.id,
+      categories: coin.categories,
+    });
+    const narrative = tags[0] ?? "crypto";
+
+    const { title, description } = buildCoinSeoCopy(name, ticker, coin.id, {
+      narrative,
+      tags,
+    });
+
     return {
-      title: "Price data temporarily unavailable",
-      description: "CoinGecko could not be reached. Try again shortly.",
+      title: { absolute: title },
+      description,
+      robots: {
+        index: true,
+        follow: true,
+        googleBot: { index: true, follow: true },
+      },
+      alternates: {
+        canonical: `/coin/${encodeURIComponent(coin.id)}`,
+      },
+      openGraph: {
+        title,
+        description,
+        url: `https://altcoindepot.com/coin/${encodeURIComponent(coin.id)}`,
+        siteName: "AltCoin Depot",
+        type: "website",
+      },
+      twitter: {
+        card: "summary",
+        title,
+        description,
+      },
+    };
+  } catch {
+    const fallback = getBaselineCoinSeoCopy();
+    return {
+      title: { absolute: fallback.title },
+      description: fallback.description,
       robots: { index: true, follow: true },
     };
   }
-  if (result.status === "not_found") {
-    notFound();
-  }
-  const coin = result.coin;
-  const sym = (coin.symbol ?? "").toString().toUpperCase() || "—";
-  const name = (coin.name ?? "Coin").toString();
-
-  let vsBtc7d: number | null = null;
-  if (coin.id !== "bitcoin") {
-    const md = coin.market_data;
-    const ch7 =
-      typeof md?.price_change_percentage_7d === "number"
-        ? md.price_change_percentage_7d
-        : typeof md?.price_change_percentage_7d_in_currency?.usd === "number"
-          ? md.price_change_percentage_7d_in_currency.usd
-          : null;
-    const btcResult = await lookupCoinById("bitcoin");
-    if (btcResult.status === "ok" && ch7 != null) {
-      const btcMd = btcResult.coin.market_data;
-      const btc7 =
-        typeof btcMd?.price_change_percentage_7d === "number"
-          ? btcMd.price_change_percentage_7d
-          : typeof btcMd?.price_change_percentage_7d_in_currency?.usd === "number"
-            ? btcMd.price_change_percentage_7d_in_currency.usd
-            : null;
-      if (btc7 != null) vsBtc7d = ch7 - btc7;
-    }
-  }
-
-  const tags = resolveNarrativeTags({
-    id: coin.id,
-    categories: coin.categories,
-  });
-  const { title, description } = buildCoinSeoCopy(name, sym, coin.id, {
-    vsBtc7d,
-    tags,
-  });
-  return {
-    title: { absolute: title },
-    description,
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: { index: true, follow: true },
-    },
-    alternates: {
-      canonical: `/coin/${encodeURIComponent(coin.id)}`,
-    },
-    openGraph: { title, description },
-    twitter: { title, description },
-  };
 }
 
 export default async function CoinPage({ params }: Props) {
