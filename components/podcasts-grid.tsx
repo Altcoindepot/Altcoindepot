@@ -15,8 +15,9 @@ function normalizeYoutubeThumbUrl(url: string): string {
 }
 
 function thumbForVideo(videoId: string, fallback?: string) {
-  const raw =
-    fallback?.startsWith("http") ? fallback : `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`;
+  const raw = fallback?.startsWith("http")
+    ? fallback.replace(/\/(default|mqdefault|sddefault)\.jpg/i, "/hqdefault.jpg")
+    : `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
   return normalizeYoutubeThumbUrl(raw);
 }
 
@@ -35,22 +36,22 @@ function PlayGlyph({ className }: { className?: string }) {
 
 export function PodcastsGrid({ podcasts }: { podcasts: PodcastWithEpisodes[] }) {
   return (
-    <div className="grid gap-6 sm:grid-cols-2">
+    <div className="grid gap-8">
       {podcasts.map((podcast) => (
         <article
           key={podcast.slug}
-          className="flex flex-col rounded-lg border border-white/10 bg-[#0f1420] p-4 shadow-[0_0_0_1px_rgba(0,255,159,0.04)] transition-colors hover:border-white/20 hover:bg-[#141b2a] sm:p-5"
+          className="flex flex-col rounded-lg border border-white/10 bg-[#0f1420] p-5 shadow-[0_0_0_1px_rgba(0,255,159,0.04)] transition-colors hover:border-white/20 hover:bg-[#141b2a] sm:p-6"
         >
-          <div className="border-b border-white/10 pb-3">
-            <h2 className="text-lg font-bold tracking-tight text-white sm:text-xl">
+          <div className="border-b border-white/10 pb-4">
+            <h2 className="text-xl font-bold tracking-tight text-white sm:text-2xl">
               {podcast.title}
             </h2>
-            <p className="mt-1.5 text-sm leading-relaxed text-zinc-400">
+            <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-zinc-400 sm:text-base">
               {podcast.tagline}
             </p>
           </div>
 
-          <div className="mt-4">
+          <div className="mt-5">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-500">
               Latest on YouTube
             </p>
@@ -60,29 +61,31 @@ export function PodcastsGrid({ podcasts }: { podcasts: PodcastWithEpisodes[] }) 
                 YouTube, Spotify, or Amazon Music.
               </p>
             ) : (
-              <ul className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+              <ul className="mt-4 grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
                 {podcast.episodes.map((ep) => (
                   <li key={ep.id} className="min-w-0">
                     <a
                       href={ep.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group relative block overflow-hidden rounded-md border border-white/10 bg-black/40 ring-[#a855f7] transition-[border-color,transform] hover:border-[#00ff9f]/40 hover:shadow-[0_0_20px_rgba(0,255,159,0.12)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a855f7] active:scale-[0.98]"
+                      className="group flex flex-col rounded-lg border border-white/10 bg-black/40 transition-[border-color,transform,box-shadow] hover:border-[#00ff9f]/45 hover:shadow-[0_0_24px_rgba(0,255,159,0.14)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a855f7] active:scale-[0.99]"
                       aria-label={`Play on YouTube: ${ep.title} (opens in a new tab)`}
                     >
-                      <span className="relative block aspect-video w-full">
+                      <span className="relative block aspect-video w-full overflow-hidden rounded-t-lg">
                         <Image
                           src={thumbForVideo(ep.id, ep.thumbnailUrl)}
                           alt=""
                           fill
-                          className="object-cover transition-transform duration-300 group-hover:scale-105"
-                          sizes="(max-width: 640px) 45vw, 120px"
+                          className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                          sizes="(max-width: 480px) 92vw, (max-width: 768px) 44vw, (max-width: 1024px) 30vw, 220px"
                         />
-                        <span className="absolute inset-0 flex items-center justify-center bg-black/45 opacity-90 transition-opacity group-hover:bg-black/55">
-                          <PlayGlyph className="size-9 text-white drop-shadow-md" />
+                        <span className="absolute inset-0 flex items-center justify-center bg-black/25 transition-colors group-hover:bg-black/35">
+                          <span className="flex size-11 items-center justify-center rounded-full bg-black/55 text-white shadow-lg ring-1 ring-white/25 backdrop-blur-[2px] transition-transform group-hover:scale-110 sm:size-12">
+                            <PlayGlyph className="size-5 translate-x-0.5 sm:size-6" />
+                          </span>
                         </span>
                       </span>
-                      <span className="line-clamp-3 px-2 py-2 text-xs font-medium leading-snug text-zinc-300">
+                      <span className="px-3 py-3 text-sm font-medium leading-snug text-zinc-100 sm:text-[15px] sm:leading-relaxed">
                         {ep.title}
                       </span>
                     </a>
@@ -96,7 +99,7 @@ export function PodcastsGrid({ podcasts }: { podcasts: PodcastWithEpisodes[] }) 
             <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-500">
               Full catalog
             </p>
-            <p className="mt-2 text-xs text-zinc-400">
+            <p className="mt-2 text-sm text-zinc-400">
               Hear every episode on{" "}
               <a
                 href={podcast.youtubeCatalogUrl}

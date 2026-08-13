@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { PUBLIC_CATEGORIES } from "@/lib/coin-categories";
+import { NARRATIVES } from "@/lib/narratives";
 
 const SITE = "https://altcoindepot.com";
 
@@ -20,7 +21,9 @@ const STATIC_PATHS = [
   "/top-100-trending",
   "/top-200-trending",
   "/gainers-losers",
+  "/market-overview",
   "/compare",
+  "/sectors",
   "/watchlist",
   "/portfolio",
   "/alerts",
@@ -74,5 +77,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  return [...staticEntries, ...coinEntries, ...categoryEntries];
+  const narrativeEntries: MetadataRoute.Sitemap = NARRATIVES.map((narrative) => ({
+    url: `${SITE}/narrative/${encodeURIComponent(narrative.slug)}`,
+    lastModified: now,
+    changeFrequency: "hourly",
+    priority: 0.75,
+  }));
+
+  return [...staticEntries, ...coinEntries, ...categoryEntries, ...narrativeEntries];
 }

@@ -69,6 +69,7 @@ export type CoinMarket = {
   total_volume: number | null;
   price_change_percentage_24h: number | null;
   price_change_percentage_7d_in_currency?: number | null;
+  price_change_percentage_30d_in_currency?: number | null;
   sparkline_in_7d?: { price?: number[] };
 };
 
@@ -152,7 +153,7 @@ export async function loadMarketsByGeckoCategory(
 ): Promise<CoinMarket[]> {
   const path = `/coins/markets?vs_currency=usd&category=${encodeURIComponent(
     categoryId,
-  )}&order=market_cap_desc&per_page=${perPage}&page=1&sparkline=true&price_change_percentage=24h%2C7d`;
+  )}&order=market_cap_desc&per_page=${perPage}&page=1&sparkline=true&price_change_percentage=24h%2C7d%2C30d`;
   const res = await coinGeckoFetch(path, init);
   if (!res.ok) {
     throw new Error(`CoinGecko category ${categoryId}: ${res.status}`);

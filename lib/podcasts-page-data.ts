@@ -9,7 +9,11 @@ export async function loadPodcastsWithEpisodes(): Promise<PodcastWithEpisodes[]>
   return Promise.all(
     CRYPTO_PODCASTS.map(async (p) => ({
       ...p,
-      episodes: await getLatestYoutubeVideosForChannel(p.youtubeChannelId, 5),
+      episodes: await getLatestYoutubeVideosForChannel(
+        p.youtubeChannelId,
+        5,
+        p.youtubeHandle,
+      ),
     })),
   );
 }

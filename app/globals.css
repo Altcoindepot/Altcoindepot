@@ -35,6 +35,21 @@
   }
 }
 
+/* Fixed left sidebar (lg+) — offset main page content + footer */
+@media (min-width: 1024px) {
+  main,
+  footer {
+    padding-left: 13rem; /* w-52 */
+  }
+}
+
+@media (min-width: 1280px) {
+  main,
+  footer {
+    padding-left: 14rem; /* xl:w-56 */
+  }
+}
+
 body {
   min-height: 100%;
   background: var(--background);

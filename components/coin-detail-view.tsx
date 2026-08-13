@@ -764,6 +764,12 @@ export function CoinDetailView({
               </div>
             </dl>
 
+            <TradingViewChartEmbed
+              symbol={primaryInstrument}
+              coinName={coin.name}
+              alternateSymbols={tvInstruments.slice(1)}
+            />
+
             {(vsBtc7d != null || vsBtc30d != null) && coin.id !== "bitcoin" ? (
               <div className={ds.card}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -890,11 +896,6 @@ export function CoinDetailView({
             </details>
           ) : null}
         </article>
-        <TradingViewChartEmbed
-          symbol={primaryInstrument}
-          coinName={coin.name}
-          alternateSymbols={tvInstruments.slice(1)}
-        />
         <article className="mt-3 rounded-lg border border-white/10 bg-[#111111] p-3">
           <h3 className="text-sm font-semibold text-zinc-100">
             Where to buy {(coin.symbol ?? "").toString().toUpperCase() || "—"}

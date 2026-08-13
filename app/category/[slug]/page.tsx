@@ -80,6 +80,10 @@ export default async function CategoryPage({ params }: PageProps) {
               Home
             </Link>
             <span className="mx-1.5 text-zinc-600">/</span>
+            <Link href="/sectors" className="hover:text-zinc-300">
+              Sectors
+            </Link>
+            <span className="mx-1.5 text-zinc-600">/</span>
             <span className="text-zinc-400">{cat.title}</span>
           </nav>
           <h1 className="mt-3 text-2xl font-bold text-white sm:text-3xl">{cat.title}</h1>

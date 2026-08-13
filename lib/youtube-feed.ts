@@ -77,16 +77,21 @@ function collectYoutubeLinks(coin: CoinGeckoDetail): string[] {
 
 async function resolveHandleToChannelId(handle: string): Promise<string | null> {
   try {
-    const res = await fetch(`https://www.youtube.com/@${encodeURIComponent(handle)}`, {
+    const clean = handle.replace(/^@/, "");
+    const res = await fetch(`https://www.youtube.com/@${encodeURIComponent(clean)}`, {
       next: { revalidate: 14400 },
       headers: {
         Accept: "text/html,application/xhtml+xml",
-        "User-Agent": "AltcoinDepot/1.0 (youtube-discovery)",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
       },
     });
     if (!res.ok) return null;
     const html = await res.text();
-    const m = html.match(/"channelId":"(UC[a-zA-Z0-9_-]{22})"/);
+    const m =
+      html.match(/"channelId":"(UC[a-zA-Z0-9_-]{22})"/) ??
+      html.match(/channel_id=(UC[a-zA-Z0-9_-]{22})/) ??
+      html.match(/\/channel\/(UC[a-zA-Z0-9_-]{22})/);
     return m?.[1] ?? null;
   } catch {
     return null;
@@ -144,33 +149,190 @@ function parseYoutubeVideoAtom(xml: string, limit: number): YoutubeFeedItem[] {
       summary: "",
       href,
       publishedAt,
-      thumbnailUrl: thumb,
+      thumbnailUrl: thumb?.startsWith("http")
+        ? thumb
+        : `https://i.ytimg.com/vi/${vid}/mqdefault.jpg`,
     });
   }
   return out;
 }
 
-/** Latest uploads from a YouTube channel (public Atom feed). */
+/** Latest uploads from a YouTube channel (Atom feed → playlist feed → page scrape). */
 export async function getLatestYoutubeVideosForChannel(
   channelId: string,
   limit = 5,
+  handle?: string,
 ): Promise<YoutubeFeedItem[]> {
-  return fetchChannelFeed(channelId, limit);
+  const ids = new Set<string>();
+  if (UC_RE.test(channelId)) ids.add(channelId.match(UC_RE)![1]!);
+
+  // Prefer handle scrape first when Atom is unavailable in many environments.
+  if (handle) {
+    const scrapedHandle = await scrapeHandleUploads(handle, limit);
+    if (scrapedHandle.length > 0) return scrapedHandle;
+    const resolved = await resolveHandleToChannelId(handle);
+    if (resolved) ids.add(resolved);
+  }
+
+  for (const id of ids) {
+    const fromAtom = await fetchChannelAtomOrPlaylist(id, limit);
+    if (fromAtom.length > 0) return fromAtom;
+  }
+
+  for (const id of ids) {
+    const scraped = await scrapeChannelUploads(id, limit);
+    if (scraped.length > 0) return scraped;
+  }
+
+  return [];
+}
+
+const YT_BROWSER_HEADERS: HeadersInit = {
+  Accept: "text/html,application/xhtml+xml,application/atom+xml,application/xml;q=0.9,*/*;q=0.8",
+  "Accept-Language": "en-US,en;q=0.9",
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+};
+
+function uploadsPlaylistId(channelId: string): string | null {
+  const m = channelId.match(UC_RE);
+  if (!m?.[1] || !m[1].startsWith("UC") || m[1].length !== 24) return null;
+  return `UU${m[1].slice(2)}`;
+}
+
+async function fetchChannelAtomOrPlaylist(
+  channelId: string,
+  limit: number,
+): Promise<YoutubeFeedItem[]> {
+  const urls = [
+    `https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(channelId)}`,
+  ];
+  const playlist = uploadsPlaylistId(channelId);
+  if (playlist) {
+    urls.push(
+      `https://www.youtube.com/feeds/videos.xml?playlist_id=${encodeURIComponent(playlist)}`,
+    );
+  }
+
+  for (const feedUrl of urls) {
+    try {
+      const res = await fetch(feedUrl, {
+        next: { revalidate: 3600 },
+        headers: YT_BROWSER_HEADERS,
+      });
+      if (!res.ok) continue;
+      const xml = await res.text();
+      if (!xml.includes("<entry")) continue;
+      const parsed = parseYoutubeVideoAtom(xml, limit);
+      if (parsed.length > 0) return parsed;
+    } catch {
+      /* try next */
+    }
+  }
+  return [];
+}
+
+function uniqueVideoIds(html: string, limit: number): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const m of html.matchAll(/"videoId":"([a-zA-Z0-9_-]{11})"/g)) {
+    const id = m[1]!;
+    if (seen.has(id)) continue;
+    seen.add(id);
+    out.push(id);
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
+async function oembedTitle(videoId: string): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `https://www.youtube.com/oembed?url=${encodeURIComponent(`https://www.youtube.com/watch?v=${videoId}`)}&format=json`,
+      { next: { revalidate: 86400 }, headers: YT_BROWSER_HEADERS },
+    );
+    if (!res.ok) return null;
+    const data: unknown = await res.json();
+    if (data && typeof data === "object" && typeof (data as { title?: unknown }).title === "string") {
+      return (data as { title: string }).title;
+    }
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+async function videosFromIds(ids: string[]): Promise<YoutubeFeedItem[]> {
+  return Promise.all(
+    ids.map(async (vid) => {
+      const title = (await oembedTitle(vid)) ?? "YouTube video";
+      return {
+        id: vid,
+        title,
+        summary: "",
+        href: `https://www.youtube.com/watch?v=${encodeURIComponent(vid)}`,
+        publishedAt: new Date().toISOString(),
+        thumbnailUrl: `https://i.ytimg.com/vi/${vid}/mqdefault.jpg`,
+      } satisfies YoutubeFeedItem;
+    }),
+  );
+}
+
+async function scrapeChannelUploads(
+  channelId: string,
+  limit: number,
+): Promise<YoutubeFeedItem[]> {
+  const pages = [
+    `https://www.youtube.com/channel/${encodeURIComponent(channelId)}/videos`,
+    `https://www.youtube.com/channel/${encodeURIComponent(channelId)}`,
+  ];
+  for (const url of pages) {
+    try {
+      const res = await fetch(url, {
+        next: { revalidate: 3600 },
+        headers: YT_BROWSER_HEADERS,
+      });
+      if (!res.ok) continue;
+      const html = await res.text();
+      const ids = uniqueVideoIds(html, limit);
+      if (ids.length > 0) return videosFromIds(ids);
+    } catch {
+      /* try next */
+    }
+  }
+  return [];
+}
+
+async function scrapeHandleUploads(
+  handle: string,
+  limit: number,
+): Promise<YoutubeFeedItem[]> {
+  const clean = handle.replace(/^@/, "");
+  const pages = [
+    `https://www.youtube.com/@${encodeURIComponent(clean)}/videos`,
+    `https://www.youtube.com/@${encodeURIComponent(clean)}`,
+  ];
+  for (const url of pages) {
+    try {
+      const res = await fetch(url, {
+        next: { revalidate: 3600 },
+        headers: YT_BROWSER_HEADERS,
+      });
+      if (!res.ok) continue;
+      const html = await res.text();
+      const ids = uniqueVideoIds(html, limit);
+      if (ids.length > 0) return videosFromIds(ids);
+    } catch {
+      /* try next */
+    }
+  }
+  return [];
 }
 
 async function fetchChannelFeed(channelId: string, limit: number): Promise<YoutubeFeedItem[]> {
-  const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(channelId)}`;
-  const res = await fetch(feedUrl, {
-    next: { revalidate: 14400 },
-    headers: {
-      Accept: "application/atom+xml, application/xml, text/xml;q=0.9, */*;q=0.1",
-      "User-Agent": "AltcoinDepot/1.0 (youtube-feed)",
-    },
-  });
-  if (!res.ok) return [];
-  const xml = await res.text();
-  if (!xml.includes("<entry")) return [];
-  return parseYoutubeVideoAtom(xml, limit);
+  const fromAtom = await fetchChannelAtomOrPlaylist(channelId, limit);
+  if (fromAtom.length > 0) return fromAtom;
+  return scrapeChannelUploads(channelId, limit);
 }
 
 type YoutubeSearchApiItem = {
