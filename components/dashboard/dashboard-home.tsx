@@ -4,8 +4,15 @@ import { DashboardHero } from "@/components/dashboard/dashboard-hero";
 import { NarrativeRotationSection } from "@/components/dashboard/narrative-rotation-section";
 import { NewLowCapsTable } from "@/components/dashboard/new-low-caps-table";
 import { DisclaimerNote } from "@/components/disclaimer-note";
+import Link from "next/link";
 
-export function DashboardHome({ snapshot }: { snapshot: DashboardSnapshot }) {
+export function DashboardHome({
+  snapshot,
+  watchlistOnly = false,
+}: {
+  snapshot: DashboardSnapshot;
+  watchlistOnly?: boolean;
+}) {
   return (
     <div className="w-full">
       <StickyRegimeBar
@@ -20,12 +27,37 @@ export function DashboardHome({ snapshot }: { snapshot: DashboardSnapshot }) {
           summary={snapshot.regimeSummary}
         />
 
+        {watchlistOnly ? (
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-teal-400/25 bg-teal-500/10 px-4 py-3">
+            <p className="text-sm text-teal-100">
+              Watchlist filter on — dashboard tables show only assets you starred on this device.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href="/"
+                className="text-xs font-semibold text-teal-200 underline-offset-2 hover:underline"
+              >
+                Clear filter
+              </Link>
+              <Link
+                href="/watchlist"
+                className="text-xs font-semibold text-teal-200 underline-offset-2 hover:underline"
+              >
+                Full watchlist page →
+              </Link>
+            </div>
+          </div>
+        ) : null}
+
         <NarrativeRotationSection
           narratives={snapshot.narratives}
           regimeLabel={snapshot.regimeLabel}
           pulse={snapshot.pulse}
           trendingAssets={snapshot.trendingAssets}
-          lowCapsSlot={<NewLowCapsTable rows={snapshot.lowCaps} />}
+          watchlistOnly={watchlistOnly}
+          lowCapsSlot={
+            <NewLowCapsTable rows={snapshot.lowCaps} watchlistOnly={watchlistOnly} />
+          }
         />
 
         <DisclaimerNote className="mt-6">

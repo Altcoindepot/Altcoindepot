@@ -1,4 +1,5 @@
 import { ds } from "@/lib/ui-classes";
+import { InfoTooltip } from "@/components/info-tooltip";
 
 export function StickyRegimeBar({
   regimeLabel,
@@ -13,13 +14,25 @@ export function StickyRegimeBar({
     <div className="sticky top-[7.25rem] z-40 border-b border-[#f4ddc3]/12 bg-[#0b0d11]/92 backdrop-blur-xl lg:top-[4.75rem]">
       <div className="mx-auto flex max-w-[90rem] flex-wrap items-center gap-3 px-4 py-2.5 sm:px-6 lg:gap-6">
         <span
-          className={`${ds.badge} border-teal-400/45 bg-teal-500/10 font-semibold uppercase tracking-wide text-teal-200`}
+          className={`${ds.badge} inline-flex items-center border-teal-400/45 bg-teal-500/10 font-semibold uppercase tracking-wide text-teal-200`}
         >
-          Market Regime: {regimeLabel}
+          <InfoTooltip
+            label="About Market Regime"
+            text="Tracks whether capital is flowing heavily into a single sector or rotating rapidly across multiple narratives."
+          >
+            <span>Market Regime: {regimeLabel}</span>
+          </InfoTooltip>
         </span>
         <div className="flex min-w-[10rem] flex-1 items-center gap-3 sm:max-w-xs">
-          <span className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
-            Cycle · Day {cycleDay}
+          <span className="inline-flex items-center whitespace-nowrap text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+            <InfoTooltip
+              label="About Cycle Progress"
+              text="Measures how far along the current capital deployment phase is before a potential market correction."
+            >
+              <span>
+                Cycle Progress · Day {cycleDay}
+              </span>
+            </InfoTooltip>
           </span>
           <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-zinc-800">
             <div

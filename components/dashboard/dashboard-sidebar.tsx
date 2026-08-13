@@ -1,14 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { PUBLIC_CATEGORIES } from "@/lib/coin-categories";
 import { ThemeSelector } from "@/components/theme-selector";
 import { ds } from "@/lib/ui-classes";
 
 const PRIMARY_NAV = [
-  { href: "/", label: "Dashboard", id: "dashboard", match: (p: string) => p === "/" },
+  {
+    href: "/",
+    label: "Dashboard",
+    id: "dashboard",
+    match: (p: string, watchlistOn: boolean) => p === "/" && !watchlistOn,
+  },
   {
     href: "/sectors",
     label: "Sectors",
@@ -16,10 +21,11 @@ const PRIMARY_NAV = [
     match: (p: string) => p.startsWith("/sectors") || p.startsWith("/category"),
   },
   {
-    href: "/watchlist",
+    href: "/?watchlist=1",
     label: "Watchlist",
     id: "watchlist",
-    match: (p: string) => p.startsWith("/watchlist"),
+    match: (p: string, watchlistOn: boolean) =>
+      watchlistOn || p.startsWith("/watchlist"),
   },
   {
     href: "/alerts",
@@ -44,12 +50,20 @@ function linkClass(active: boolean) {
   }`;
 }
 
+function isWatchlistFilterOn(searchParams: URLSearchParams | null): boolean {
+  if (!searchParams) return false;
+  const v = searchParams.get("watchlist");
+  return v === "1" || v === "true";
+}
+
 function NavLinks({
   pathname,
+  watchlistOn,
   onNavigate,
   compact = false,
 }: {
   pathname: string;
+  watchlistOn: boolean;
   onNavigate?: () => void;
   compact?: boolean;
 }) {
@@ -58,7 +72,7 @@ function NavLinks({
   return (
     <>
       {PRIMARY_NAV.map((item) => {
-        const active = item.match(pathname);
+        const active = item.match(pathname, watchlistOn);
         return (
           <Link
             key={item.id}
@@ -139,6 +153,8 @@ export function DashboardSidebar({
   updatedLabel?: string;
 }) {
   const pathname = usePathname() || "/";
+  const searchParams = useSearchParams();
+  const watchlistOn = pathname === "/" && isWatchlistFilterOn(searchParams);
 
   return (
     <>
@@ -149,7 +165,7 @@ export function DashboardSidebar({
         className="fixed bottom-0 left-0 top-[4.25rem] z-30 hidden w-52 flex-col border-r border-[#f4ddc3]/10 bg-[#0b0d11]/95 py-4 backdrop-blur-xl sm:top-[4.75rem] lg:flex xl:w-56"
       >
         <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2">
-          <NavLinks pathname={pathname} />
+          <NavLinks pathname={pathname} watchlistOn={watchlistOn} />
         </nav>
         <p className={`${ds.disclaimer} px-4`}>
           {updatedLabel ? `Data updated ${updatedLabel}` : "Data refreshes hourly"}
@@ -165,7 +181,7 @@ export function DashboardSidebar({
           {[...PRIMARY_NAV, ...MORE_NAV].map((item) => {
             const active =
               "match" in item && typeof item.match === "function"
-                ? item.match(pathname)
+                ? item.match(pathname, watchlistOn)
                 : pathname.startsWith(item.href.split("#")[0] || item.href);
             return (
               <Link

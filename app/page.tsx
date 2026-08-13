@@ -65,7 +65,13 @@ async function fetchDashboardData(): Promise<DashboardSnapshot> {
   }
 }
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ watchlist?: string }>;
+}) {
+  const params = await searchParams;
+  const watchlistOnly = params.watchlist === "1" || params.watchlist === "true";
   const snapshot = await fetchDashboardData();
 
   return (
@@ -76,11 +82,13 @@ export default async function Home() {
           fallback={
             <>
               <HomeMarketsFallback />
-              <DashboardHome snapshot={snapshot} />
+              <DashboardHome snapshot={snapshot} watchlistOnly={watchlistOnly} />
             </>
           }
         >
-          <MarketsDataShell between={<DashboardHome snapshot={snapshot} />} />
+          <MarketsDataShell
+            between={<DashboardHome snapshot={snapshot} watchlistOnly={watchlistOnly} />}
+          />
         </Suspense>
       </main>
     </>

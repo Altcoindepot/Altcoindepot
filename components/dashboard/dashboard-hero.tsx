@@ -1,4 +1,5 @@
 import { ds } from "@/lib/ui-classes";
+import { InfoTooltip } from "@/components/info-tooltip";
 
 export function DashboardHero({
   regimeLabel,
@@ -14,9 +15,14 @@ export function DashboardHero({
       </h1>
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <span
-          className={`${ds.badge} border-teal-400/45 bg-teal-500/10 uppercase tracking-wide text-teal-200`}
+          className={`${ds.badge} inline-flex items-center border-teal-400/45 bg-teal-500/10 uppercase tracking-wide text-teal-200`}
         >
-          Market Regime: {regimeLabel}
+          <InfoTooltip
+            label="About Market Regime"
+            text="Tracks whether capital is flowing heavily into a single sector or rotating rapidly across multiple narratives."
+          >
+            <span>Market Regime: {regimeLabel}</span>
+          </InfoTooltip>
         </span>
       </div>
       <p className={`${ds.subtitle} max-w-2xl`}>

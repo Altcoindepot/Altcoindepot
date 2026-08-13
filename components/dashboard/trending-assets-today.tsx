@@ -1,22 +1,33 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import type { TrendingAssetRow } from "@/lib/dashboard-data";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
 import { ds } from "@/lib/ui-classes";
+import { useWatchlist } from "@/components/use-watchlist";
+import { WatchlistStarButton } from "@/components/watchlist-star-button";
 
 function formatPct(n: number | null) {
   if (n == null || !Number.isFinite(n)) return "—";
   return `${n >= 0 ? "+" : ""}${n.toFixed(1)}%`;
 }
 
-/** Compact 3-row trending tickers for the dashboard sidebar. */
+/** Compact trending tickers for the dashboard sidebar. */
 export function TrendingAssetsToday({
   rows,
   className = "",
+  watchlistOnly = false,
 }: {
   rows: TrendingAssetRow[];
   className?: string;
+  watchlistOnly?: boolean;
 }) {
+  const { entries, mounted } = useWatchlist();
+  const watchIds = new Set(entries.map((e) => e.id));
+  const filtering = watchlistOnly && mounted;
+  const visible = filtering ? rows.filter((row) => watchIds.has(row.id)) : rows.slice(0, 3);
+
   return (
     <section
       aria-labelledby="trending-assets-today-heading"
@@ -24,33 +35,48 @@ export function TrendingAssetsToday({
     >
       <div className="flex items-center justify-between gap-2">
         <h2 id="trending-assets-today-heading" className="text-sm font-semibold text-zinc-100">
-          Trending Assets Today
+          {filtering ? "Watchlist · Trending" : "Trending Assets Today"}
         </h2>
         <Link
-          href="/#classic-markets-heading"
+          href={filtering ? "/watchlist" : "/#classic-markets-heading"}
           className="text-[10px] font-medium text-teal-300/90 underline-offset-2 hover:underline"
         >
-          More →
+          {filtering ? "Full list →" : "More →"}
         </Link>
       </div>
 
-      {rows.length === 0 ? (
+      {!mounted && watchlistOnly ? (
+        <p className="mt-3 text-xs leading-relaxed text-zinc-500">Loading watchlist…</p>
+      ) : visible.length === 0 ? (
         <p className="mt-3 text-xs leading-relaxed text-zinc-500">
-          Hot search tickers will appear here when CoinGecko trending data loads.
+          {filtering
+            ? "None of today’s trending tickers are on your watchlist yet."
+            : "Hot search tickers will appear here when CoinGecko trending data loads."}
         </p>
       ) : (
         <div className="mt-3 min-h-0 flex-1 overflow-auto">
           <table className="w-full border-collapse text-left">
             <thead>
               <tr className="border-b border-white/10 text-[10px] uppercase tracking-wider text-zinc-500">
+                <th className="w-8 pb-2 font-semibold">
+                  <span className="sr-only">Watchlist</span>
+                </th>
                 <th className="pb-2 pr-2 font-semibold">Asset</th>
                 <th className="pb-2 px-1 text-right font-semibold">24h Change</th>
                 <th className="pb-2 pl-2 text-right font-semibold">Volume</th>
               </tr>
             </thead>
             <tbody>
-              {rows.slice(0, 3).map((row) => (
+              {visible.map((row) => (
                 <tr key={row.id} className="border-b border-white/5 last:border-0">
+                  <td className="py-2 pr-1">
+                    <WatchlistStarButton
+                      coinId={row.id}
+                      name={row.name}
+                      symbol={row.symbol}
+                      image={row.image || undefined}
+                    />
+                  </td>
                   <td className="py-2.5 pr-2">
                     <Link
                       href={`/coin/${encodeURIComponent(row.id)}`}

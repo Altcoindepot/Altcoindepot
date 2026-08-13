@@ -70,8 +70,9 @@ export default function WatchlistPage() {
       <main className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
         <h1 className="text-2xl font-bold text-white">Watchlist</h1>
         <p className="mt-2 text-sm text-zinc-400">
-          Saved on this device only — no account needed. Open a coin page and tap “Add to
-          watchlist”.
+          Saved on this device only (localStorage key{" "}
+          <code className="text-[11px] text-zinc-500">altcoin-depot-watchlist</code>) — no account
+          needed. Star coins in New &amp; Low Caps or open a coin page and tap “Add to watchlist”.
         </p>
 
         {!mounted ? (

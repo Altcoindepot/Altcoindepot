@@ -21,12 +21,14 @@ export function NarrativeRotationSection({
   pulse,
   trendingAssets,
   lowCapsSlot,
+  watchlistOnly = false,
 }: {
   narratives: NarrativeSnapshot[];
   regimeLabel: string;
   pulse: MarketPulse;
   trendingAssets: TrendingAssetRow[];
   lowCapsSlot: ReactNode;
+  watchlistOnly?: boolean;
 }) {
   const [window, setWindow] = useState<RotationWindow>(DEFAULT_ROTATION_WINDOW);
 
@@ -87,6 +89,7 @@ export function NarrativeRotationSection({
         />
         <TrendingAssetsToday
           rows={trendingAssets}
+          watchlistOnly={watchlistOnly}
           className="col-start-2 row-span-2 row-start-1 h-full min-h-0"
         />
         <MarketPulseCard
@@ -106,7 +109,7 @@ export function NarrativeRotationSection({
       {/* Mobile / tablet stack */}
       <div className="space-y-4 lg:hidden">
         <TopRotations narratives={top} variant="mobile-primary" window={window} />
-        <TrendingAssetsToday rows={trendingAssets} />
+        <TrendingAssetsToday rows={trendingAssets} watchlistOnly={watchlistOnly} />
         <MarketPulseCard pulse={pulse} />
         {lowCapsSlot}
       </div>

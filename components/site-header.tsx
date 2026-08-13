@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { CoinSearchBar } from "@/components/coin-search-bar";
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
@@ -20,7 +21,9 @@ export function SiteHeader({ updatedLabel }: { updatedLabel?: string }) {
           </Link>
         </div>
       </header>
-      <DashboardSidebar updatedLabel={updatedLabel} />
+      <Suspense fallback={null}>
+        <DashboardSidebar updatedLabel={updatedLabel} />
+      </Suspense>
     </>
   );
 }

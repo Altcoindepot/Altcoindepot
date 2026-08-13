@@ -1,4 +1,6 @@
-export const WATCHLIST_STORAGE_KEY = "altcoindepot-watchlist";
+export const WATCHLIST_STORAGE_KEY = "altcoin-depot-watchlist";
+/** Previous key — migrated once on read. */
+const LEGACY_WATCHLIST_STORAGE_KEY = "altcoindepot-watchlist";
 export const WATCHLIST_CHANGE_EVENT = "watchlist-change";
 
 export type WatchlistEntry = {
@@ -29,10 +31,28 @@ function safeParse(raw: string | null): WatchlistEntry[] {
   }
 }
 
+function migrateLegacyWatchlist(): WatchlistEntry[] {
+  try {
+    const legacy = localStorage.getItem(LEGACY_WATCHLIST_STORAGE_KEY);
+    if (!legacy) return [];
+    const parsed = safeParse(legacy);
+    if (parsed.length > 0) {
+      localStorage.setItem(WATCHLIST_STORAGE_KEY, JSON.stringify(parsed));
+    }
+    localStorage.removeItem(LEGACY_WATCHLIST_STORAGE_KEY);
+    return parsed;
+  } catch {
+    return [];
+  }
+}
+
+/** Client-only. Always returns [] during SSR / when `window` is unavailable. */
 export function readWatchlist(): WatchlistEntry[] {
   if (typeof window === "undefined") return [];
   try {
-    return safeParse(localStorage.getItem(WATCHLIST_STORAGE_KEY));
+    const current = localStorage.getItem(WATCHLIST_STORAGE_KEY);
+    if (current != null) return safeParse(current);
+    return migrateLegacyWatchlist();
   } catch {
     return [];
   }
@@ -56,6 +76,7 @@ export function removeWatchlistId(id: string) {
   writeWatchlist(readWatchlist().filter((e) => e.id !== id));
 }
 
+/** @returns true when the coin is now on the watchlist. */
 export function toggleWatchlist(entry: Omit<WatchlistEntry, "addedAt">): boolean {
   const current = readWatchlist();
   const exists = current.some((e) => e.id === entry.id);
@@ -63,9 +84,6 @@ export function toggleWatchlist(entry: Omit<WatchlistEntry, "addedAt">): boolean
     writeWatchlist(current.filter((e) => e.id !== entry.id));
     return false;
   }
-  writeWatchlist([
-    { ...entry, addedAt: new Date().toISOString() },
-    ...current,
-  ]);
+  writeWatchlist([{ ...entry, addedAt: new Date().toISOString() }, ...current]);
   return true;
 }
