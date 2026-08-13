@@ -114,27 +114,19 @@ export default async function CoinPage({ params }: Props) {
       <>
         <SiteHeader />
         <main className="min-h-[50vh] border-t border-white/5 bg-[#0a0a0a] px-4 py-20 text-center sm:px-6">
-          <h1 className="text-lg font-semibold text-white sm:text-xl">
-            This coin page is taking a break
+          <h1 className="text-metallic-hero text-xl font-semibold sm:text-2xl">
+            Asset Data Profile Currently Syncing.
           </h1>
           <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-zinc-400">
-            We couldn’t reach CoinGecko for this asset. That usually clears in a minute — tap reload
-            or browse another coin from Home.
+            We couldn&apos;t load a complete profile for this asset right now. Market data may still
+            be updating — check back shortly or browse from the homepage.
           </p>
-          <div className="mt-8 flex flex-col items-stretch justify-center gap-2 sm:flex-row sm:items-center">
-            <Link
-              href={`/coin/${encodeURIComponent(id)}`}
-              className="inline-flex min-h-12 items-center justify-center rounded-lg border border-[#d1a173]/45 bg-[#d1a173]/15 px-5 text-sm font-semibold text-[#d7ad82]"
-            >
-              Reload coin
-            </Link>
-            <Link
-              href="/"
-              className="inline-flex min-h-12 items-center justify-center rounded-lg border border-white/15 px-5 text-sm font-medium text-zinc-300"
-            >
-              ← Back home
-            </Link>
-          </div>
+          <Link
+            href="/"
+            className="mt-8 inline-flex min-h-12 items-center justify-center rounded-lg border border-[#d1a173]/45 bg-[#d1a173]/15 px-6 text-sm font-semibold text-[#d7ad82] transition-[box-shadow,transform] hover:shadow-[0_0_24px_rgba(185,129,82,0.2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] active:scale-[0.98]"
+          >
+            Return Home
+          </Link>
         </main>
       </>
     );

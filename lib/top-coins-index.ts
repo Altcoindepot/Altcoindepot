@@ -1,17 +1,16 @@
 import { unstable_cache } from "next/cache";
 import { coinGeckoFetch } from "@/lib/coingecko";
+import {
+  searchTopCoinsIndex,
+  pickBestTopCoinMatch,
+  type TopCoinSearchEntry,
+} from "@/lib/top-coins-search-utils";
 
-export type TopCoinSearchEntry = {
-  id: string;
-  name: string;
-  symbol: string;
-  image: string;
-  rank: number;
-  current_price: number | null;
-  price_change_percentage_24h: number | null;
-};
+export type { TopCoinSearchEntry };
+export { searchTopCoinsIndex, pickBestTopCoinMatch };
 
 export const TOP_COINS_SEARCH_LIMIT = 3000;
+export const TOP_200_SEARCH_LIMIT = 200;
 
 const PER_PAGE = 250;
 const PAGE_COUNT = Math.ceil(TOP_COINS_SEARCH_LIMIT / PER_PAGE);
@@ -90,70 +89,14 @@ export const getTopCoinsSearchIndex = unstable_cache(
   { revalidate: 14400 },
 );
 
-function rankBonus(rank: number): number {
-  return Math.max(0, 400 - rank * 0.05);
+async function buildTop200SearchIndex(): Promise<TopCoinSearchEntry[]> {
+  const rows = await fetchTopMarketsPage(1);
+  return rows.slice(0, TOP_200_SEARCH_LIMIT);
 }
 
-function scoreEntry(entry: TopCoinSearchEntry, query: string): number {
-  const q = query.trim().toLowerCase();
-  if (!q) return -1;
+export const getTop200CoinsSearchIndex = unstable_cache(
+  buildTop200SearchIndex,
+  ["top-200-search-index-v1"],
+  { revalidate: 3600 },
+);
 
-  const id = entry.id.toLowerCase();
-  const sym = entry.symbol.toLowerCase();
-  const name = entry.name.toLowerCase();
-
-  if (id === q) return 1000 + rankBonus(entry.rank);
-  if (sym === q) return 900 + rankBonus(entry.rank);
-  if (name === q) return 850 + rankBonus(entry.rank);
-  if (sym.startsWith(q)) return 700 + rankBonus(entry.rank);
-  if (name.startsWith(q)) return 650 + rankBonus(entry.rank);
-  if (id.startsWith(q)) return 600 + rankBonus(entry.rank);
-  if (name.includes(q)) return 400 + rankBonus(entry.rank);
-  if (sym.includes(q)) return 350 + rankBonus(entry.rank);
-  if (id.includes(q)) return 300 + rankBonus(entry.rank);
-  return -1;
-}
-
-export function searchTopCoinsIndex(
-  entries: TopCoinSearchEntry[],
-  query: string,
-  limit = 12,
-): TopCoinSearchEntry[] {
-  const q = query.trim();
-  if (!q) return [];
-
-  const scored = entries
-    .map((entry) => ({ entry, score: scoreEntry(entry, q) }))
-    .filter((row) => row.score >= 0)
-    .sort((a, b) => b.score - a.score || a.entry.rank - b.entry.rank);
-
-  const seen = new Set<string>();
-  const results: TopCoinSearchEntry[] = [];
-  for (const { entry } of scored) {
-    if (seen.has(entry.id)) continue;
-    seen.add(entry.id);
-    results.push(entry);
-    if (results.length >= limit) break;
-  }
-  return results;
-}
-
-/** Best single match for redirect-style search (exact symbol/id/name preferred). */
-export function pickBestTopCoinMatch(
-  entries: TopCoinSearchEntry[],
-  query: string,
-): TopCoinSearchEntry | null {
-  const hits = searchTopCoinsIndex(entries, query, 20);
-  if (hits.length === 0) return null;
-
-  const q = query.trim().toLowerCase();
-  const exact = hits.find(
-    (h) =>
-      h.id.toLowerCase() === q ||
-      h.symbol.toLowerCase() === q ||
-      h.name.toLowerCase() === q,
-  );
-  if (exact) return exact;
-  if (hits.length === 1) return hits[0]!;
-  return null;
-}

@@ -20,8 +20,8 @@ const PRIMARY_LINKS = [
 
 const LEGAL_LINKS = [
   { href: "/about", label: "About" },
-  { href: "/privacy", label: "Privacy Policy" },
-  { href: "/disclaimer", label: "Terms of Service" },
+  { href: "/privacy-policy", label: "Privacy Policy" },
+  { href: "/terms", label: "Terms of Service" },
 ] as const;
 
 const LEGAL_DISCLAIMER =

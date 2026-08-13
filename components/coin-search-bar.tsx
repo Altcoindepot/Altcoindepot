@@ -4,8 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { readResponseJsonSafely } from "@/lib/read-response-json";
-import type { TopCoinSearchEntry } from "@/lib/top-coins-index";
+import {
+  filterClientTop200Index,
+  loadClientTop200Index,
+} from "@/lib/client-top-200-index";
+import type { TopCoinSearchEntry } from "@/lib/top-coins-search-utils";
+import { pickBestTopCoinMatch } from "@/lib/top-coins-search-utils";
 
 type CoinSearchBarProps = {
   /** Header uses a fixed width; category page uses full width. */
@@ -32,29 +36,10 @@ function cacheSet(q: string, coins: TopCoinSearchEntry[]) {
   searchCache.set(key, coins);
 }
 
-function filterCachedPrefix(query: string): TopCoinSearchEntry[] | null {
-  const q = query.toLowerCase();
-  let bestKey = "";
-  for (const key of searchCache.keys()) {
-    if (q.startsWith(key) && key.length > bestKey.length) bestKey = key;
-  }
-  if (!bestKey || bestKey.length < 1) return null;
-  const base = searchCache.get(bestKey);
-  if (!base) return null;
-  return base
-    .filter((c) => {
-      const id = c.id.toLowerCase();
-      const sym = c.symbol.toLowerCase();
-      const name = c.name.toLowerCase();
-      return id.includes(q) || sym.includes(q) || name.includes(q);
-    })
-    .slice(0, 10);
-}
-
 export function CoinSearchBar({
   variant = "header",
   inputId,
-  placeholder = "Search top 3000 assets (e.g. BTC)",
+  placeholder = "Search top 200 assets (e.g. BTC)",
   showSubmitButton = true,
 }: CoinSearchBarProps) {
   const autoId = useId();
@@ -62,13 +47,33 @@ export function CoinSearchBar({
   const listId = `${fieldId}-results`;
   const router = useRouter();
   const rootRef = useRef<HTMLDivElement>(null);
+  const indexRef = useRef<TopCoinSearchEntry[]>([]);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<TopCoinSearchEntry[]>([]);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [indexReady, setIndexReady] = useState(false);
+  const [indexError, setIndexError] = useState<string | null>(null);
   const [searched, setSearched] = useState(false);
+
+  const warmIndex = useCallback(async () => {
+    if (indexRef.current.length > 0) {
+      setIndexReady(true);
+      return;
+    }
+    try {
+      const index = await loadClientTop200Index();
+      indexRef.current = index;
+      setIndexReady(index.length > 0);
+      setIndexError(index.length === 0 ? "Search index is syncing — try again shortly." : null);
+    } catch {
+      setIndexError("Search index is syncing — try again shortly.");
+    }
+  }, []);
+
+  useEffect(() => {
+    void warmIndex();
+  }, [warmIndex]);
 
   useEffect(() => {
     const q = query.trim();
@@ -76,9 +81,7 @@ export function CoinSearchBar({
       setResults([]);
       setOpen(false);
       setActiveIndex(-1);
-      setError(null);
       setSearched(false);
-      setLoading(false);
       return;
     }
 
@@ -86,67 +89,24 @@ export function CoinSearchBar({
     if (cached) {
       setResults(cached);
       setOpen(true);
-      setLoading(false);
-      setError(null);
       setSearched(true);
       setActiveIndex(-1);
       return;
     }
 
-    const prefixHits = filterCachedPrefix(q);
-    if (prefixHits && prefixHits.length > 0) {
-      setResults(prefixHits);
-      setOpen(true);
+    if (!indexRef.current.length) {
       setSearched(true);
+      setOpen(true);
+      return;
     }
 
-    const controller = new AbortController();
-    const timer = window.setTimeout(() => {
-      void (async () => {
-        setLoading(true);
-        setError(null);
-        try {
-          const res = await fetch(
-            `/api/coin-search?q=${encodeURIComponent(q)}&limit=10`,
-            { signal: controller.signal },
-          );
-          if (!res.ok) {
-            setError("Search is busy — try again in a moment.");
-            setSearched(true);
-            setOpen(true);
-            return;
-          }
-          const data = await readResponseJsonSafely(res);
-          if (!data || typeof data !== "object" || !("coins" in data)) {
-            setError("Search returned an unexpected response.");
-            setSearched(true);
-            setOpen(true);
-            return;
-          }
-          const coins = (data as { coins: unknown }).coins;
-          if (!Array.isArray(coins)) return;
-          const list = coins as TopCoinSearchEntry[];
-          cacheSet(q, list);
-          setResults(list);
-          setOpen(true);
-          setActiveIndex(-1);
-          setSearched(true);
-        } catch (e) {
-          if ((e as Error)?.name === "AbortError") return;
-          setError("Couldn’t reach search. Check your connection.");
-          setSearched(true);
-          setOpen(true);
-        } finally {
-          if (!controller.signal.aborted) setLoading(false);
-        }
-      })();
-    }, 120);
-
-    return () => {
-      controller.abort();
-      window.clearTimeout(timer);
-    };
-  }, [query]);
+    const list = filterClientTop200Index(indexRef.current, q, 10);
+    cacheSet(q, list);
+    setResults(list);
+    setOpen(true);
+    setActiveIndex(-1);
+    setSearched(true);
+  }, [query, indexReady]);
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
@@ -171,23 +131,20 @@ export function CoinSearchBar({
     (value: string) => {
       const q = value.trim();
       if (!q) return;
+
+      const best = indexRef.current.length
+        ? pickBestTopCoinMatch(indexRef.current, q)
+        : null;
+      if (best) {
+        goToCoin(best.id);
+        return;
+      }
+
       router.push(`/coin?q=${encodeURIComponent(q)}`);
       setOpen(false);
     },
-    [router],
+    [goToCoin, router],
   );
-
-  const warmSearch = useCallback(() => {
-    if (cacheGet("b") || cacheGet("e")) return;
-    void fetch("/api/coin-search?q=btc&limit=5")
-      .then(async (res) => {
-        if (!res.ok) return;
-        const data = await readResponseJsonSafely(res);
-        const coins = data && typeof data === "object" ? (data as { coins?: unknown }).coins : null;
-        if (Array.isArray(coins)) cacheSet("btc", coins as TopCoinSearchEntry[]);
-      })
-      .catch(() => {});
-  }, []);
 
   const inputClass =
     variant === "wide"
@@ -197,7 +154,7 @@ export function CoinSearchBar({
   const wrapperClass =
     variant === "wide" ? "relative w-full" : "relative hidden md:block";
 
-  const showDropdown = open && (results.length > 0 || loading || error || searched);
+  const showDropdown = open && (results.length > 0 || indexError || searched);
 
   return (
     <>
@@ -229,8 +186,8 @@ export function CoinSearchBar({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onFocus={() => {
-                warmSearch();
-                if (results.length > 0 || error || searched) setOpen(true);
+                void warmIndex();
+                if (results.length > 0 || indexError || searched) setOpen(true);
               }}
               onKeyDown={(e) => {
                 if (!showDropdown || results.length === 0) return;
@@ -252,23 +209,18 @@ export function CoinSearchBar({
               aria-autocomplete="list"
               className={inputClass}
             />
-            {loading ? (
-              <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-zinc-500">
-                Searching…
-              </span>
-            ) : null}
             {showDropdown ? (
               <ul
                 id={listId}
                 role="listbox"
                 className="absolute right-0 top-full z-[60] mt-1 max-h-80 w-full min-w-[16rem] overflow-y-auto rounded-lg border border-white/10 bg-[#141218] py-1 shadow-xl sm:min-w-[18rem]"
               >
-                {error ? (
-                  <li className="px-3 py-3 text-sm text-amber-200/90">{error}</li>
+                {indexError ? (
+                  <li className="px-3 py-3 text-sm text-amber-200/90">{indexError}</li>
                 ) : null}
-                {!error && !loading && searched && results.length === 0 ? (
+                {!indexError && searched && results.length === 0 ? (
                   <li className="px-3 py-3 text-sm text-zinc-400">
-                    No matches in the top 3000. Try another symbol or name.
+                    No matches in the top 200. Try another symbol or name.
                   </li>
                 ) : null}
                 {results.map((coin, idx) => {

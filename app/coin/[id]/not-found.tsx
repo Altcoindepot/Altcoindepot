@@ -7,8 +7,8 @@ import { SiteHeader } from "@/components/site-header";
  * Do not set index/follow here — that caused Soft 404 conflicts in Search Console.
  */
 export const metadata: Metadata = {
-  title: "Coin not found",
-  description: "That coin id does not exist on CoinGecko.",
+  title: "Asset syncing",
+  description: "This asset profile is currently syncing on AltCoin Depot.",
 };
 
 export default function CoinNotFound() {
@@ -16,16 +16,18 @@ export default function CoinNotFound() {
     <>
       <SiteHeader />
       <main className="min-h-[50vh] border-t border-white/5 bg-[#0a0a0a] px-4 py-20 text-center sm:px-6">
-        <h1 className="text-metallic-hero text-2xl font-bold">Coin not found</h1>
-        <p className="mx-auto mt-3 max-w-md text-sm text-zinc-400">
-          That CoinGecko id doesn&apos;t exist or was removed. Try another coin from the featured
-          list on the home page.
+        <h1 className="text-metallic-hero text-xl font-semibold sm:text-2xl">
+          Asset Data Profile Currently Syncing.
+        </h1>
+        <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-zinc-400">
+          We couldn&apos;t load a complete profile for this asset right now. Market data may still
+          be updating — check back shortly or browse from the homepage.
         </p>
         <Link
           href="/"
-          className="mt-8 inline-block rounded-lg border border-[#00ff9f]/40 bg-[#00ff9f]/10 px-5 py-2.5 text-sm font-semibold text-[#00ff9f] transition-[box-shadow] hover:shadow-[0_0_20px_rgba(0,255,159,0.2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a855f7]"
+          className="mt-8 inline-flex min-h-12 items-center justify-center rounded-lg border border-[#d1a173]/45 bg-[#d1a173]/15 px-6 text-sm font-semibold text-[#d7ad82] transition-[box-shadow,transform] hover:shadow-[0_0_24px_rgba(185,129,82,0.2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] active:scale-[0.98]"
         >
-          Back to Altcoin Depot
+          Return Home
         </Link>
       </main>
     </>

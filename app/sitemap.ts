@@ -9,6 +9,8 @@ const SITE = "https://altcoindepot.com";
 const STATIC_PATHS = [
   "/about",
   "/contact",
+  "/privacy-policy",
+  "/terms",
   "/privacy",
   "/disclaimer",
   "/affiliate-disclosure",
