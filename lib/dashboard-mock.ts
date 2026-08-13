@@ -142,6 +142,14 @@ export function getMockDashboardSnapshot(): DashboardSnapshot {
       narrativeGlowClass: narrative.glowClass,
       status: rotationStatusFromChange(row.change7d, "7d"),
       addedLabel: i === 0 ? "Today" : i === 1 ? "2d ago" : `${i + 1}d ago`,
+      sparkline: [
+        10,
+        10 + row.change7d * 0.15,
+        10 + row.change7d * 0.35,
+        10 + row.change7d * 0.55,
+        10 + row.change7d * 0.75,
+        10 + row.change7d,
+      ],
     };
   });
 

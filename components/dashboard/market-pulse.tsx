@@ -2,29 +2,11 @@ import Link from "next/link";
 import type { MarketPulse } from "@/lib/dashboard-data";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
 import { ds } from "@/lib/ui-classes";
+import { PulseSparkline } from "@/components/dashboard/pulse-sparkline";
 
 function formatPct(n: number | null) {
   if (n == null || !Number.isFinite(n)) return "—";
   return `${n >= 0 ? "+" : ""}${n.toFixed(2)}%`;
-}
-
-function MiniSpark({ positive }: { positive: boolean }) {
-  const color = positive ? "#34d399" : "#f87171";
-  return (
-    <svg viewBox="0 0 64 20" className="mt-1 h-4 w-full" aria-hidden>
-      <polyline
-        fill="none"
-        stroke={color}
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        points={
-          positive
-            ? "0,16 10,14 18,15 28,10 38,11 48,6 64,4"
-            : "0,4 12,6 22,5 32,10 42,9 52,14 64,16"
-        }
-      />
-    </svg>
-  );
 }
 
 export function MarketPulseCard({
@@ -90,7 +72,10 @@ export function MarketPulseCard({
               ) : (
                 <p className="mt-0.5 text-[10px] text-zinc-600">24h</p>
               )}
-              <MiniSpark positive={row.pct == null ? true : positive} />
+              <PulseSparkline
+                positive={row.pct == null ? true : positive}
+                className="mt-1 h-4 w-full"
+              />
             </article>
           );
         })}

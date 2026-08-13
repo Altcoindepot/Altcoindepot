@@ -123,3 +123,15 @@ export function statusBadgeClass(status: NarrativeStatus): string {
       return "border-zinc-500/40 bg-zinc-500/10 text-zinc-300";
   }
 }
+
+/** User-facing rotation signal label (LEADING → STRONG INFLOW). */
+export function rotationSignalLabel(status: NarrativeStatus): string {
+  switch (status) {
+    case "LEADING":
+      return "STRONG INFLOW";
+    case "FADING":
+      return "FADING";
+    default:
+      return "NEUTRAL";
+  }
+}

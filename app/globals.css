@@ -35,6 +35,47 @@
   }
 }
 
+/* Narrative Rotation Tracker — gentle marching-ants liquidity flow */
+@keyframes narrative-flow {
+  to {
+    stroke-dashoffset: -22;
+  }
+}
+
+.narrative-flow-vector {
+  stroke-dasharray: 5 7;
+  animation: narrative-flow 2.8s linear infinite;
+}
+
+.narrative-flow-vector--inflow {
+  stroke-dasharray: 4 5;
+  animation: narrative-flow 2.2s linear infinite;
+}
+
+@keyframes strong-inflow-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+.strong-inflow-dot {
+  animation: strong-inflow-pulse 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .narrative-flow-vector,
+  .narrative-flow-vector--inflow,
+  .strong-inflow-dot {
+    animation: none;
+  }
+}
+
 /* Fixed left sidebar (lg+) — offset main page content + footer */
 @media (min-width: 1024px) {
   main,

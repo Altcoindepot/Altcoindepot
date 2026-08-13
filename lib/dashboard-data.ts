@@ -51,6 +51,8 @@ export type LowCapRow = {
   status: NarrativeStatus;
   /** Relative “added” label (best-effort from rank within basket). */
   addedLabel: string;
+  /** Optional 7d sparkline prices from CoinGecko. */
+  sparkline?: number[] | null;
 };
 
 export type MarketPulse = {
@@ -223,6 +225,7 @@ function pickLowCaps(narrative: NarrativeDef, coins: CoinMarket[]): LowCapRow[] 
     .slice(0, 4)
     .map((c, i) => {
       const ch = c.price_change_percentage_7d_in_currency ?? null;
+      const spark = c.sparkline_in_7d?.price;
       return {
         id: c.id,
         name: c.name,
@@ -237,6 +240,10 @@ function pickLowCaps(narrative: NarrativeDef, coins: CoinMarket[]): LowCapRow[] 
         narrativeGlowClass: narrative.glowClass,
         status: rotationStatusFromChange(ch, "7d"),
         addedLabel: i === 0 ? "Today" : i === 1 ? "2d ago" : `${i + 1}d ago`,
+        sparkline:
+          Array.isArray(spark) && spark.length >= 2
+            ? spark.filter((v): v is number => typeof v === "number" && Number.isFinite(v))
+            : null,
       };
     });
 }
@@ -430,7 +437,7 @@ async function buildDashboardSnapshot(): Promise<DashboardSnapshot> {
 
 const getCachedDashboardSnapshot = unstable_cache(
   buildDashboardSnapshot,
-  ["dashboard-snapshot-v4-safe-fallback"],
+  ["dashboard-snapshot-v5-sparklines"],
   { revalidate: REVALIDATE },
 );
 
