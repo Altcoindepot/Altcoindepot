@@ -29,10 +29,10 @@ export default function ContactPage() {
           </li>
           <li>
             <a
-              href="mailto:hello@altcoindepot.com"
+              href="mailto:AltCoinDepot@gmail.com"
               className="inline-flex min-h-11 items-center font-medium text-[#d7ad82] underline-offset-2 hover:underline"
             >
-              hello@altcoindepot.com
+              AltCoinDepot@gmail.com
             </a>
           </li>
         </ul>
