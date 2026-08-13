@@ -12,6 +12,7 @@ import {
   statusBadgeClass,
 } from "@/lib/narratives";
 import { ds } from "@/lib/ui-classes";
+import { EcosystemResourcesPanel } from "@/components/ecosystem-resources-panel";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -150,6 +151,7 @@ export default async function NarrativePage({ params }: Props) {
             </table>
           </div>
         )}
+        <EcosystemResourcesPanel className="mt-8" narrativeSlug={narrative.slug} />
       </main>
     </>
   );

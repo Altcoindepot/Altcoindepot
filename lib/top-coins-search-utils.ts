@@ -6,6 +6,9 @@ export type TopCoinSearchEntry = {
   rank: number;
   current_price: number | null;
   price_change_percentage_24h: number | null;
+  price_change_percentage_7d?: number | null;
+  market_cap?: number | null;
+  total_volume?: number | null;
 };
 
 function rankBonus(rank: number): number {

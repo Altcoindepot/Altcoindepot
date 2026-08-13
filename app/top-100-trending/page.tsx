@@ -11,26 +11,18 @@ export const metadata: Metadata = {
     "Heatmap-style view of top 100 crypto projects ranked by 24h movers on AltCoinDepot.",
 };
 
+/** Fetch at request time so build-time CoinGecko skips don't freeze an empty page. */
+export const dynamic = "force-dynamic";
+
 const TOP_100_PATH =
   "/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=true&price_change_percentage=24h";
 
 async function fetchTop100Trending(): Promise<CoinMarket[]> {
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const res = await coinGeckoFetch(TOP_100_PATH, {
-      next: { revalidate: 3600 },
-    });
-    if (res.ok) {
-      const data: unknown = await res.json();
-      if (Array.isArray(data)) return data as CoinMarket[];
-      throw new Error("Invalid response");
-    }
-    if (res.status === 429 || (res.status >= 500 && res.status <= 599)) {
-      await new Promise((resolve) => setTimeout(resolve, 350 + attempt * 700));
-      continue;
-    }
-    throw new Error(`CoinGecko error: ${res.status}`);
-  }
-  throw new Error("CoinGecko rate limited");
+  const res = await coinGeckoFetch(TOP_100_PATH);
+  if (!res.ok) throw new Error(`CoinGecko error: ${res.status}`);
+  const data: unknown = await res.json();
+  if (!Array.isArray(data)) throw new Error("Invalid response");
+  return data as CoinMarket[];
 }
 
 function formatUsd(n: number | null | undefined) {
@@ -155,24 +147,28 @@ export default async function Top100TrendingPage() {
               </section>
 
               <section className="mt-6">
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
+                <div className="grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
                   {sorted.map((coin) => (
                     <Link
                       key={coin.id}
                       href={`/coin/${encodeURIComponent(coin.id)}`}
-                      className={`rounded-lg border p-2.5 transition-transform hover:-translate-y-px ${intensityClass(
+                      className={`min-w-0 overflow-hidden rounded-lg border p-2.5 transition-transform hover:-translate-y-px ${intensityClass(
                         coin.price_change_percentage_24h,
                       )}`}
                     >
-                      <div className="flex items-center gap-2">
-                        <Image
-                          src={coin.image}
-                          alt=""
-                          width={20}
-                          height={20}
-                          sizes="20px"
-                          className="rounded-full"
-                        />
+                      <div className="flex min-w-0 items-center gap-2">
+                        {coin.image ? (
+                          <Image
+                            src={coin.image}
+                            alt=""
+                            width={20}
+                            height={20}
+                            sizes="20px"
+                            className="shrink-0 rounded-full"
+                          />
+                        ) : (
+                          <span className="size-5 shrink-0 rounded-full bg-zinc-700" />
+                        )}
                         <span className="truncate font-mono text-xs font-bold uppercase text-zinc-100">
                           {coin.symbol}
                         </span>
@@ -189,7 +185,7 @@ export default async function Top100TrendingPage() {
                       <MiniCoinChart
                         change24h={coin.price_change_percentage_24h}
                         points={coin.sparkline_in_7d?.price}
-                        className="mt-2 h-14 w-full max-w-[168px] rounded-md border border-white/15 bg-[#06070a] sm:w-[160px]"
+                        className="mt-2 h-12 w-full max-w-full rounded-md border border-white/15 bg-[#06070a] sm:h-14"
                       />
                     </Link>
                   ))}

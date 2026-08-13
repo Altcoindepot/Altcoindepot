@@ -21,6 +21,7 @@ import { PriceAlertForm } from "@/components/price-alert-form";
 import { RelatedCoins } from "@/components/related-coins";
 import { RecordRecentlyViewed } from "@/components/record-recently-viewed";
 import { DisclaimerNote } from "@/components/disclaimer-note";
+import { EcosystemResourcesPanel } from "@/components/ecosystem-resources-panel";
 import { inferMoveDriver } from "@/lib/move-driver";
 import { ds } from "@/lib/ui-classes";
 
@@ -1127,6 +1128,17 @@ export function CoinDetailView({
           </section>
 
           {twitterHandle ? <CoinXTimelineEmbed handle={twitterHandle} /> : null}
+
+          <EcosystemResourcesPanel
+            className="mt-6"
+            coinId={coin.id}
+            fallback={{
+              portal: homepage,
+              auditExplorer: coin.links?.blockchain_site?.find((u) => u && /^https?:\/\//i.test(u)),
+              docs: whitepaper,
+              community: twitterHref,
+            }}
+          />
 
           <CoingeckoLogoAttribution className="mt-6 text-center [&_span]:text-zinc-600" />
         </div>

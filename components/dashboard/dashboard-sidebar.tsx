@@ -197,12 +197,6 @@ export function DashboardSidebar({
               </Link>
             );
           })}
-          <Link
-            href="/sectors"
-            className="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-full bg-white/5 px-3 py-3 text-xs font-semibold whitespace-nowrap text-zinc-400 hover:text-zinc-200"
-          >
-            Sectors
-          </Link>
         </div>
       </nav>
     </>

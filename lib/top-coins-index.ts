@@ -27,10 +27,13 @@ type MarketsRow = {
   market_cap_rank?: number | null;
   current_price?: number | null;
   price_change_percentage_24h?: number | null;
+  price_change_percentage_7d_in_currency?: number | null;
+  market_cap?: number | null;
+  total_volume?: number | null;
 };
 
 async function fetchTopMarketsPage(page: number): Promise<TopCoinSearchEntry[]> {
-  const path = `/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${PER_PAGE}&page=${page}&sparkline=false&price_change_percentage=24h`;
+  const path = `/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${PER_PAGE}&page=${page}&sparkline=false&price_change_percentage=24h%2C7d`;
   let res: Response;
   try {
     res = await coinGeckoFetch(path);
@@ -66,6 +69,19 @@ async function fetchTopMarketsPage(page: number): Promise<TopCoinSearchEntry[]> 
         Number.isFinite(row.price_change_percentage_24h)
           ? row.price_change_percentage_24h
           : null,
+      price_change_percentage_7d:
+        typeof row.price_change_percentage_7d_in_currency === "number" &&
+        Number.isFinite(row.price_change_percentage_7d_in_currency)
+          ? row.price_change_percentage_7d_in_currency
+          : null,
+      market_cap:
+        typeof row.market_cap === "number" && Number.isFinite(row.market_cap)
+          ? row.market_cap
+          : null,
+      total_volume:
+        typeof row.total_volume === "number" && Number.isFinite(row.total_volume)
+          ? row.total_volume
+          : null,
     });
   }
   return out;
@@ -96,7 +112,7 @@ async function buildTop200SearchIndex(): Promise<TopCoinSearchEntry[]> {
 
 export const getTop200CoinsSearchIndex = unstable_cache(
   buildTop200SearchIndex,
-  ["top-200-search-index-v1"],
+  ["top-200-search-index-v2"],
   { revalidate: 3600 },
 );
 

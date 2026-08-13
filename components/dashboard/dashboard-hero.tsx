@@ -1,5 +1,6 @@
 import { ds } from "@/lib/ui-classes";
 import { InfoTooltip } from "@/components/info-tooltip";
+import { CompareAssetsButton } from "@/components/dashboard/asset-compare-modal";
 
 export function DashboardHero({
   regimeLabel,
@@ -24,6 +25,7 @@ export function DashboardHero({
             <span>Market Regime: {regimeLabel}</span>
           </InfoTooltip>
         </span>
+        <CompareAssetsButton />
       </div>
       <p className={`${ds.subtitle} max-w-2xl`}>
         {summary ||
