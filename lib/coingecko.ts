@@ -44,13 +44,25 @@ export async function coinGeckoFetch(
   const normalized = path.startsWith("http")
     ? path
     : `${getCoinGeckoApiBase()}${path.startsWith("/") ? path : `/${path}`}`;
+  const revalidate = init?.next?.revalidate ?? 3600;
   return fetch(normalized, {
     ...init,
+    // Free-tier friendly: cache on the Next.js server for 1 hour by default.
+    next: { ...init?.next, revalidate },
     headers: {
       ...coinGeckoHeaders(),
       ...(init?.headers as Record<string, string> | undefined),
     },
   });
+}
+
+/** Thrown when CoinGecko returns HTTP 429 (rate limited). */
+export class CoinGeckoRateLimitError extends Error {
+  readonly status = 429 as const;
+  constructor(message = "CoinGecko rate limit (429)") {
+    super(message);
+    this.name = "CoinGeckoRateLimitError";
+  }
 }
 
 export const MARKETS_PATH =
@@ -155,6 +167,9 @@ export async function loadMarketsByGeckoCategory(
     categoryId,
   )}&order=market_cap_desc&per_page=${perPage}&page=1&sparkline=true&price_change_percentage=24h%2C7d%2C30d`;
   const res = await coinGeckoFetch(path, init);
+  if (res.status === 429) {
+    throw new CoinGeckoRateLimitError(`CoinGecko category ${categoryId}: 429`);
+  }
   if (!res.ok) {
     throw new Error(`CoinGecko category ${categoryId}: ${res.status}`);
   }

@@ -1,9 +1,11 @@
 import { unstable_cache } from "next/cache";
 import {
+  CoinGeckoRateLimitError,
   coinGeckoFetch,
   loadMarketsByGeckoCategory,
   type CoinMarket,
 } from "@/lib/coingecko";
+import { getMockDashboardSnapshot } from "@/lib/dashboard-mock";
 import { computeMarketRegime, type MarketRegime } from "@/lib/market-regime";
 import {
   DEFAULT_ROTATION_WINDOW,
@@ -14,7 +16,9 @@ import {
   type RotationWindow,
 } from "@/lib/narratives";
 
-const REVALIDATE = 3600;
+/** Server cache TTL — CoinGecko free-tier friendly (1 hour). */
+export const DASHBOARD_REVALIDATE_SECONDS = 3600;
+const REVALIDATE = DASHBOARD_REVALIDATE_SECONDS;
 
 export type NarrativeSnapshot = NarrativeDef & {
   change24h: number | null;
@@ -312,6 +316,7 @@ async function buildDashboardSnapshot(): Promise<DashboardSnapshot> {
   const narratives: NarrativeSnapshot[] = [];
   const lowCapPool: LowCapRow[] = [];
   let btcChange24h: number | null = null;
+  let hitRateLimit = false;
 
   for (let i = 0; i < NARRATIVES.length; i++) {
     const def = NARRATIVES[i]!;
@@ -321,7 +326,11 @@ async function buildDashboardSnapshot(): Promise<DashboardSnapshot> {
       coins = await loadMarketsByGeckoCategory(def.coingeckoCategoryId, 40, {
         next: { revalidate: REVALIDATE },
       });
-    } catch {
+    } catch (err) {
+      if (err instanceof CoinGeckoRateLimitError) {
+        hitRateLimit = true;
+        break;
+      }
       coins = [];
     }
     const a24 = avgField(coins, (c) => c.price_change_percentage_24h);
@@ -339,11 +348,18 @@ async function buildDashboardSnapshot(): Promise<DashboardSnapshot> {
     lowCapPool.push(...pickLowCaps(def, coins));
   }
 
+  if (hitRateLimit) {
+    throw new CoinGeckoRateLimitError("Dashboard category fetch hit CoinGecko 429");
+  }
+
   try {
     const res = await coinGeckoFetch(
       "/coins/markets?vs_currency=usd&ids=bitcoin&sparkline=false&price_change_percentage=24h",
       { next: { revalidate: REVALIDATE } },
     );
+    if (res.status === 429) {
+      throw new CoinGeckoRateLimitError("Bitcoin quote fetch hit CoinGecko 429");
+    }
     if (res.ok) {
       const data: unknown = await res.json();
       if (Array.isArray(data) && data[0] && typeof data[0] === "object") {
@@ -351,8 +367,9 @@ async function buildDashboardSnapshot(): Promise<DashboardSnapshot> {
         if (typeof ch === "number") btcChange24h = ch;
       }
     }
-  } catch {
-    /* ignore */
+  } catch (err) {
+    if (err instanceof CoinGeckoRateLimitError) throw err;
+    /* ignore soft failures */
   }
 
   const [pulse, fearGreed, trendingAssets] = await Promise.all([
@@ -388,6 +405,12 @@ async function buildDashboardSnapshot(): Promise<DashboardSnapshot> {
   );
   const cycleDay = (dayOfYear % 28) + 1;
 
+  const stale = narratives.every((n) => n.sampleSize === 0);
+  if (stale) {
+    // Treat a fully empty live response as unavailable so callers can fall back to mocks.
+    throw new Error("CoinGecko dashboard returned empty category payloads");
+  }
+
   return {
     narratives,
     ranking,
@@ -401,12 +424,25 @@ async function buildDashboardSnapshot(): Promise<DashboardSnapshot> {
     cycleDay,
     cycleProgressPct,
     updatedAt: new Date().toISOString(),
-    stale: narratives.every((n) => n.sampleSize === 0),
+    stale: false,
   };
 }
 
-export const getDashboardSnapshot = unstable_cache(
+const getCachedDashboardSnapshot = unstable_cache(
   buildDashboardSnapshot,
-  ["dashboard-snapshot-v3-trending"],
+  ["dashboard-snapshot-v4-safe-fallback"],
   { revalidate: REVALIDATE },
 );
+
+/**
+ * Server-only homepage loader: cached CoinGecko snapshot with mock fallback on
+ * rate limits (429), network failures, or empty payloads.
+ */
+export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
+  try {
+    return await getCachedDashboardSnapshot();
+  } catch (err) {
+    console.error("[dashboard] CoinGecko fetch failed; using mock snapshot.", err);
+    return getMockDashboardSnapshot();
+  }
+}

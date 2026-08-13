@@ -4,7 +4,12 @@ import { SiteHeader } from "@/components/site-header";
 import { DashboardHome } from "@/components/dashboard/dashboard-home";
 import { MarketsDataShell } from "@/components/markets-data-shell";
 import { HomeMarketsFallback } from "@/components/home-markets-fallback";
-import { getDashboardSnapshot } from "@/lib/dashboard-data";
+import {
+  DASHBOARD_REVALIDATE_SECONDS,
+  getDashboardSnapshot,
+  type DashboardSnapshot,
+} from "@/lib/dashboard-data";
+import { getMockDashboardSnapshot } from "@/lib/dashboard-mock";
 
 const TITLE = "AltCoin Depot – Narrative Rotation Dashboard";
 const DESCRIPTION =
@@ -28,8 +33,12 @@ export const metadata: Metadata = {
   },
 };
 
-/** Dashboard snapshot cached ~hourly (CoinGecko free-tier friendly). */
-export const revalidate = 3600;
+/**
+ * Route-level ISR: Next.js regenerates this server page at most once per hour.
+ * Combined with `fetch(..., { next: { revalidate: 3600 } })` inside the data layer,
+ * this keeps CoinGecko free-tier usage low and shields API keys from the browser.
+ */
+export const revalidate = DASHBOARD_REVALIDATE_SECONDS;
 
 function relativeUpdated(iso: string): string {
   const t = Date.parse(iso);
@@ -41,8 +50,23 @@ function relativeUpdated(iso: string): string {
   return `${hrs}h ago`;
 }
 
+/**
+ * Server-only CoinGecko dashboard fetch (never runs in the browser).
+ * On 429 / offline / empty payloads, falls back to a typed mock snapshot
+ * so Narrative Tracker + New & Low Caps keep rendering.
+ */
+async function fetchDashboardData(): Promise<DashboardSnapshot> {
+  try {
+    // Cached server-side via unstable_cache + fetch revalidate: 3600 in lib/dashboard-data.
+    return await getDashboardSnapshot();
+  } catch (error) {
+    console.error("[page] Dashboard CoinGecko fetch failed; using mock data.", error);
+    return getMockDashboardSnapshot();
+  }
+}
+
 export default async function Home() {
-  const snapshot = await getDashboardSnapshot();
+  const snapshot = await fetchDashboardData();
 
   return (
     <>
