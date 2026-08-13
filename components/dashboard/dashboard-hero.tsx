@@ -9,8 +9,8 @@ export function DashboardHero({
 }) {
   return (
     <header className="mb-6 sm:mb-8">
-      <h1 className="text-3xl font-extrabold tracking-tight text-zinc-50 sm:text-4xl md:text-5xl">
-        See what&apos;s actually moving
+      <h1 className="max-w-[22ch] text-balance text-3xl font-extrabold tracking-tight text-zinc-50 sm:max-w-[28ch] sm:text-4xl md:max-w-3xl md:text-5xl">
+        See what&apos;s actually moving, before the rest of the market does.
       </h1>
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <span

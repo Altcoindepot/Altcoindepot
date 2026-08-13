@@ -8,7 +8,7 @@ import { getDashboardSnapshot } from "@/lib/dashboard-data";
 
 const TITLE = "AltCoin Depot – Narrative Rotation Dashboard";
 const DESCRIPTION =
-  "See what’s actually moving: Market Regime, narrative rotations, Market Pulse, and new & low caps — live crypto dashboard on AltCoin Depot.";
+  "See what’s actually moving, before the rest of the market does: Market Regime, narrative rotations, Market Pulse, and new & low caps — live crypto dashboard on AltCoin Depot.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },

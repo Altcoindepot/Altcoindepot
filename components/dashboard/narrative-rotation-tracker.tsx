@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import type { NarrativeView } from "@/lib/dashboard-data";
 import { statusBadgeClass, type RotationWindow } from "@/lib/narratives";
 import { ds } from "@/lib/ui-classes";
@@ -113,13 +114,16 @@ export function NarrativeRotationTracker({
             <Link
               key={n.slug}
               href={`/narrative/${n.slug}`}
-              className="absolute z-20 flex w-[5.5rem] -translate-x-1/2 -translate-y-1/2 flex-col items-center rounded-full border bg-[#12141a]/95 px-2 py-2 text-center shadow-lg transition-transform hover:scale-105"
-              style={{
-                left: `${x}%`,
-                top: `${y}%`,
-                borderColor: `${n.color}66`,
-                boxShadow: `0 0 18px ${n.color}33`,
-              }}
+              className="absolute z-20 flex w-[5.5rem] -translate-x-1/2 -translate-y-1/2 cursor-pointer flex-col items-center rounded-full border bg-[#12141a]/95 px-2 py-2 text-center shadow-[0_0_18px_var(--node-glow)] transition-all duration-300 ease-in-out hover:z-30 hover:scale-105 hover:shadow-[0_0_28px_var(--node-glow-strong),0_0_48px_var(--node-glow)]"
+              style={
+                {
+                  left: `${x}%`,
+                  top: `${y}%`,
+                  borderColor: `${n.color}66`,
+                  "--node-glow": `${n.color}33`,
+                  "--node-glow-strong": `${n.color}99`,
+                } as CSSProperties
+              }
             >
               <span
                 className="mb-1 h-2.5 w-2.5 rounded-full"

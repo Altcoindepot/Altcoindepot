@@ -24,6 +24,7 @@ export function DashboardHome({ snapshot }: { snapshot: DashboardSnapshot }) {
           narratives={snapshot.narratives}
           regimeLabel={snapshot.regimeLabel}
           pulse={snapshot.pulse}
+          trendingAssets={snapshot.trendingAssets}
           lowCapsSlot={<NewLowCapsTable rows={snapshot.lowCaps} />}
         />
 

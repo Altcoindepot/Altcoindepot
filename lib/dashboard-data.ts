@@ -59,11 +59,21 @@ export type MarketPulse = {
   ethDominanceChange: number | null;
 };
 
+export type TrendingAssetRow = {
+  id: string;
+  name: string;
+  symbol: string;
+  image: string;
+  change24h: number | null;
+  volume: number | null;
+};
+
 export type DashboardSnapshot = {
   narratives: NarrativeSnapshot[];
   ranking: NarrativeSnapshot[];
   topRotations: NarrativeSnapshot[];
   lowCaps: LowCapRow[];
+  trendingAssets: TrendingAssetRow[];
   pulse: MarketPulse;
   regime: MarketRegime;
   /** Display label for sticky bar / hero (e.g. ROTATION). */
@@ -240,6 +250,64 @@ function regimeDisplayLabel(
   return "ROTATION";
 }
 
+async function fetchTrendingAssets(limit = 3): Promise<TrendingAssetRow[]> {
+  try {
+    const trendRes = await coinGeckoFetch("/search/trending", {
+      next: { revalidate: REVALIDATE },
+    });
+    if (!trendRes.ok) return [];
+    const trendData: unknown = await trendRes.json();
+    const rawCoins =
+      trendData && typeof trendData === "object" && "coins" in trendData
+        ? (trendData as { coins: unknown }).coins
+        : [];
+    const ids: string[] = [];
+    if (Array.isArray(rawCoins)) {
+      for (const row of rawCoins as Array<{ item?: { id?: string } }>) {
+        const id = row?.item?.id;
+        if (typeof id === "string" && /^[a-z0-9_-]+$/i.test(id) && !ids.includes(id)) {
+          ids.push(id);
+        }
+        if (ids.length >= limit) break;
+      }
+    }
+    if (ids.length === 0) return [];
+
+    const marketsRes = await coinGeckoFetch(
+      `/coins/markets?vs_currency=usd&ids=${encodeURIComponent(ids.join(","))}&order=market_cap_desc&per_page=25&page=1&sparkline=false&price_change_percentage=24h`,
+      { next: { revalidate: REVALIDATE } },
+    );
+    if (!marketsRes.ok) return [];
+    const markets: unknown = await marketsRes.json();
+    const byId = new Map<string, CoinMarket>();
+    if (Array.isArray(markets)) {
+      for (const row of markets) {
+        if (row && typeof row === "object" && typeof (row as CoinMarket).id === "string") {
+          byId.set((row as CoinMarket).id, row as CoinMarket);
+        }
+      }
+    }
+
+    return ids
+      .map((id) => {
+        const m = byId.get(id);
+        if (!m) return null;
+        return {
+          id: m.id,
+          name: m.name,
+          symbol: m.symbol,
+          image: m.image ?? "",
+          change24h: m.price_change_percentage_24h ?? null,
+          volume: m.total_volume ?? null,
+        } satisfies TrendingAssetRow;
+      })
+      .filter((row): row is TrendingAssetRow => row != null)
+      .slice(0, limit);
+  } catch {
+    return [];
+  }
+}
+
 async function buildDashboardSnapshot(): Promise<DashboardSnapshot> {
   const narratives: NarrativeSnapshot[] = [];
   const lowCapPool: LowCapRow[] = [];
@@ -287,7 +355,11 @@ async function buildDashboardSnapshot(): Promise<DashboardSnapshot> {
     /* ignore */
   }
 
-  const [pulse, fearGreed] = await Promise.all([fetchGlobalPulse(), fetchFearGreed()]);
+  const [pulse, fearGreed, trendingAssets] = await Promise.all([
+    fetchGlobalPulse(),
+    fetchFearGreed(),
+    fetchTrendingAssets(3),
+  ]);
 
   const outperformShare =
     narratives.filter((n) => (n.change24h ?? 0) > (btcChange24h ?? 0)).length /
@@ -321,6 +393,7 @@ async function buildDashboardSnapshot(): Promise<DashboardSnapshot> {
     ranking,
     topRotations,
     lowCaps,
+    trendingAssets,
     pulse,
     regime: regimeResult.regime,
     regimeLabel: regimeDisplayLabel(regimeResult.regime, narratives),
@@ -334,6 +407,6 @@ async function buildDashboardSnapshot(): Promise<DashboardSnapshot> {
 
 export const getDashboardSnapshot = unstable_cache(
   buildDashboardSnapshot,
-  ["dashboard-snapshot-v2-windows"],
+  ["dashboard-snapshot-v3-trending"],
   { revalidate: REVALIDATE },
 );

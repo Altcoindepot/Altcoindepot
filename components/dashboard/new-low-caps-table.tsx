@@ -44,7 +44,7 @@ export function NewLowCapsTable({
             <thead>
               <tr className="border-b border-white/10 text-[10px] uppercase tracking-wider text-zinc-500">
                 <th className="px-4 py-2.5 font-semibold sm:px-5">Token</th>
-                <th className="px-3 py-2.5 font-semibold">Narrative</th>
+                <th className="w-[85px] px-3 py-2.5 text-center font-semibold">Narrative</th>
                 <th className="px-3 py-2.5 font-semibold">Market Cap</th>
                 <th className="px-3 py-2.5 font-semibold">7D</th>
                 <th className="px-3 py-2.5 font-semibold">Volume</th>
@@ -86,10 +86,11 @@ export function NewLowCapsTable({
                       </span>
                     </Link>
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="w-[85px] px-3 py-3">
                     <Link
                       href={`/narrative/${encodeURIComponent(row.narrativeSlug)}`}
-                      className={`${ds.badgeInfo} transition-colors hover:border-teal-400/40 hover:text-teal-200`}
+                      className={`${ds.badgeInfo} inline-flex w-[85px] shrink-0 items-center justify-center truncate text-center transition-colors hover:border-teal-400/40 hover:text-teal-200`}
+                      title={row.narrativeTitle}
                     >
                       {row.narrativeTitle}
                     </Link>

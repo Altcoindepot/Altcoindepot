@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
-import type { MarketPulse, NarrativeSnapshot } from "@/lib/dashboard-data";
+import type { MarketPulse, NarrativeSnapshot, TrendingAssetRow } from "@/lib/dashboard-data";
 import { rankNarrativesForWindow } from "@/lib/dashboard-data";
 import {
   DEFAULT_ROTATION_WINDOW,
@@ -9,21 +9,23 @@ import {
   type RotationWindow,
 } from "@/lib/narratives";
 import { NarrativeRotationTracker } from "@/components/dashboard/narrative-rotation-tracker";
-import { NarrativeRanking } from "@/components/dashboard/narrative-ranking";
+import { TrendingAssetsToday } from "@/components/dashboard/trending-assets-today";
 import { TopRotations } from "@/components/dashboard/top-rotations";
 import { MarketPulseCard } from "@/components/dashboard/market-pulse";
 import { ds } from "@/lib/ui-classes";
 
-/** Shared 24H / 7D / 1M controls for tracker, ranking, and top rotations. */
+/** Shared 24H / 7D / 1M controls for tracker and top rotations. */
 export function NarrativeRotationSection({
   narratives,
   regimeLabel,
   pulse,
+  trendingAssets,
   lowCapsSlot,
 }: {
   narratives: NarrativeSnapshot[];
   regimeLabel: string;
   pulse: MarketPulse;
+  trendingAssets: TrendingAssetRow[];
   lowCapsSlot: ReactNode;
 }) {
   const [window, setWindow] = useState<RotationWindow>(DEFAULT_ROTATION_WINDOW);
@@ -83,9 +85,8 @@ export function NarrativeRotationSection({
           window={window}
           className="col-start-1 row-span-3 row-start-1 h-full min-h-0"
         />
-        <NarrativeRanking
-          narratives={ranked}
-          window={window}
+        <TrendingAssetsToday
+          rows={trendingAssets}
           className="col-start-2 row-span-2 row-start-1 h-full min-h-0"
         />
         <MarketPulseCard
@@ -105,7 +106,7 @@ export function NarrativeRotationSection({
       {/* Mobile / tablet stack */}
       <div className="space-y-4 lg:hidden">
         <TopRotations narratives={top} variant="mobile-primary" window={window} />
-        <NarrativeRanking narratives={ranked} window={window} />
+        <TrendingAssetsToday rows={trendingAssets} />
         <MarketPulseCard pulse={pulse} />
         {lowCapsSlot}
       </div>
