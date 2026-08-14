@@ -1,4 +1,4 @@
-import { isProductionBuild } from "@/lib/build-phase";
+import { getCoinGeckoLiveSkipReason, logCoinGeckoSkip } from "@/lib/coingecko";
 import {
   buildDashboardSnapshot,
   DASHBOARD_REVALIDATE_SECONDS,
@@ -7,6 +7,7 @@ import {
 } from "@/lib/dashboard-data";
 import { loadLastGood, memoryLastGood, saveLastGood } from "@/lib/dashboard-last-good";
 import { getMockDashboardSnapshot } from "@/lib/dashboard-mock";
+import { getDexScreenerLowCaps } from "@/lib/dexscreener-low-caps";
 
 function loadedCountOf(snap: DashboardSnapshot): number {
   return snap.narratives.filter((n) => n.sampleSize > 0).length;
@@ -22,18 +23,48 @@ function asStaleLive(snap: DashboardSnapshot): DashboardSnapshot {
 }
 
 /**
+ * Overlay DexScreener pairs onto New & Low Caps.
+ * Independent of CoinGecko — if this fails, the existing (mock/stale) rows stay.
+ */
+async function withDexScreenerLowCaps(snap: DashboardSnapshot): Promise<DashboardSnapshot> {
+  try {
+    const rows = await getDexScreenerLowCaps();
+    if (rows.length > 0) {
+      return { ...snap, lowCaps: rows };
+    }
+  } catch (err) {
+    console.warn("[dashboard] DexScreener overlay skipped", err);
+  }
+  return snap;
+}
+
+/**
  * Live CoinGecko snapshot with last-good fallback.
  * Successful responses are reused for 1 hour (memory + /tmp on this instance).
  * 429/empty responses are never cached; they reuse last-good or mocks.
+ * New & Low Caps always prefer DexScreener (no extra CoinGecko calls).
  */
 export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
-  if (isProductionBuild()) {
+  let base: DashboardSnapshot;
+  try {
+    base = await loadDashboardSnapshotBase();
+  } catch (err) {
+    console.error("[dashboard] snapshot base failed; using mock", err);
+    base = getMockDashboardSnapshot();
+  }
+  return withDexScreenerLowCaps(base);
+}
+
+async function loadDashboardSnapshotBase(): Promise<DashboardSnapshot> {
+  const skip = getCoinGeckoLiveSkipReason();
+  if (skip) {
+    logCoinGeckoSkip(skip);
     logLiveSnapshot({
       loadedCount: 0,
       usingMock: true,
       usingStale: false,
       lastGood: false,
-      reason: "build-phase",
+      reason: skip,
     });
     return getMockDashboardSnapshot();
   }

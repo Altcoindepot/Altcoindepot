@@ -16,6 +16,14 @@ function formatPct(n: number | null) {
   return `${n >= 0 ? "+" : ""}${n.toFixed(1)}%`;
 }
 
+function tokenHref(row: LowCapRow): string {
+  return row.href ?? `/coin/${encodeURIComponent(row.id)}`;
+}
+
+function tokenLinkExternal(row: LowCapRow): boolean {
+  return Boolean(row.href?.startsWith("http"));
+}
+
 /** Left-edge accent for mobile New & Low Caps cards. */
 function mobileCardRailClass(row: LowCapRow): string {
   if (row.status === "FADING") {
@@ -84,7 +92,7 @@ export function NewLowCapsTable({
           <p className="text-sm text-zinc-500">
             {filtering
               ? "No watchlist coins in this New & Low Caps set. Star a token below (or from a coin page), or open your full watchlist."
-              : "Low-cap narrative names will appear here when CoinGecko category data loads."}
+              : "Low-cap names will appear here when live pair data loads."}
           </p>
           {filtering ? (
             <div className="mt-4 flex flex-wrap gap-3">
@@ -125,8 +133,11 @@ export function NewLowCapsTable({
                       image={row.image || undefined}
                     />
                     <Link
-                      href={`/coin/${encodeURIComponent(row.id)}`}
+                      href={tokenHref(row)}
                       className="flex min-w-0 flex-1 items-center gap-3"
+                      {...(tokenLinkExternal(row)
+                        ? { target: "_blank", rel: "noopener noreferrer" }
+                        : {})}
                     >
                       {row.image ? (
                         <Image
@@ -214,8 +225,11 @@ export function NewLowCapsTable({
                     </td>
                     <td className="px-2 py-3 sm:px-4">
                       <Link
-                        href={`/coin/${encodeURIComponent(row.id)}`}
+                        href={tokenHref(row)}
                         className="inline-flex items-center gap-2"
+                        {...(tokenLinkExternal(row)
+                          ? { target: "_blank", rel: "noopener noreferrer" }
+                          : {})}
                       >
                         {row.image ? (
                           <Image

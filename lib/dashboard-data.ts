@@ -53,6 +53,8 @@ export type LowCapRow = {
   addedLabel: string;
   /** Optional 7d sparkline prices from CoinGecko. */
   sparkline?: number[] | null;
+  /** When set, token name links here instead of `/coin/[id]` (DexScreener rows). */
+  href?: string;
 };
 
 export type MarketPulse = {

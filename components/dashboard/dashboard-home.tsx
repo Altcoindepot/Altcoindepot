@@ -69,8 +69,8 @@ export function DashboardHome({
         </DisclaimerNote>
         {snapshot.usingMock ? (
           <p className="mt-2 text-xs text-amber-200/80">
-            Cached snapshot unavailable from CoinGecko — showing protective mock metrics so the
-            dashboard stays usable.
+            CoinGecko snapshot unavailable — Narrative Tracker and Market Pulse use fallback
+            metrics. New & Low Caps load from DexScreener when available.
           </p>
         ) : snapshot.usingStale ? null : snapshot.stale ? (
           <p className="mt-2 text-xs text-amber-200/80">

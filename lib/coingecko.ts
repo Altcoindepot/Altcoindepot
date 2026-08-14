@@ -9,6 +9,8 @@ import { PUBLIC_CATEGORIES } from "@/lib/coin-categories";
  * Env (server-only — never prefix with NEXT_PUBLIC_):
  * - COINGECKO_API_KEY — Demo or Pro API key from CoinGecko
  * - COINGECKO_API_PLAN — "demo" (default) or "pro"
+ * - COINGECKO_LIVE — "true" to allow live calls locally; Production defaults on
+ *   when the flag is unset and an API key is present
  */
 export type CoinGeckoApiPlan = "demo" | "pro";
 
@@ -29,6 +31,35 @@ export function getCoinGeckoApiBase(): string {
 
 export function getCoinGeckoApiKey(): string {
   return process.env.COINGECKO_API_KEY?.trim() ?? "";
+}
+
+/**
+ * Live CoinGecko is opt-in except on Vercel Production (unset flag + API key).
+ * Local `next dev` never hits the API unless COINGECKO_LIVE=true.
+ */
+export function getCoinGeckoLiveSkipReason(): string | null {
+  if (isProductionBuild()) return "build-phase";
+  if (!getCoinGeckoApiKey()) return "missing-api-key";
+
+  const flag = process.env.COINGECKO_LIVE?.trim().toLowerCase();
+  if (flag === "false" || flag === "0" || flag === "no") return "COINGECKO_LIVE=false";
+  if (flag === "true" || flag === "1" || flag === "yes") return null;
+
+  if (process.env.NODE_ENV === "development") return "dev/mock mode";
+  if (process.env.VERCEL_ENV === "production") return null;
+  return "dev/mock mode";
+}
+
+export function shouldUseLiveCoinGecko(): boolean {
+  return getCoinGeckoLiveSkipReason() === null;
+}
+
+let loggedCoinGeckoSkip = false;
+
+export function logCoinGeckoSkip(reason: string) {
+  if (loggedCoinGeckoSkip) return;
+  loggedCoinGeckoSkip = true;
+  console.info(`[dashboard] skipping CoinGecko (${reason})`);
 }
 
 /** Auth + Accept headers for every CoinGecko request. */
@@ -66,11 +97,12 @@ export async function coinGeckoFetch(
   path: string,
   init?: RequestInit & { next?: { revalidate?: number } },
 ): Promise<Response> {
-  // Skip live CoinGecko during `next build` so prerender does not hang on rate limits.
-  if (isProductionBuild()) {
+  const skip = getCoinGeckoLiveSkipReason();
+  if (skip) {
+    logCoinGeckoSkip(skip);
     return new Response("[]", {
       status: 503,
-      statusText: "Build-time CoinGecko skipped",
+      statusText: `CoinGecko skipped (${skip})`,
       headers: { "content-type": "application/json" },
     });
   }

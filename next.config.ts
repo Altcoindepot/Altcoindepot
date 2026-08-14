@@ -19,6 +19,16 @@ const nextConfig: NextConfig = {
         hostname: "i.ytimg.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "cdn.dexscreener.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "dd.dexscreener.com",
+        pathname: "/**",
+      },
       // YouTube thumbnails are often served from numbered CDN hosts (i1, i2, …).
       ...["i1", "i2", "i3", "i4", "i5", "i6", "i7", "i8", "i9"].map((h) => ({
         protocol: "https" as const,

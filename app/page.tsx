@@ -43,15 +43,15 @@ function relativeUpdated(iso: string): string {
 }
 
 /**
- * Server-only CoinGecko dashboard fetch (never runs in the browser).
- * On 429 / offline / empty payloads, falls back to a typed mock snapshot
- * so Narrative Tracker + New & Low Caps keep rendering.
+ * Server-only dashboard fetch (never runs in the browser).
+ * Narrative Tracker / Market Pulse use CoinGecko last-good or mocks.
+ * New & Low Caps prefer DexScreener; mocks only if that fetch fails too.
  */
 async function fetchDashboardData(): Promise<DashboardSnapshot> {
   try {
     return await getDashboardSnapshot();
   } catch (error) {
-    console.error("[page] Dashboard CoinGecko fetch failed; using mock data.", error);
+    console.error("[page] Dashboard fetch failed; using mock data.", error);
     return getMockDashboardSnapshot();
   }
 }
