@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site-header";
 import { DashboardHome } from "@/components/dashboard/dashboard-home";
-import { getDashboardSnapshot, type DashboardSnapshot } from "@/lib/dashboard-data";
+import { getDashboardSnapshot, type DashboardSnapshot } from "@/lib/dashboard-snapshot";
 import { getMockDashboardSnapshot } from "@/lib/dashboard-mock";
 
 const TITLE = "AltCoin Depot – Narrative Rotation Dashboard";

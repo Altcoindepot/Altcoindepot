@@ -1,4 +1,3 @@
-import { isProductionBuild } from "@/lib/build-phase";
 import {
   CoinGeckoRateLimitError,
   coinGeckoFetch,
@@ -7,7 +6,6 @@ import {
   loadMarketsByGeckoCategory,
   type CoinMarket,
 } from "@/lib/coingecko";
-import { getMockDashboardSnapshot } from "@/lib/dashboard-mock";
 import { computeMarketRegime, type MarketRegime } from "@/lib/market-regime";
 import {
   DEFAULT_ROTATION_WINDOW,
@@ -93,6 +91,8 @@ export type DashboardSnapshot = {
   stale: boolean;
   /** True when the protective mock snapshot is serving instead of CoinGecko. */
   usingMock?: boolean;
+  /** True when serving a previously successful live snapshot after a 429/empty fetch. */
+  usingStale?: boolean;
 };
 
 function avgField(
@@ -149,7 +149,7 @@ function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-function logLiveSnapshot(fields: Record<string, unknown>) {
+export function logLiveSnapshot(fields: Record<string, unknown>) {
   console.info("[dashboard] live snapshot", {
     hasApiKey: Boolean(getCoinGeckoApiKey()),
     plan: getCoinGeckoApiPlan(),
@@ -377,7 +377,7 @@ async function loadNarrativeCategoryCoins(categoryId: string): Promise<CoinMarke
   }
 }
 
-async function buildDashboardSnapshot(): Promise<DashboardSnapshot> {
+export async function buildDashboardSnapshot(): Promise<DashboardSnapshot> {
   const narratives: NarrativeSnapshot[] = [];
   const lowCapPool: LowCapRow[] = [];
   let btcChange24h: number | null = null;
@@ -506,41 +506,6 @@ async function buildDashboardSnapshot(): Promise<DashboardSnapshot> {
     updatedAt: new Date().toISOString(),
     stale: loadedCount < narratives.length,
     usingMock: false,
+    usingStale: false,
   };
-}
-
-let lastLiveSnapshot: { at: number; snap: DashboardSnapshot } | null = null;
-
-/**
- * Per-request assembler. Successful snapshots are reused for 1 hour in-process.
- * CoinGecko HTTP uses `cache: "no-store"` so a 429 is never persisted in Data Cache.
- */
-export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
-  if (isProductionBuild()) {
-    logLiveSnapshot({ loadedCount: 0, usingMock: true, reason: "build-phase" });
-    return getMockDashboardSnapshot();
-  }
-  const cached = lastLiveSnapshot;
-  if (cached && Date.now() - cached.at < REVALIDATE * 1000 && !cached.snap.usingMock) {
-    logLiveSnapshot({
-      loadedCount: cached.snap.narratives.filter((n) => n.sampleSize > 0).length,
-      usingMock: false,
-      fromCache: true,
-    });
-    return cached.snap;
-  }
-  try {
-    const snap = await buildDashboardSnapshot();
-    lastLiveSnapshot = { at: Date.now(), snap };
-    return snap;
-  } catch (err) {
-    logLiveSnapshot({
-      loadedCount: 0,
-      usingMock: true,
-      reason: err instanceof Error ? err.message : "fetch-failed",
-    });
-    console.error("[dashboard] CoinGecko fetch failed; using mock snapshot.", err);
-    if (cached && !cached.snap.usingMock) return { ...cached.snap, stale: true };
-    return getMockDashboardSnapshot();
-  }
 }

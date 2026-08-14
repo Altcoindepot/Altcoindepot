@@ -177,5 +177,6 @@ export function getMockDashboardSnapshot(): DashboardSnapshot {
     updatedAt: new Date().toISOString(),
     stale: true,
     usingMock: true,
+    usingStale: false,
   };
 }

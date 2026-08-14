@@ -72,7 +72,7 @@ export function DashboardHome({
             Cached snapshot unavailable from CoinGecko — showing protective mock metrics so the
             dashboard stays usable.
           </p>
-        ) : snapshot.stale ? (
+        ) : snapshot.usingStale ? null : snapshot.stale ? (
           <p className="mt-2 text-xs text-amber-200/80">
             Some category feeds were empty — showing best-effort snapshot.
           </p>
