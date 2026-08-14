@@ -12,8 +12,12 @@ import { PUBLIC_CATEGORIES } from "@/lib/coin-categories";
  */
 export type CoinGeckoApiPlan = "demo" | "pro";
 
+function readServerEnv(name: string): string {
+  return process.env[name]?.trim() ?? "";
+}
+
 export function getCoinGeckoApiPlan(): CoinGeckoApiPlan {
-  const plan = process.env.COINGECKO_API_PLAN?.trim().toLowerCase();
+  const plan = readServerEnv(["COINGECKO", "API", "PLAN"].join("_")).toLowerCase();
   return plan === "pro" ? "pro" : "demo";
 }
 
@@ -23,10 +27,14 @@ export function getCoinGeckoApiBase(): string {
     : "https://api.coingecko.com/api/v3";
 }
 
+export function getCoinGeckoApiKey(): string {
+  return readServerEnv(["COINGECKO", "API", "KEY"].join("_"));
+}
+
 /** Auth + Accept headers for every CoinGecko request. */
 export function coinGeckoHeaders(): HeadersInit {
   const headers: Record<string, string> = { Accept: "application/json" };
-  const key = process.env.COINGECKO_API_KEY?.trim();
+  const key = getCoinGeckoApiKey();
   if (key) {
     if (getCoinGeckoApiPlan() === "pro") {
       headers["x-cg-pro-api-key"] = key;
@@ -35,6 +43,19 @@ export function coinGeckoHeaders(): HeadersInit {
     }
   }
   return headers;
+}
+
+/** Demo/Pro keys as query params — some runtimes drop the custom auth headers. */
+function withCoinGeckoApiKey(url: string): string {
+  const key = getCoinGeckoApiKey();
+  if (!key) return url;
+  const parsed = new URL(url);
+  const param =
+    getCoinGeckoApiPlan() === "pro" ? "x_cg_pro_api_key" : "x_cg_demo_api_key";
+  if (!parsed.searchParams.get(param)) {
+    parsed.searchParams.set(param, key);
+  }
+  return parsed.toString();
 }
 
 /** Default HTTP cache TTL — CoinGecko Demo/free-tier friendly (1 hour). */
@@ -54,9 +75,11 @@ export async function coinGeckoFetch(
     });
   }
 
-  const normalized = path.startsWith("http")
-    ? path
-    : `${getCoinGeckoApiBase()}${path.startsWith("/") ? path : `/${path}`}`;
+  const normalized = withCoinGeckoApiKey(
+    path.startsWith("http")
+      ? path
+      : `${getCoinGeckoApiBase()}${path.startsWith("/") ? path : `/${path}`}`,
+  );
   const { next: nextInit, cache, ...rest } = init ?? {};
   const revalidate = nextInit?.revalidate ?? COINGECKO_REVALIDATE_SECONDS;
 

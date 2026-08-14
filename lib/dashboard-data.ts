@@ -1,8 +1,8 @@
-import { unstable_cache } from "next/cache";
 import { isProductionBuild } from "@/lib/build-phase";
 import {
   CoinGeckoRateLimitError,
   coinGeckoFetch,
+  getCoinGeckoApiKey,
   loadMarketsByGeckoCategory,
   type CoinMarket,
 } from "@/lib/coingecko";
@@ -148,6 +148,37 @@ function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+/** One CoinGecko call: 24h market-cap change for every category. */
+async function loadCategoryChangeMap(): Promise<Map<string, number>> {
+  const map = new Map<string, number>();
+  try {
+    const res = await coinGeckoFetch("/coins/categories", {
+      next: { revalidate: REVALIDATE },
+    });
+    if (!res.ok) {
+      console.warn("[dashboard] /coins/categories failed", res.status);
+      return map;
+    }
+    const data: unknown = await res.json();
+    if (!Array.isArray(data)) return map;
+    for (const row of data) {
+      if (!row || typeof row !== "object") continue;
+      const id = "id" in row ? (row as { id?: unknown }).id : null;
+      const ch = Number(
+        "market_cap_change_24h" in row
+          ? (row as { market_cap_change_24h?: unknown }).market_cap_change_24h
+          : NaN,
+      );
+      if (typeof id === "string" && id && Number.isFinite(ch)) {
+        map.set(id, ch);
+      }
+    }
+  } catch (err) {
+    console.warn("[dashboard] /coins/categories threw", err);
+  }
+  return map;
+}
+
 async function fetchGlobalPulse(): Promise<MarketPulse> {
   try {
     const res = await coinGeckoFetch("/global", { next: { revalidate: REVALIDATE } });
@@ -223,6 +254,7 @@ function pickLowCaps(narrative: NarrativeDef, coins: CoinMarket[]): LowCapRow[] 
   return coins
     .filter((c) => {
       const m = c.market_cap;
+      if (typeof c.id === "string" && c.id.startsWith("mock-")) return false;
       return m != null && m >= LOW_MIN && m <= LOW_MAX;
     })
     .slice(0, 4)
@@ -323,22 +355,18 @@ async function fetchTrendingAssets(limit = 3): Promise<TrendingAssetRow[]> {
 }
 
 async function loadNarrativeCategoryCoins(categoryId: string): Promise<CoinMarket[]> {
-  for (let attempt = 0; attempt < 3; attempt++) {
-    if (attempt > 0) await sleep(400 * attempt + 250);
-    try {
-      return await loadMarketsByGeckoCategory(
-        categoryId,
-        40,
-        { next: { revalidate: REVALIDATE } },
-        { sparkline: false },
-      );
-    } catch (err) {
-      const rateLimited = err instanceof CoinGeckoRateLimitError;
-      if (rateLimited && attempt < 2) continue;
-      return [];
-    }
+  try {
+    return await loadMarketsByGeckoCategory(
+      categoryId,
+      50,
+      { next: { revalidate: REVALIDATE } },
+      { sparkline: false },
+    );
+  } catch (err) {
+    if (err instanceof CoinGeckoRateLimitError) throw err;
+    console.warn(`[dashboard] category ${categoryId} failed`, err);
+    return [];
   }
-  return [];
 }
 
 async function buildDashboardSnapshot(): Promise<DashboardSnapshot> {
@@ -346,20 +374,38 @@ async function buildDashboardSnapshot(): Promise<DashboardSnapshot> {
   const lowCapPool: LowCapRow[] = [];
   let btcChange24h: number | null = null;
 
+  const categoryChanges = await loadCategoryChangeMap();
+  let stopCategoryMarkets = false;
+
   for (let i = 0; i < NARRATIVES.length; i++) {
     const def = NARRATIVES[i]!;
-    if (i > 0) await sleep(280);
-    const coins = await loadNarrativeCategoryCoins(def.coingeckoCategoryId);
+    let coins: CoinMarket[] = [];
+    if (!stopCategoryMarkets) {
+      if (i > 0) await sleep(200);
+      try {
+        coins = await loadNarrativeCategoryCoins(def.coingeckoCategoryId);
+      } catch (err) {
+        if (err instanceof CoinGeckoRateLimitError) {
+          console.warn("[dashboard] CoinGecko 429 — keeping partial category markets");
+          stopCategoryMarkets = true;
+          coins = [];
+        } else {
+          coins = [];
+        }
+      }
+    }
     const a24 = avgField(coins, (c) => c.price_change_percentage_24h);
     const a7 = avgField(coins, (c) => c.price_change_percentage_7d_in_currency);
     const a30 = avgField(coins, (c) => c.price_change_percentage_30d_in_currency);
-    const sampleSize = Math.max(a24.n, a7.n, a30.n);
+    const category24h = categoryChanges.get(def.coingeckoCategoryId) ?? null;
+    const change24h = a24.avg ?? category24h;
+    const sampleSize = Math.max(a24.n, a7.n, a30.n, change24h != null ? 1 : 0);
     narratives.push({
       ...def,
-      change24h: a24.avg,
+      change24h,
       change7d: a7.avg,
       change30d: a30.avg,
-      status: rotationStatusFromChange(a24.avg, "24h"),
+      status: rotationStatusFromChange(change24h, "24h"),
       sampleSize,
     });
     lowCapPool.push(...pickLowCaps(def, coins));
@@ -416,9 +462,14 @@ async function buildDashboardSnapshot(): Promise<DashboardSnapshot> {
 
   const loadedCount = narratives.filter((n) => n.sampleSize > 0).length;
   if (loadedCount === 0) {
-    // Treat a fully empty live response as unavailable so callers can fall back to mocks.
     throw new Error("CoinGecko dashboard returned empty category payloads");
   }
+
+  console.info("[dashboard] live snapshot", {
+    loadedCount,
+    lowCaps: lowCaps.length,
+    hasApiKey: Boolean(getCoinGeckoApiKey()),
+  });
 
   return {
     narratives,
@@ -438,22 +489,17 @@ async function buildDashboardSnapshot(): Promise<DashboardSnapshot> {
   };
 }
 
-const getCachedDashboardSnapshot = unstable_cache(
-  buildDashboardSnapshot,
-  ["dashboard-snapshot-v6-hourly"],
-  { revalidate: REVALIDATE },
-);
-
 /**
- * Server-only homepage loader: cached CoinGecko snapshot with mock fallback on
- * rate limits (429), network failures, or empty payloads.
+ * Per-request assembler. Hourly caching lives on each CoinGecko `fetch`
+ * (`next.revalidate = 3600`). Do not wrap this in `unstable_cache` — a 429/empty
+ * throw would get cached and freeze the homepage on mocks for a full hour.
  */
 export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
   if (isProductionBuild()) {
     return getMockDashboardSnapshot();
   }
   try {
-    return await getCachedDashboardSnapshot();
+    return await buildDashboardSnapshot();
   } catch (err) {
     console.error("[dashboard] CoinGecko fetch failed; using mock snapshot.", err);
     return getMockDashboardSnapshot();
