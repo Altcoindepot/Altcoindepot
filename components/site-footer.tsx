@@ -13,6 +13,7 @@ const PRIMARY_LINKS = [
   { href: "/compare", label: "Compare coins" },
   { href: "/gainers-losers", label: "Gainers & Losers" },
   { href: "/new-low-caps", label: "New & Low Caps" },
+  { href: "/just-launched", label: "Just Launched" },
   { href: "/market-overview", label: "Market overview" },
   { href: "/podcasts", label: "Podcasts" },
   { href: "/ecosystem", label: "Ecosystem Research" },

@@ -12,8 +12,8 @@ export function dexTokenPath(
 
 export function isTokenAddress(value: string): boolean {
   const v = value.trim();
-  if (/^0x[a-fA-F0-9]{40}$/.test(v)) return true;
-  if (/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(v)) return true;
+  if (/^0x[a-fA-F0-9]{8,80}$/.test(v)) return true;
+  if (/^[1-9A-HJ-NP-Za-km-z]{32,48}$/.test(v)) return true;
   return false;
 }
 

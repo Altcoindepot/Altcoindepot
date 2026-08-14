@@ -1,6 +1,7 @@
 import { unstable_cache } from "next/cache";
 import type { LowCapRow } from "@/lib/dashboard-data";
 import { NARRATIVES, rotationStatusFromChange, type NarrativeDef } from "@/lib/narratives";
+import { parseDexPairInfoLinks } from "@/lib/dex-project-links";
 
 const DEX_BASE = "https://api.dexscreener.com";
 /** 10 minutes — DexScreener is free but we should not poll on every refresh. */
@@ -40,7 +41,7 @@ type DexPair = {
   marketCap?: number | null;
   fdv?: number | null;
   pairCreatedAt?: number | null;
-  info?: { imageUrl?: string };
+  info?: { imageUrl?: string; websites?: unknown; socials?: unknown };
 };
 
 type DexMetaListItem = { slug?: string; name?: string };
@@ -117,6 +118,7 @@ function pairToRow(pair: DexPair, metaSlug: string): LowCapRow | null {
   const narrative = inferNarrative(metaSlug, base.name, base.symbol);
   const created = pair.pairCreatedAt ?? null;
   const marketCap = pair.marketCap ?? pair.fdv ?? null;
+  const projectLinks = parseDexPairInfoLinks(pair.info);
   return {
     id: `dex-${chain}-${base.address}`,
     name: base.name,
@@ -137,6 +139,7 @@ function pairToRow(pair: DexPair, metaSlug: string): LowCapRow | null {
     addedLabel: addedLabelFromCreated(created),
     sparkline: null,
     href: typeof pair.url === "string" && pair.url.startsWith("http") ? pair.url : undefined,
+    projectLinks: projectLinks.length > 0 ? projectLinks : undefined,
   };
 }
 
@@ -205,7 +208,7 @@ async function loadDexLowCapsUncached(): Promise<LowCapRow[]> {
 
 const loadDexLowCapsCached = unstable_cache(
   loadDexLowCapsUncached,
-  ["dexscreener-low-caps-v2"],
+  ["dexscreener-low-caps-v3"],
   { revalidate: DEXSCREENER_REVALIDATE_SECONDS },
 );
 

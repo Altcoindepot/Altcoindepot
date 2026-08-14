@@ -65,6 +65,14 @@ export default async function NewLowCapsPage() {
             cached about every 10 minutes from DexScreener. Informational only — not financial
             advice.
           </p>
+          <p className="mt-3">
+            <Link
+              href="/just-launched"
+              className="text-xs font-medium text-zinc-500 underline-offset-2 hover:text-teal-200 hover:underline"
+            >
+              Just launched pairs →
+            </Link>
+          </p>
           <NewLowCapsTable rows={rows} showViewAll={false} className="mt-6" />
         </div>
       </main>

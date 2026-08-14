@@ -154,6 +154,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.9,
   };
 
+  const justLaunched: MetadataRoute.Sitemap[number] = {
+    url: `${SITE}/just-launched`,
+    lastModified: now,
+    changeFrequency: "hourly",
+    priority: 0.8,
+  };
+
   const coinEntries: MetadataRoute.Sitemap = coinIds.map((coinId) => ({
     url: `${SITE}/coin/${encodeURIComponent(coinId)}`,
     lastModified: now,
@@ -204,6 +211,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     homepage,
     trending,
+    justLaunched,
     ...coinEntries,
     ...staticEntries,
     ...categoryEntries,

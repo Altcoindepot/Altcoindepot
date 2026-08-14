@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: { absolute: title },
       description,
       alternates: { canonical: path },
-      robots: { index: true, follow: true },
+      robots: { index: token.inLowCapsList, follow: true },
       openGraph: {
         title,
         description,

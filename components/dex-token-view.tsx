@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { CopyAddressButton } from "@/components/copy-address-button";
 import { DisclaimerNote } from "@/components/disclaimer-note";
+import { DexProjectLinks } from "@/components/dex-project-links";
 import type { DexTokenPageData } from "@/lib/dexscreener-token";
 import { dexScreenerEmbedUrl } from "@/lib/dexscreener-token";
 import { formatChainLabel } from "@/lib/format-chain";
@@ -92,6 +93,12 @@ export function DexTokenView({ token }: { token: DexTokenPageData }) {
         <Stat label="Market cap">{formatCompactUsd(token.marketCap)}</Stat>
         <Stat label="Pair age">{token.pairAgeLabel}</Stat>
       </div>
+
+      {token.projectLinks && token.projectLinks.length > 0 ? (
+        <div className={`${ds.panel} mt-6`}>
+          <DexProjectLinks links={token.projectLinks} />
+        </div>
+      ) : null}
 
       <div className={`${ds.panel} mt-6`}>
         <p className={ds.label}>Contract</p>

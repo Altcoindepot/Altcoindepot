@@ -23,6 +23,8 @@ const CHAIN_LABELS: Record<string, string> = {
   mantle: "MNT",
 };
 
+export const KNOWN_DEX_CHAINS = new Set(Object.keys(CHAIN_LABELS));
+
 export function formatChainLabel(chainId: string | undefined): string {
   if (!chainId) return "—";
   const key = chainId.trim().toLowerCase();

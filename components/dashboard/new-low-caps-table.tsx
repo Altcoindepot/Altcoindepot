@@ -13,6 +13,7 @@ import { WatchlistStarButton } from "@/components/watchlist-star-button";
 import { InfoTooltip } from "@/components/info-tooltip";
 import { PulseSparkline } from "@/components/dashboard/pulse-sparkline";
 import { CopyAddressButton } from "@/components/copy-address-button";
+import { DexProjectLinks } from "@/components/dex-project-links";
 import { dexTokenPath } from "@/lib/dex-token-path";
 
 function formatPct(n: number | null) {
@@ -21,7 +22,12 @@ function formatPct(n: number | null) {
 }
 
 function tokenHref(row: LowCapRow): string {
-  return dexTokenPath(row.chain, row.contractAddress) ?? `/coin/${encodeURIComponent(row.id)}`;
+  const onSite = dexTokenPath(row.chain, row.contractAddress);
+  if (onSite) return onSite;
+  if (row.chain && row.contractAddress) {
+    return `/token/${encodeURIComponent(row.chain)}/${encodeURIComponent(row.contractAddress)}`;
+  }
+  return `/new-low-caps`;
 }
 
 function TokenNameLink({
@@ -231,37 +237,46 @@ export function NewLowCapsTable({
                       />
                     </td>
                     <td className="px-2 py-3 sm:px-4">
-                      <TokenNameLink row={row} className="inline-flex items-center gap-2">
-                        {row.image ? (
-                          <Image
-                            src={row.image}
-                            alt=""
-                            width={24}
-                            height={24}
-                            className="rounded-full"
-                          />
-                        ) : null}
-                        <span className="min-w-0">
-                          <span className="block truncate text-sm font-medium text-zinc-100">
-                            {row.name}
-                          </span>
-                          <span className="mt-0.5 flex items-center gap-1.5">
-                            <span
-                              className={`inline-block h-4 w-4 shrink-0 rounded-full ${row.narrativeGlowClass}`}
-                              title={row.narrativeTitle}
-                              aria-label={`${row.narrativeTitle} narrative`}
+                      <div className="flex items-start gap-2">
+                        <TokenNameLink row={row} className="inline-flex min-w-0 items-center gap-2">
+                          {row.image ? (
+                            <Image
+                              src={row.image}
+                              alt=""
+                              width={24}
+                              height={24}
+                              className="rounded-full"
                             />
-                            <span className="font-mono text-[11px] uppercase text-zinc-500">
-                              {row.symbol}
+                          ) : null}
+                          <span className="min-w-0">
+                            <span className="block truncate text-sm font-medium text-zinc-100">
+                              {row.name}
                             </span>
-                            {row.chain ? (
-                              <span className="rounded bg-zinc-800 px-1 py-px font-mono text-[10px] uppercase tracking-wide text-zinc-400">
-                                {chain}
+                            <span className="mt-0.5 flex items-center gap-1.5">
+                              <span
+                                className={`inline-block h-4 w-4 shrink-0 rounded-full ${row.narrativeGlowClass}`}
+                                title={row.narrativeTitle}
+                                aria-label={`${row.narrativeTitle} narrative`}
+                              />
+                              <span className="font-mono text-[11px] uppercase text-zinc-500">
+                                {row.symbol}
                               </span>
-                            ) : null}
+                              {row.chain ? (
+                                <span className="rounded bg-zinc-800 px-1 py-px font-mono text-[10px] uppercase tracking-wide text-zinc-400">
+                                  {chain}
+                                </span>
+                              ) : null}
+                            </span>
                           </span>
+                        </TokenNameLink>
+                        <span
+                          className="shrink-0 pt-0.5"
+                          onClick={(e) => e.stopPropagation()}
+                          onPointerDown={(e) => e.stopPropagation()}
+                        >
+                          <DexProjectLinks links={row.projectLinks} variant="icons" />
                         </span>
-                      </TokenNameLink>
+                      </div>
                     </td>
                     <td className="w-[85px] px-3 py-3">
                       <Link

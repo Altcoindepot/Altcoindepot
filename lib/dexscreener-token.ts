@@ -8,6 +8,12 @@ import {
   sanitizeChainParam,
   sameTokenAddress,
 } from "@/lib/dex-token-path";
+import {
+  mergeDexProjectLinks,
+  parseDexPairInfoLinks,
+  type DexProjectLink,
+} from "@/lib/dex-project-links";
+import { getDexProfileLinksByToken } from "@/lib/dexscreener-profile-links";
 
 const DEX_BASE = "https://api.dexscreener.com";
 
@@ -25,6 +31,10 @@ export type DexTokenPageData = {
   pairAgeLabel: string;
   pairAddress: string | null;
   pairUrl: string | null;
+  /** Website / socials from DexScreener when present. */
+  projectLinks?: DexProjectLink[];
+  /** True when this token is in the current New & Low Caps set (indexable). */
+  inLowCapsList: boolean;
 };
 
 type DexPair = {
@@ -39,7 +49,7 @@ type DexPair = {
   marketCap?: number | null;
   fdv?: number | null;
   pairCreatedAt?: number | null;
-  info?: { imageUrl?: string };
+  info?: { imageUrl?: string; websites?: unknown; socials?: unknown };
 };
 
 function asNumber(value: unknown): number | null {
@@ -89,8 +99,9 @@ function pickBestPair(pairs: DexPair[], address: string): DexPair | null {
 }
 
 /**
- * Lightweight DexScreener token page. Only resolves tokens currently in the
- * New & Low Caps set so we do not mint pages for arbitrary junk addresses.
+ * Lightweight DexScreener token page.
+ * Pair payload comes from `/tokens/v1` so a list click still works if the
+ * full New & Low Caps cache is cold. SEO indexing stays limited to the list.
  */
 export async function getDexScreenerTokenPage(
   chainRaw: string,
@@ -111,7 +122,6 @@ export async function getDexScreenerTokenPage(
   } catch {
     listed = undefined;
   }
-  if (!listed) return null;
 
   let pair: DexPair | null = null;
   try {
@@ -120,26 +130,47 @@ export async function getDexScreenerTokenPage(
     console.warn("[dex-token] DexScreener token lookup failed", err);
   }
 
+  if (!pair && !listed) return null;
+
   const pairUrl =
     (typeof pair?.url === "string" && pair.url.startsWith("http") ? pair.url : null) ??
-    listed.href ??
+    listed?.href ??
     null;
+
+  let profileLinks: DexProjectLink[] | undefined;
+  try {
+    const map = await getDexProfileLinksByToken();
+    const tokenAddr = (pair?.baseToken?.address ?? listed?.contractAddress ?? address).toLowerCase();
+    profileLinks = map[`${chain}:${tokenAddr}`];
+  } catch {
+    profileLinks = undefined;
+  }
+
+  const projectLinks = mergeDexProjectLinks(
+    parseDexPairInfoLinks(pair?.info),
+    listed?.projectLinks,
+    profileLinks,
+  );
 
   return {
     chain,
-    address: listed.contractAddress ?? address,
-    name: pair?.baseToken?.name ?? listed.name,
-    symbol: pair?.baseToken?.symbol ?? listed.symbol,
-    image: pair?.info?.imageUrl ?? listed.image ?? "",
+    address: pair?.baseToken?.address ?? listed?.contractAddress ?? address,
+    name: pair?.baseToken?.name ?? listed?.name ?? "Token",
+    symbol: pair?.baseToken?.symbol ?? listed?.symbol ?? "TOKEN",
+    image: pair?.info?.imageUrl ?? listed?.image ?? "",
     priceUsd: asNumber(pair?.priceUsd),
-    change24h: asNumber(pair?.priceChange?.h24) ?? listed.change7d,
-    volume: pair?.volume?.h24 ?? listed.volume,
-    liquidity: pair?.liquidity?.usd ?? listed.liquidity ?? null,
-    marketCap: asNumber(pair?.marketCap) ?? asNumber(pair?.fdv) ?? listed.marketCap,
+    change24h: asNumber(pair?.priceChange?.h24) ?? listed?.change7d ?? null,
+    volume: pair?.volume?.h24 ?? listed?.volume ?? null,
+    liquidity: pair?.liquidity?.usd ?? listed?.liquidity ?? null,
+    marketCap: asNumber(pair?.marketCap) ?? asNumber(pair?.fdv) ?? listed?.marketCap ?? null,
     pairAgeLabel:
-      pair?.pairCreatedAt != null ? pairAgeLabel(pair.pairCreatedAt) : listed.addedLabel,
-    pairAddress: pair?.pairAddress ?? listed.pairAddress ?? null,
+      pair?.pairCreatedAt != null
+        ? pairAgeLabel(pair.pairCreatedAt)
+        : (listed?.addedLabel ?? "New"),
+    pairAddress: pair?.pairAddress ?? listed?.pairAddress ?? null,
     pairUrl,
+    projectLinks: projectLinks.length > 0 ? projectLinks : undefined,
+    inLowCapsList: Boolean(listed),
   };
 }
 

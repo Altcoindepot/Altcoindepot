@@ -15,6 +15,7 @@ import {
   type NarrativeStatus,
   type RotationWindow,
 } from "@/lib/narratives";
+import type { DexProjectLink } from "@/lib/dex-project-links";
 
 /** Server cache TTL — CoinGecko free-tier friendly (1 hour). */
 export const DASHBOARD_REVALIDATE_SECONDS = 3600;
@@ -63,6 +64,8 @@ export type LowCapRow = {
   sparkline?: number[] | null;
   /** When set, token name links here instead of `/coin/[id]` (DexScreener rows). */
   href?: string;
+  /** Website / socials from DexScreener when present. */
+  projectLinks?: DexProjectLink[];
 };
 
 export type MarketPulse = {

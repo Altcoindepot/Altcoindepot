@@ -21,6 +21,12 @@ const PRIMARY_NAV = [
     match: (p: string) => p.startsWith("/sectors") || p.startsWith("/category"),
   },
   {
+    href: "/just-launched",
+    label: "Just Launched",
+    id: "just-launched",
+    match: (p: string) => p.startsWith("/just-launched"),
+  },
+  {
     href: "/?watchlist=1",
     label: "Watchlist",
     id: "watchlist",
