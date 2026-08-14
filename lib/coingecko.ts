@@ -12,12 +12,12 @@ import { PUBLIC_CATEGORIES } from "@/lib/coin-categories";
  */
 export type CoinGeckoApiPlan = "demo" | "pro";
 
-function readServerEnv(name: string): string {
-  return process.env[name]?.trim() ?? "";
-}
-
+/**
+ * Static `process.env.COINGECKO_*` reads so Next/Vercel keep these in the
+ * serverless bundle. Dynamic `process.env[name]` can drop them at runtime.
+ */
 export function getCoinGeckoApiPlan(): CoinGeckoApiPlan {
-  const plan = readServerEnv(["COINGECKO", "API", "PLAN"].join("_")).toLowerCase();
+  const plan = process.env.COINGECKO_API_PLAN?.trim().toLowerCase();
   return plan === "pro" ? "pro" : "demo";
 }
 
@@ -28,7 +28,7 @@ export function getCoinGeckoApiBase(): string {
 }
 
 export function getCoinGeckoApiKey(): string {
-  return readServerEnv(["COINGECKO", "API", "KEY"].join("_"));
+  return process.env.COINGECKO_API_KEY?.trim() ?? "";
 }
 
 /** Auth + Accept headers for every CoinGecko request. */
@@ -85,9 +85,12 @@ export async function coinGeckoFetch(
 
   return fetch(normalized, {
     ...rest,
-    ...(cache === "no-store"
-      ? { cache: "no-store" }
-      : { next: { revalidate } }),
+    // Never persist 429/5xx into the Data Cache — a cached 429 froze the
+    // homepage on mocks for a full hour. Successful JSON is cached in
+    // `getDashboardSnapshot` (in-process, 3600s).
+    ...(cache === "force-cache"
+      ? { next: { revalidate } }
+      : { cache: "no-store" }),
     headers: {
       ...coinGeckoHeaders(),
       ...(init?.headers as Record<string, string> | undefined),
