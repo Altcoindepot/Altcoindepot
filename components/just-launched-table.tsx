@@ -15,10 +15,11 @@ function formatPct(n: number | null) {
   return `${n >= 0 ? "+" : ""}${n.toFixed(1)}%`;
 }
 
+/** Primary name click stays on-site; never uses DexScreener external URL as href. */
 function tokenHref(row: JustLaunchedRow): string {
   return (
     dexTokenPath(row.chain, row.contractAddress) ??
-    `/token/${encodeURIComponent(row.chain)}/${encodeURIComponent(row.contractAddress)}`
+    `/token/${encodeURIComponent(row.chain.trim().toLowerCase())}/${encodeURIComponent(row.contractAddress.trim())}`
   );
 }
 

@@ -25,11 +25,13 @@ function formatPct(n: number | null) {
   return `${n >= 0 ? "+" : ""}${n.toFixed(1)}%`;
 }
 
+/** Primary name click stays on-site; never uses DexScreener `row.href`. */
 function tokenHref(row: LowCapRow): string {
   const onSite = dexTokenPath(row.chain, row.contractAddress);
   if (onSite) return onSite;
+  // Fallback if address shape is unusual — still on-site token route.
   if (row.chain && row.contractAddress) {
-    return `/token/${encodeURIComponent(row.chain)}/${encodeURIComponent(row.contractAddress)}`;
+    return `/token/${encodeURIComponent(row.chain.trim().toLowerCase())}/${encodeURIComponent(row.contractAddress.trim())}`;
   }
   return `/new-low-caps`;
 }

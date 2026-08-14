@@ -45,7 +45,7 @@ export type LowCapRow = {
   marketCap: number | null;
   /** USD liquidity when known (DexScreener pairs). */
   liquidity?: number | null;
-  /** DexScreener chainId (eth, solana, base, bsc, …). */
+  /** DexScreener chainId (ethereum, solana, base, bsc, …). */
   chain?: string;
   /** Base-token contract address. */
   contractAddress?: string;

@@ -1,11 +1,9 @@
-import { unstable_cache } from "next/cache";
+import { getDexScreenerLowCaps } from "@/lib/dexscreener-low-caps";
 import {
-  DEXSCREENER_REVALIDATE_SECONDS,
-  getDexScreenerLowCaps,
-} from "@/lib/dexscreener-low-caps";
-import {
+  dexChainLookupCandidates,
+  normalizeDexChainId,
   sanitizeAddressParam,
-  sanitizeChainParam,
+  sameDexChain,
   sameTokenAddress,
 } from "@/lib/dex-token-path";
 import {
@@ -16,6 +14,8 @@ import {
 import { getDexProfileLinksByToken } from "@/lib/dexscreener-profile-links";
 
 const DEX_BASE = "https://api.dexscreener.com";
+/** Short TTL — avoid long-lived empty/miss caches on cold token pages. */
+const TOKEN_FETCH_REVALIDATE_SECONDS = 120;
 
 export type DexTokenPageData = {
   chain: string;
@@ -70,67 +70,125 @@ function pairAgeLabel(createdAt: number | null | undefined): string {
   return `${Math.floor(days / 7)}w ago`;
 }
 
-async function fetchTokenPairs(chain: string, address: string): Promise<DexPair[]> {
-  const res = await fetch(
-    `${DEX_BASE}/tokens/v1/${encodeURIComponent(chain)}/${encodeURIComponent(address)}`,
-    {
-      headers: { Accept: "application/json" },
-      cache: "force-cache",
-      next: { revalidate: DEXSCREENER_REVALIDATE_SECONDS },
-    },
-  );
-  if (!res.ok) return [];
-  const data: unknown = await res.json();
-  if (!Array.isArray(data)) return [];
-  return data.filter((row): row is DexPair => Boolean(row) && typeof row === "object");
+function asPairArray(data: unknown): DexPair[] {
+  if (Array.isArray(data)) {
+    return data.filter((row): row is DexPair => Boolean(row) && typeof row === "object");
+  }
+  if (data && typeof data === "object") {
+    const obj = data as { pairs?: unknown; pair?: unknown };
+    if (Array.isArray(obj.pairs)) {
+      return obj.pairs.filter((row): row is DexPair => Boolean(row) && typeof row === "object");
+    }
+    if (obj.pair && typeof obj.pair === "object") {
+      return [obj.pair as DexPair];
+    }
+  }
+  return [];
 }
 
-const fetchTokenPairsCached = unstable_cache(
-  fetchTokenPairs,
-  ["dexscreener-token-v1"],
-  { revalidate: DEXSCREENER_REVALIDATE_SECONDS },
-);
+async function dexGet(path: string): Promise<unknown | null> {
+  try {
+    const res = await fetch(`${DEX_BASE}${path}`, {
+      headers: { Accept: "application/json" },
+      next: { revalidate: TOKEN_FETCH_REVALIDATE_SECONDS },
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (err) {
+    console.warn("[dex-token] DexScreener fetch failed", path, err);
+    return null;
+  }
+}
 
-function pickBestPair(pairs: DexPair[], address: string): DexPair | null {
-  const matched = pairs.filter((pair) => sameTokenAddress(pair.baseToken?.address, address));
-  const pool = matched.length > 0 ? matched : pairs;
+function pickBestPair(pairs: DexPair[], address: string, preferChain?: string): DexPair | null {
+  if (pairs.length === 0) return null;
+
+  const byChain = preferChain
+    ? pairs.filter((p) => sameDexChain(p.chainId, preferChain))
+    : pairs;
+  const scoped = byChain.length > 0 ? byChain : pairs;
+
+  const asBase = scoped.filter((pair) => sameTokenAddress(pair.baseToken?.address, address));
+  const asPair = scoped.filter((pair) => sameTokenAddress(pair.pairAddress, address));
+  const pool = asBase.length > 0 ? asBase : asPair.length > 0 ? asPair : scoped;
   if (pool.length === 0) return null;
+
   return [...pool].sort((a, b) => (b.volume?.h24 ?? 0) - (a.volume?.h24 ?? 0))[0] ?? null;
 }
 
 /**
+ * Resolve a Dex pair for a route param.
+ * Route uses **token contract/mint** from the list; pair address is also accepted.
+ * Order: `/tokens/v1` (canonical + aliases) → `/latest/dex/tokens` → `/latest/dex/pairs`.
+ */
+async function resolveDexPair(chain: string, address: string): Promise<DexPair | null> {
+  const chainCandidates = dexChainLookupCandidates(chain);
+
+  for (const chainId of chainCandidates) {
+    const data = await dexGet(
+      `/tokens/v1/${encodeURIComponent(chainId)}/${encodeURIComponent(address)}`,
+    );
+    const best = pickBestPair(asPairArray(data), address, chain);
+    if (best) return best;
+  }
+
+  const byToken = await dexGet(`/latest/dex/tokens/${encodeURIComponent(address)}`);
+  {
+    const best = pickBestPair(asPairArray(byToken), address, chain);
+    if (best) return best;
+  }
+
+  for (const chainId of chainCandidates) {
+    const data = await dexGet(
+      `/latest/dex/pairs/${encodeURIComponent(chainId)}/${encodeURIComponent(address)}`,
+    );
+    const best = pickBestPair(asPairArray(data), address, chain);
+    if (best) return best;
+  }
+
+  return null;
+}
+
+/**
  * Lightweight DexScreener token page.
- * Pair payload comes from `/tokens/v1` so a list click still works if the
- * full New & Low Caps cache is cold. SEO indexing stays limited to the list.
+ * Loads live pair data from DexScreener first so clicks work even when the
+ * New & Low Caps cache is cold. List cache is enrichment / last-resort only.
  */
 export async function getDexScreenerTokenPage(
   chainRaw: string,
   addressRaw: string,
 ): Promise<DexTokenPageData | null> {
-  const chain = sanitizeChainParam(chainRaw);
+  const chain = normalizeDexChainId(chainRaw);
   const address = sanitizeAddressParam(addressRaw);
   if (!chain || !address) return null;
 
-  let listed;
-  try {
-    const rows = await getDexScreenerLowCaps();
-    listed = rows.find(
-      (row) =>
-        (row.chain ?? "").trim().toLowerCase() === chain &&
-        sameTokenAddress(row.contractAddress, address),
-    );
-  } catch {
-    listed = undefined;
-  }
-
   let pair: DexPair | null = null;
   try {
-    pair = pickBestPair(await fetchTokenPairsCached(chain, address), address);
+    pair = await resolveDexPair(chain, address);
   } catch (err) {
     console.warn("[dex-token] DexScreener token lookup failed", err);
   }
 
+  let listed;
+  try {
+    const rows = await getDexScreenerLowCaps();
+    listed = rows.find((row) => {
+      if (!sameDexChain(row.chain, chain)) return false;
+      return (
+        sameTokenAddress(row.contractAddress, address) ||
+        sameTokenAddress(row.pairAddress, address)
+      );
+    });
+  } catch {
+    listed = undefined;
+  }
+
   if (!pair && !listed) return null;
+
+  const resolvedChain =
+    normalizeDexChainId(pair?.chainId) ??
+    normalizeDexChainId(listed?.chain) ??
+    chain;
 
   const pairUrl =
     (typeof pair?.url === "string" && pair.url.startsWith("http") ? pair.url : null) ??
@@ -140,8 +198,14 @@ export async function getDexScreenerTokenPage(
   let profileLinks: DexProjectLink[] | undefined;
   try {
     const map = await getDexProfileLinksByToken();
-    const tokenAddr = (pair?.baseToken?.address ?? listed?.contractAddress ?? address).toLowerCase();
-    profileLinks = map[`${chain}:${tokenAddr}`];
+    const tokenAddr = (
+      pair?.baseToken?.address ??
+      listed?.contractAddress ??
+      address
+    ).toLowerCase();
+    profileLinks =
+      map[`${resolvedChain}:${tokenAddr}`] ??
+      map[`${chain}:${tokenAddr}`];
   } catch {
     profileLinks = undefined;
   }
@@ -153,7 +217,7 @@ export async function getDexScreenerTokenPage(
   );
 
   return {
-    chain,
+    chain: resolvedChain,
     address: pair?.baseToken?.address ?? listed?.contractAddress ?? address,
     name: pair?.baseToken?.name ?? listed?.name ?? "Token",
     symbol: pair?.baseToken?.symbol ?? listed?.symbol ?? "TOKEN",
@@ -174,7 +238,11 @@ export async function getDexScreenerTokenPage(
   };
 }
 
-export function dexScreenerEmbedUrl(pairUrl: string | null, chain: string, pairAddress: string | null): string | null {
+export function dexScreenerEmbedUrl(
+  pairUrl: string | null,
+  chain: string,
+  pairAddress: string | null,
+): string | null {
   if (pairUrl && pairUrl.startsWith("https://dexscreener.com/")) {
     try {
       const url = new URL(pairUrl);
@@ -188,7 +256,8 @@ export function dexScreenerEmbedUrl(pairUrl: string | null, chain: string, pairA
     }
   }
   if (pairAddress) {
-    return `https://dexscreener.com/${encodeURIComponent(chain)}/${encodeURIComponent(pairAddress)}?embed=1&theme=dark&trades=0&info=0`;
+    const chainId = normalizeDexChainId(chain) ?? chain;
+    return `https://dexscreener.com/${encodeURIComponent(chainId)}/${encodeURIComponent(pairAddress)}?embed=1&theme=dark&trades=0&info=0`;
   }
   return null;
 }

@@ -16,8 +16,8 @@ export default function DexTokenNotFound() {
           Token not found
         </h1>
         <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-zinc-400">
-          We couldn&apos;t load this DEX pair. It may have dropped off the New &amp; Low Caps list,
-          or DexScreener data is unavailable right now.
+          We couldn&apos;t load live DexScreener data for this token contract (or pair address).
+          Check the chain and address, or try again in a moment.
         </p>
         <Link
           href="/new-low-caps"

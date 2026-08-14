@@ -2,6 +2,7 @@ import { unstable_cache } from "next/cache";
 import type { LowCapRow } from "@/lib/dashboard-data";
 import { NARRATIVES, rotationStatusFromChange, type NarrativeDef } from "@/lib/narratives";
 import { parseDexPairInfoLinks } from "@/lib/dex-project-links";
+import { normalizeDexChainId } from "@/lib/dex-token-path";
 
 const DEX_BASE = "https://api.dexscreener.com";
 /** 10 minutes — DexScreener is free but we should not poll on every refresh. */
@@ -113,7 +114,7 @@ function isUsefulPair(pair: DexPair): boolean {
 function pairToRow(pair: DexPair, metaSlug: string): LowCapRow | null {
   const base = pair.baseToken;
   if (!base?.address || !base.name || !base.symbol) return null;
-  const chain = pair.chainId || "unknown";
+  const chain = normalizeDexChainId(pair.chainId) ?? pair.chainId?.trim().toLowerCase() ?? "unknown";
   const change = pair.priceChange?.h24 ?? pair.priceChange?.h6 ?? pair.priceChange?.h1 ?? null;
   const narrative = inferNarrative(metaSlug, base.name, base.symbol);
   const created = pair.pairCreatedAt ?? null;
