@@ -48,6 +48,8 @@ export type LowCapRow = {
   chain?: string;
   /** Base-token contract address. */
   contractAddress?: string;
+  /** DexScreener pair address when known. */
+  pairAddress?: string;
   change7d: number | null;
   volume: number | null;
   narrativeSlug: string;

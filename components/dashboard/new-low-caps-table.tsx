@@ -13,6 +13,7 @@ import { WatchlistStarButton } from "@/components/watchlist-star-button";
 import { InfoTooltip } from "@/components/info-tooltip";
 import { PulseSparkline } from "@/components/dashboard/pulse-sparkline";
 import { CopyAddressButton } from "@/components/copy-address-button";
+import { dexTokenPath } from "@/lib/dex-token-path";
 
 function formatPct(n: number | null) {
   if (n == null || !Number.isFinite(n)) return "—";
@@ -20,11 +21,7 @@ function formatPct(n: number | null) {
 }
 
 function tokenHref(row: LowCapRow): string {
-  return row.href ?? `/coin/${encodeURIComponent(row.id)}`;
-}
-
-function tokenLinkExternal(row: LowCapRow): boolean {
-  return Boolean(row.href?.startsWith("http"));
+  return dexTokenPath(row.chain, row.contractAddress) ?? `/coin/${encodeURIComponent(row.id)}`;
 }
 
 /** Left-edge accent for mobile New & Low Caps cards. */
@@ -52,13 +49,8 @@ function TokenNameLink({
   className?: string;
   children: ReactNode;
 }) {
-  const external = tokenLinkExternal(row);
   return (
-    <Link
-      href={tokenHref(row)}
-      className={className}
-      {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-    >
+    <Link href={tokenHref(row)} className={className}>
       {children}
     </Link>
   );

@@ -126,6 +126,7 @@ function pairToRow(pair: DexPair, metaSlug: string): LowCapRow | null {
     liquidity: pair.liquidity?.usd ?? null,
     chain,
     contractAddress: base.address,
+    pairAddress: typeof pair.pairAddress === "string" ? pair.pairAddress : undefined,
     change7d: typeof change === "number" && Number.isFinite(change) ? change : null,
     volume: pair.volume?.h24 ?? null,
     narrativeSlug: narrative.slug,

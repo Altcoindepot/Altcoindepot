@@ -3,6 +3,8 @@ import { isProductionBuild } from "@/lib/build-phase";
 import { coinGeckoFetch } from "@/lib/coingecko";
 import { PUBLIC_CATEGORIES } from "@/lib/coin-categories";
 import { NARRATIVES } from "@/lib/narratives";
+import { getDexScreenerLowCaps } from "@/lib/dexscreener-low-caps";
+import { dexTokenPath } from "@/lib/dex-token-path";
 
 const SITE = "https://altcoindepot.com";
 
@@ -180,6 +182,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.75,
   }));
 
+  let dexTokenEntries: MetadataRoute.Sitemap = [];
+  try {
+    const rows = await getDexScreenerLowCaps();
+    dexTokenEntries = rows.flatMap((row) => {
+      const path = dexTokenPath(row.chain, row.contractAddress);
+      if (!path) return [];
+      return [
+        {
+          url: `${SITE}${path}`,
+          lastModified: now,
+          changeFrequency: "hourly" as const,
+          priority: 0.7,
+        },
+      ];
+    });
+  } catch {
+    dexTokenEntries = [];
+  }
+
   return [
     homepage,
     trending,
@@ -187,5 +208,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...staticEntries,
     ...categoryEntries,
     ...narrativeEntries,
+    ...dexTokenEntries,
   ];
 }
