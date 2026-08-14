@@ -5,11 +5,14 @@ import { NARRATIVES, rotationStatusFromChange, type NarrativeDef } from "@/lib/n
 const DEX_BASE = "https://api.dexscreener.com";
 /** 10 minutes — DexScreener is free but we should not poll on every refresh. */
 export const DEXSCREENER_REVALIDATE_SECONDS = 600;
+/** Homepage New & Low Caps table size (20–30). */
+export const HOMEPAGE_LOW_CAP_LIMIT = 24;
+/** Full list for /new-low-caps (target ~40–50). */
+export const DEXSCREENER_LIST_LIMIT = 50;
+const TRENDING_META_LIMIT = 8;
 
-const LOW_MIN = 1_000_000;
-const LOW_MAX = 250_000_000;
-const MIN_LIQUIDITY_USD = 25_000;
-const ROW_LIMIT = 8;
+const LOW_MAX = 500_000_000;
+const MIN_LIQUIDITY_USD = 10_000;
 
 const SKIP_SYMBOLS = new Set([
   "usdt",
@@ -23,6 +26,8 @@ const SKIP_SYMBOLS = new Set([
   "eth",
   "btc",
 ]);
+
+const FALLBACK_META_SLUGS = ["ai", "dog", "degen", "cat", "meme", "rwa", "defi", "game"];
 
 type DexPair = {
   chainId?: string;
@@ -94,23 +99,14 @@ function addedLabelFromCreated(createdAt: number | null | undefined): string {
   return `${weeks}w ago`;
 }
 
-function isActivePair(pair: DexPair): boolean {
+function isUsefulPair(pair: DexPair): boolean {
   const symbol = pair.baseToken?.symbol?.trim().toLowerCase() ?? "";
   if (!symbol || SKIP_SYMBOLS.has(symbol)) return false;
   const liq = pair.liquidity?.usd ?? 0;
   if (liq < MIN_LIQUIDITY_USD) return false;
   const cap = pair.marketCap ?? pair.fdv ?? null;
-  if (cap != null && Number.isFinite(cap) && cap > LOW_MAX * 2) return false;
+  if (cap != null && Number.isFinite(cap) && cap > LOW_MAX) return false;
   return true;
-}
-
-function isLowCapPair(pair: DexPair): boolean {
-  if (!isActivePair(pair)) return false;
-  const cap = pair.marketCap ?? pair.fdv ?? null;
-  if (cap != null && Number.isFinite(cap)) {
-    return cap >= LOW_MIN && cap <= LOW_MAX;
-  }
-  return (pair.liquidity?.usd ?? 0) <= 8_000_000;
 }
 
 function pairToRow(pair: DexPair, metaSlug: string): LowCapRow | null {
@@ -120,12 +116,16 @@ function pairToRow(pair: DexPair, metaSlug: string): LowCapRow | null {
   const change = pair.priceChange?.h24 ?? pair.priceChange?.h6 ?? pair.priceChange?.h1 ?? null;
   const narrative = inferNarrative(metaSlug, base.name, base.symbol);
   const created = pair.pairCreatedAt ?? null;
+  const marketCap = pair.marketCap ?? pair.fdv ?? null;
   return {
     id: `dex-${chain}-${base.address}`,
     name: base.name,
     symbol: base.symbol,
     image: pair.info?.imageUrl ?? "",
-    marketCap: pair.marketCap ?? pair.fdv ?? pair.liquidity?.usd ?? null,
+    marketCap: typeof marketCap === "number" && Number.isFinite(marketCap) ? marketCap : null,
+    liquidity: pair.liquidity?.usd ?? null,
+    chain,
+    contractAddress: base.address,
     change7d: typeof change === "number" && Number.isFinite(change) ? change : null,
     volume: pair.volume?.h24 ?? null,
     narrativeSlug: narrative.slug,
@@ -139,7 +139,7 @@ function pairToRow(pair: DexPair, metaSlug: string): LowCapRow | null {
   };
 }
 
-function mapMetaPairs(data: unknown, slug: string, strict: boolean): LowCapRow[] {
+function mapMetaPairs(data: unknown, slug: string): LowCapRow[] {
   if (!data || typeof data !== "object") return [];
   const pairs = (data as { pairs?: unknown }).pairs;
   if (!Array.isArray(pairs)) return [];
@@ -147,7 +147,7 @@ function mapMetaPairs(data: unknown, slug: string, strict: boolean): LowCapRow[]
   for (const raw of pairs) {
     if (!raw || typeof raw !== "object") continue;
     const pair = raw as DexPair;
-    if (strict ? !isLowCapPair(pair) : !isActivePair(pair)) continue;
+    if (!isUsefulPair(pair)) continue;
     const row = pairToRow(pair, slug);
     if (row) rows.push(row);
   }
@@ -158,18 +158,26 @@ async function loadMetaPayload(slug: string): Promise<unknown> {
   return dexFetch(`/metas/meta/v1/${encodeURIComponent(slug)}`);
 }
 
-async function loadDexLowCapsUncached(): Promise<LowCapRow[]> {
-  const trendingRaw = await dexFetch("/metas/trending/v1");
+function trendingSlugs(trendingRaw: unknown): string[] {
   const slugs: string[] = [];
   if (Array.isArray(trendingRaw)) {
     for (const item of trendingRaw as DexMetaListItem[]) {
       if (typeof item?.slug === "string" && item.slug && !slugs.includes(item.slug)) {
         slugs.push(item.slug);
       }
-      if (slugs.length >= 3) break;
+      if (slugs.length >= TRENDING_META_LIMIT) break;
     }
   }
-  if (slugs.length === 0) slugs.push("ai", "dog", "degen");
+  for (const fallback of FALLBACK_META_SLUGS) {
+    if (slugs.length >= TRENDING_META_LIMIT) break;
+    if (!slugs.includes(fallback)) slugs.push(fallback);
+  }
+  return slugs;
+}
+
+async function loadDexLowCapsUncached(): Promise<LowCapRow[]> {
+  const trendingRaw = await dexFetch("/metas/trending/v1");
+  const slugs = trendingSlugs(trendingRaw);
 
   const payloads = await Promise.all(
     slugs.map(async (slug) => {
@@ -181,25 +189,22 @@ async function loadDexLowCapsUncached(): Promise<LowCapRow[]> {
     }),
   );
 
-  const collect = (strict: boolean) => {
-    const byId = new Map<string, LowCapRow>();
-    for (const { slug, data } of payloads) {
-      if (!data) continue;
-      for (const row of mapMetaPairs(data, slug, strict)) {
-        if (!byId.has(row.id)) byId.set(row.id, row);
-      }
+  const byId = new Map<string, LowCapRow>();
+  for (const { slug, data } of payloads) {
+    if (!data) continue;
+    for (const row of mapMetaPairs(data, slug)) {
+      if (!byId.has(row.id)) byId.set(row.id, row);
     }
-    return [...byId.values()].sort((a, b) => (b.volume ?? 0) - (a.volume ?? 0));
-  };
+  }
 
-  const strict = collect(true);
-  if (strict.length >= ROW_LIMIT) return strict.slice(0, ROW_LIMIT);
-  return collect(false).slice(0, ROW_LIMIT);
+  return [...byId.values()]
+    .sort((a, b) => (b.volume ?? 0) - (a.volume ?? 0))
+    .slice(0, DEXSCREENER_LIST_LIMIT);
 }
 
 const loadDexLowCapsCached = unstable_cache(
   loadDexLowCapsUncached,
-  ["dexscreener-low-caps-v1"],
+  ["dexscreener-low-caps-v2"],
   { revalidate: DEXSCREENER_REVALIDATE_SECONDS },
 );
 

@@ -5,11 +5,11 @@ import {
   logLiveSnapshot,
   type DashboardSnapshot,
 } from "@/lib/dashboard-data";
-
-export type { DashboardSnapshot };
 import { loadLastGood, memoryLastGood, saveLastGood } from "@/lib/dashboard-last-good";
 import { getMockDashboardSnapshot } from "@/lib/dashboard-mock";
-import { getDexScreenerLowCaps } from "@/lib/dexscreener-low-caps";
+import { getDexScreenerLowCaps, HOMEPAGE_LOW_CAP_LIMIT } from "@/lib/dexscreener-low-caps";
+
+export type { DashboardSnapshot };
 
 function loadedCountOf(snap: DashboardSnapshot): number {
   return snap.narratives.filter((n) => n.sampleSize > 0).length;
@@ -32,7 +32,7 @@ async function withDexScreenerLowCaps(snap: DashboardSnapshot): Promise<Dashboar
   try {
     const rows = await getDexScreenerLowCaps();
     if (rows.length > 0) {
-      return { ...snap, lowCaps: rows };
+      return { ...snap, lowCaps: rows.slice(0, HOMEPAGE_LOW_CAP_LIMIT) };
     }
   } catch (err) {
     console.warn("[dashboard] DexScreener overlay skipped", err);

@@ -58,9 +58,12 @@ export function DashboardHome({
           cycleDay={snapshot.cycleDay}
           trendingAssets={snapshot.trendingAssets}
           watchlistOnly={watchlistOnly}
-          lowCapsSlot={
-            <NewLowCapsTable rows={snapshot.lowCaps} watchlistOnly={watchlistOnly} />
-          }
+        />
+
+        <NewLowCapsTable
+          rows={snapshot.lowCaps}
+          watchlistOnly={watchlistOnly}
+          className="mt-4"
         />
 
         <DisclaimerNote className="mt-6">

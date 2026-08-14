@@ -1,15 +1,18 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { LowCapRow } from "@/lib/dashboard-data";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
 import { statusBadgeClass, rotationSignalLabel } from "@/lib/narratives";
+import { formatChainLabel } from "@/lib/format-chain";
 import { ds } from "@/lib/ui-classes";
 import { useWatchlist } from "@/components/use-watchlist";
 import { WatchlistStarButton } from "@/components/watchlist-star-button";
 import { InfoTooltip } from "@/components/info-tooltip";
 import { PulseSparkline } from "@/components/dashboard/pulse-sparkline";
+import { CopyAddressButton } from "@/components/copy-address-button";
 
 function formatPct(n: number | null) {
   if (n == null || !Number.isFinite(n)) return "—";
@@ -40,15 +43,42 @@ function mobileCardRailClass(row: LowCapRow): string {
   return "border-l-[3px] border-l-[#3f3f46]";
 }
 
+function TokenNameLink({
+  row,
+  className,
+  children,
+}: {
+  row: LowCapRow;
+  className?: string;
+  children: ReactNode;
+}) {
+  const external = tokenLinkExternal(row);
+  return (
+    <Link
+      href={tokenHref(row)}
+      className={className}
+      {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+    >
+      {children}
+    </Link>
+  );
+}
+
 export function NewLowCapsTable({
   rows,
   className = "",
   watchlistOnly = false,
+  viewAllHref = "/new-low-caps",
+  showViewAll = true,
+  heading = "New & Low Caps",
 }: {
   rows: LowCapRow[];
   className?: string;
   /** When true, show only coins saved in `altcoin-depot-watchlist`. */
   watchlistOnly?: boolean;
+  viewAllHref?: string;
+  showViewAll?: boolean;
+  heading?: string;
 }) {
   const { entries, mounted } = useWatchlist();
   const watchIds = new Set(entries.map((e) => e.id));
@@ -61,11 +91,11 @@ export function NewLowCapsTable({
   return (
     <section
       aria-labelledby="new-low-caps-heading"
-      className={`${ds.panelLg} flex h-full min-h-0 flex-col !p-0 overflow-hidden ${className}`.trim()}
+      className={`${ds.panelLg} flex flex-col !p-0 overflow-hidden ${className}`.trim()}
     >
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-white/10 px-4 py-3 sm:px-5">
         <h2 id="new-low-caps-heading" className="text-sm font-semibold text-zinc-100 sm:text-base">
-          {filtering ? "Watchlist · New & Low Caps" : "New & Low Caps"}
+          {filtering ? "Watchlist · New & Low Caps" : heading}
         </h2>
         <div className="flex items-center gap-3">
           {filtering ? (
@@ -76,12 +106,21 @@ export function NewLowCapsTable({
               Show all
             </Link>
           ) : null}
-          <Link
-            href={filtering ? "/watchlist" : "/gainers-losers"}
-            className="text-xs font-medium text-teal-300/90 underline-offset-2 hover:underline"
-          >
-            {filtering ? "Full watchlist →" : "View all →"}
-          </Link>
+          {filtering ? (
+            <Link
+              href="/watchlist"
+              className="text-xs font-medium text-teal-300/90 underline-offset-2 hover:underline"
+            >
+              Full watchlist →
+            </Link>
+          ) : showViewAll ? (
+            <Link
+              href={viewAllHref}
+              className="text-xs font-medium text-teal-300/90 underline-offset-2 hover:underline"
+            >
+              View all →
+            </Link>
+          ) : null}
         </div>
       </div>
 
@@ -112,72 +151,100 @@ export function NewLowCapsTable({
           ) : null}
         </div>
       ) : (
-        <div className="min-h-0 flex-1 overflow-auto">
+        <div className="overflow-x-auto">
           <ul className="flex flex-col gap-2.5 p-3 md:hidden">
             {visibleRows.map((row) => {
               const signal = rotationSignalLabel(row.status);
               const strongInflow = signal === "STRONG INFLOW";
+              const chain = formatChainLabel(row.chain);
               return (
                 <li key={`${row.id}-${row.narrativeSlug}-card`}>
                   <article
-                    className={`flex items-center gap-3 rounded-xl border border-white/10 bg-[#0c0e14] px-3 py-3 ${
+                    className={`rounded-xl border border-white/10 bg-[#0c0e14] px-3 py-3 ${
                       strongInflow
                         ? "border-emerald-400/25 bg-gradient-to-r from-emerald-500/[0.08] to-[#0c0e14] shadow-[0_0_15px_rgba(16,185,129,0.12)]"
                         : ""
                     } ${mobileCardRailClass(row)}`}
                   >
-                    <WatchlistStarButton
-                      coinId={row.id}
-                      name={row.name}
-                      symbol={row.symbol}
-                      image={row.image || undefined}
-                    />
-                    <Link
-                      href={tokenHref(row)}
-                      className="flex min-w-0 flex-1 items-center gap-3"
-                      {...(tokenLinkExternal(row)
-                        ? { target: "_blank", rel: "noopener noreferrer" }
-                        : {})}
-                    >
-                      {row.image ? (
-                        <Image
-                          src={row.image}
-                          alt=""
-                          width={36}
-                          height={36}
-                          className="shrink-0 rounded-full"
-                        />
-                      ) : (
-                        <span className="size-9 shrink-0 rounded-full bg-zinc-800" />
-                      )}
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-semibold text-zinc-100">
-                          {row.name}
+                    <div className="flex items-center gap-3">
+                      <WatchlistStarButton
+                        coinId={row.id}
+                        name={row.name}
+                        symbol={row.symbol}
+                        image={row.image || undefined}
+                      />
+                      <TokenNameLink row={row} className="flex min-w-0 flex-1 items-center gap-3">
+                        {row.image ? (
+                          <Image
+                            src={row.image}
+                            alt=""
+                            width={36}
+                            height={36}
+                            className="shrink-0 rounded-full"
+                          />
+                        ) : (
+                          <span className="size-9 shrink-0 rounded-full bg-zinc-800" />
+                        )}
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-semibold text-zinc-100">
+                            {row.name}
+                          </span>
+                          <span className="mt-0.5 flex items-center gap-1.5 font-mono text-[11px] uppercase text-zinc-500">
+                            <span>{row.symbol}</span>
+                            {row.chain ? (
+                              <span className="rounded bg-zinc-800 px-1 py-px text-[10px] tracking-wide text-zinc-400">
+                                {chain}
+                              </span>
+                            ) : null}
+                          </span>
                         </span>
-                        <span className="mt-0.5 block font-mono text-[11px] uppercase text-zinc-500">
-                          {row.symbol}
+                        <span className="shrink-0 text-right">
+                          <span
+                            className={`block font-mono text-sm font-bold tabular-nums ${
+                              (row.change7d ?? 0) >= 0 ? "text-emerald-300" : "text-red-300"
+                            }`}
+                          >
+                            {formatPct(row.change7d)}
+                          </span>
+                          <span className="mt-0.5 block text-[10px] uppercase tracking-wide text-zinc-500">
+                            24h
+                          </span>
                         </span>
-                      </span>
-                      <span className="shrink-0 text-right">
-                        <span
-                          className={`block font-mono text-sm font-bold tabular-nums ${
-                            (row.change7d ?? 0) >= 0 ? "text-emerald-300" : "text-red-300"
-                          }`}
-                        >
-                          {formatPct(row.change7d)}
-                        </span>
-                        <span className="mt-0.5 block text-[10px] uppercase tracking-wide text-zinc-500">
-                          7D
-                        </span>
-                      </span>
-                    </Link>
+                      </TokenNameLink>
+                    </div>
+                    <dl className="mt-2.5 grid grid-cols-3 gap-2 text-[11px]">
+                      <div>
+                        <dt className="text-zinc-500">MCap</dt>
+                        <dd className="font-mono tabular-nums text-zinc-300">
+                          {formatCompactUsd(row.marketCap)}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-zinc-500">Liq</dt>
+                        <dd className="font-mono tabular-nums text-zinc-300">
+                          {formatCompactUsd(row.liquidity ?? null)}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-zinc-500">Vol</dt>
+                        <dd className="font-mono tabular-nums text-zinc-300">
+                          {formatCompactUsd(row.volume)}
+                        </dd>
+                      </div>
+                    </dl>
+                    <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-[11px] text-zinc-500">{row.addedLabel}</span>
+                      {row.contractAddress ? (
+                        <CopyAddressButton address={row.contractAddress} />
+                      ) : null}
+                    </div>
                   </article>
                 </li>
               );
             })}
           </ul>
 
-          <table className="hidden w-full min-w-[44rem] border-collapse text-left md:table">
+          <table className="hidden w-full min-w-[64rem] border-collapse text-left md:table">
             <thead>
               <tr className="border-b border-white/10 text-[10px] uppercase tracking-wider text-zinc-500">
                 <th className="w-11 px-2 py-2.5 text-center font-semibold sm:px-3">
@@ -187,8 +254,9 @@ export function NewLowCapsTable({
                 <th className="px-2 py-2.5 font-semibold sm:px-4">Token</th>
                 <th className="w-[85px] px-3 py-2.5 text-center font-semibold">Narrative</th>
                 <th className="px-3 py-2.5 font-semibold">Market Cap</th>
-                <th className="px-3 py-2.5 font-semibold">7D Change</th>
+                <th className="px-3 py-2.5 font-semibold">24h Change</th>
                 <th className="px-3 py-2.5 font-semibold">Volume</th>
+                <th className="px-3 py-2.5 font-semibold">Contract</th>
                 <th className="px-3 py-2.5 font-semibold">
                   <span className="inline-flex items-center">
                     <InfoTooltip
@@ -206,6 +274,7 @@ export function NewLowCapsTable({
               {visibleRows.map((row) => {
                 const signal = rotationSignalLabel(row.status);
                 const strongInflow = signal === "STRONG INFLOW";
+                const chain = formatChainLabel(row.chain);
                 return (
                   <tr
                     key={`${row.id}-${row.narrativeSlug}`}
@@ -224,13 +293,7 @@ export function NewLowCapsTable({
                       />
                     </td>
                     <td className="px-2 py-3 sm:px-4">
-                      <Link
-                        href={tokenHref(row)}
-                        className="inline-flex items-center gap-2"
-                        {...(tokenLinkExternal(row)
-                          ? { target: "_blank", rel: "noopener noreferrer" }
-                          : {})}
-                      >
+                      <TokenNameLink row={row} className="inline-flex items-center gap-2">
                         {row.image ? (
                           <Image
                             src={row.image}
@@ -253,9 +316,14 @@ export function NewLowCapsTable({
                             <span className="font-mono text-[11px] uppercase text-zinc-500">
                               {row.symbol}
                             </span>
+                            {row.chain ? (
+                              <span className="rounded bg-zinc-800 px-1 py-px font-mono text-[10px] uppercase tracking-wide text-zinc-400">
+                                {chain}
+                              </span>
+                            ) : null}
                           </span>
                         </span>
-                      </Link>
+                      </TokenNameLink>
                     </td>
                     <td className="w-[85px] px-3 py-3">
                       <Link
@@ -267,7 +335,12 @@ export function NewLowCapsTable({
                       </Link>
                     </td>
                     <td className="px-3 py-3 font-mono text-xs tabular-nums text-zinc-300">
-                      {formatCompactUsd(row.marketCap)}
+                      <span className="block">{formatCompactUsd(row.marketCap)}</span>
+                      {row.liquidity != null ? (
+                        <span className="mt-0.5 block text-[10px] text-zinc-500">
+                          Liq {formatCompactUsd(row.liquidity)}
+                        </span>
+                      ) : null}
                     </td>
                     <td className="px-3 py-3">
                       <div className="flex items-center justify-start gap-2">
@@ -287,6 +360,13 @@ export function NewLowCapsTable({
                     </td>
                     <td className="px-3 py-3 font-mono text-xs tabular-nums text-zinc-400">
                       {formatCompactUsd(row.volume)}
+                    </td>
+                    <td className="px-3 py-3">
+                      {row.contractAddress ? (
+                        <CopyAddressButton address={row.contractAddress} />
+                      ) : (
+                        <span className="text-xs text-zinc-600">—</span>
+                      )}
                     </td>
                     <td className="px-3 py-3">
                       <span

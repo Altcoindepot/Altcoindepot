@@ -12,6 +12,7 @@ function XIcon({ className }: { className?: string }) {
 const PRIMARY_LINKS = [
   { href: "/compare", label: "Compare coins" },
   { href: "/gainers-losers", label: "Gainers & Losers" },
+  { href: "/new-low-caps", label: "New & Low Caps" },
   { href: "/market-overview", label: "Market overview" },
   { href: "/podcasts", label: "Podcasts" },
   { href: "/ecosystem", label: "Ecosystem Research" },

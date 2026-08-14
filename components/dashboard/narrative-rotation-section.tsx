@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState } from "react";
 import type { NarrativeSnapshot, TrendingAssetRow } from "@/lib/dashboard-data";
 import { rankNarrativesForWindow } from "@/lib/dashboard-data";
 import {
@@ -19,14 +19,12 @@ export function NarrativeRotationSection({
   regimeLabel,
   cycleDay,
   trendingAssets,
-  lowCapsSlot,
   watchlistOnly = false,
 }: {
   narratives: NarrativeSnapshot[];
   regimeLabel: string;
   cycleDay: number;
   trendingAssets: TrendingAssetRow[];
-  lowCapsSlot: ReactNode;
   watchlistOnly?: boolean;
 }) {
   const [window, setWindow] = useState<RotationWindow>(DEFAULT_ROTATION_WINDOW);
@@ -79,16 +77,16 @@ export function NarrativeRotationSection({
       {windowToggle}
 
       {/*
-        Single tree so each section renders once.
-        Mobile: card stack (tracker hidden). Tablet: stacked. Desktop: 2×2 grid.
+        Tracker left; trending + top rotations stacked on the right.
+        New & Low Caps is a full-width section below (dashboard-home).
       */}
-      <div className="flex flex-col gap-4 lg:grid lg:h-[48rem] lg:grid-cols-[minmax(0,1.45fr)_minmax(16rem,0.9fr)] lg:grid-rows-6">
+      <div className="flex flex-col gap-4 lg:grid lg:h-[32rem] lg:grid-cols-[minmax(0,1.45fr)_minmax(16rem,0.9fr)] lg:grid-rows-2">
         <NarrativeRotationTracker
           narratives={trackerNodes}
           regimeLabel={regimeLabel}
           cycleDay={cycleDay}
           window={window}
-          className="hidden min-h-[24rem] md:flex lg:col-start-1 lg:row-span-3 lg:row-start-1 lg:h-full lg:min-h-0"
+          className="hidden min-h-[24rem] md:flex lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:h-full lg:min-h-0"
         />
         <TopRotations
           narratives={top}
@@ -99,15 +97,12 @@ export function NarrativeRotationSection({
         <TrendingAssetsToday
           rows={trendingAssets}
           watchlistOnly={watchlistOnly}
-          className="lg:col-start-2 lg:row-span-3 lg:row-start-1 lg:h-full lg:min-h-0"
+          className="lg:col-start-2 lg:row-span-1 lg:row-start-1 lg:h-full lg:min-h-0"
         />
-        <div className="lg:col-start-1 lg:row-span-3 lg:row-start-4 lg:h-full lg:min-h-0">
-          {lowCapsSlot}
-        </div>
         <TopRotations
           narratives={top}
           window={window}
-          className="hidden md:flex lg:col-start-2 lg:row-span-3 lg:row-start-4 lg:h-full lg:min-h-0"
+          className="hidden md:flex lg:col-start-2 lg:row-span-1 lg:row-start-2 lg:h-full lg:min-h-0"
         />
       </div>
     </div>

@@ -42,6 +42,12 @@ export type LowCapRow = {
   symbol: string;
   image: string;
   marketCap: number | null;
+  /** USD liquidity when known (DexScreener pairs). */
+  liquidity?: number | null;
+  /** DexScreener chainId (eth, solana, base, bsc, …). */
+  chain?: string;
+  /** Base-token contract address. */
+  contractAddress?: string;
   change7d: number | null;
   volume: number | null;
   narrativeSlug: string;
