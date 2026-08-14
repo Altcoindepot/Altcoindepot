@@ -137,6 +137,7 @@ function pairToRow(pair: DexPair, metaSlug: string): LowCapRow | null {
     narrativeGlowClass: narrative.glowClass,
     status: rotationStatusFromChange(change, "24h"),
     addedLabel: addedLabelFromCreated(created),
+    pairCreatedAt: created,
     sparkline: null,
     href: typeof pair.url === "string" && pair.url.startsWith("http") ? pair.url : undefined,
     projectLinks: projectLinks.length > 0 ? projectLinks : undefined,
@@ -208,7 +209,7 @@ async function loadDexLowCapsUncached(): Promise<LowCapRow[]> {
 
 const loadDexLowCapsCached = unstable_cache(
   loadDexLowCapsUncached,
-  ["dexscreener-low-caps-v3"],
+  ["dexscreener-low-caps-v4"],
   { revalidate: DEXSCREENER_REVALIDATE_SECONDS },
 );
 

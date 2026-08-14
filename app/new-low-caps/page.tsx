@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { NewLowCapsTable } from "@/components/dashboard/new-low-caps-table";
 import { LowCapsDisclaimerModal } from "@/components/low-caps-disclaimer-modal";
@@ -73,7 +74,9 @@ export default async function NewLowCapsPage() {
               Just launched pairs →
             </Link>
           </p>
-          <NewLowCapsTable rows={rows} showViewAll={false} className="mt-6" />
+          <Suspense fallback={<div className="mt-6 h-48 rounded-2xl border border-white/10 bg-[#0c0e14]" />}>
+            <NewLowCapsTable rows={rows} showViewAll={false} className="mt-6" />
+          </Suspense>
         </div>
       </main>
       <LowCapsDisclaimerModal />

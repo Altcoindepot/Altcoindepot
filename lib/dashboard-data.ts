@@ -60,6 +60,8 @@ export type LowCapRow = {
   status: NarrativeStatus;
   /** Relative “added” label (best-effort from rank within basket). */
   addedLabel: string;
+  /** Pair created-at timestamp (ms) when known. */
+  pairCreatedAt?: number | null;
   /** Optional 7d sparkline prices from CoinGecko. */
   sparkline?: number[] | null;
   /** When set, token name links here instead of `/coin/[id]` (DexScreener rows). */

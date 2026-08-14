@@ -4,8 +4,10 @@ import type { ReactNode } from "react";
 import { CopyAddressButton } from "@/components/copy-address-button";
 import { DisclaimerNote } from "@/components/disclaimer-note";
 import { DexProjectLinks } from "@/components/dex-project-links";
+import { DexRecentTrades } from "@/components/dex-recent-trades";
 import type { DexTokenPageData } from "@/lib/dexscreener-token";
 import { dexScreenerEmbedUrl } from "@/lib/dexscreener-token";
+import type { DexTrade } from "@/lib/dexscreener-trades";
 import { formatChainLabel } from "@/lib/format-chain";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
 import { ds } from "@/lib/ui-classes";
@@ -32,7 +34,7 @@ function Stat({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-export function DexTokenView({ token }: { token: DexTokenPageData }) {
+export function DexTokenView({ token, trades = [] }: { token: DexTokenPageData; trades?: DexTrade[] }) {
   const chainLabel = formatChainLabel(token.chain);
   const symbol = token.symbol.toUpperCase();
   const embed = dexScreenerEmbedUrl(token.pairUrl, token.chain, token.pairAddress);
@@ -147,6 +149,13 @@ export function DexTokenView({ token }: { token: DexTokenPageData }) {
           </div>
         )}
       </section>
+
+      <DexRecentTrades
+        trades={trades}
+        pairUrl={token.pairUrl}
+        chain={token.chain}
+        pairAddress={token.pairAddress}
+      />
 
       <p className="mt-6 rounded-xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-sm leading-relaxed text-amber-100/90">
         High-risk DEX token. New and low-cap pairs can be illiquid or fraudulent. This page is

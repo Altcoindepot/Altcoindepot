@@ -1,8 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import type { LowCapRow } from "@/lib/dashboard-data";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
 import { statusBadgeClass, rotationSignalLabel } from "@/lib/narratives";
@@ -14,7 +16,9 @@ import { InfoTooltip } from "@/components/info-tooltip";
 import { PulseSparkline } from "@/components/dashboard/pulse-sparkline";
 import { CopyAddressButton } from "@/components/copy-address-button";
 import { DexProjectLinks } from "@/components/dex-project-links";
+import { DexListControls } from "@/components/dex-list-controls";
 import { dexTokenPath } from "@/lib/dex-token-path";
+import { applyDexListQuery, dexListQuerySearchParams, parseDexListQuery } from "@/lib/dex-list-query";
 
 function formatPct(n: number | null) {
   if (n == null || !Number.isFinite(n)) return "—";
@@ -63,47 +67,67 @@ export function NewLowCapsTable({
   heading?: string;
 }) {
   const { entries, mounted } = useWatchlist();
+  const searchParams = useSearchParams();
+  const listQuery = parseDexListQuery(searchParams);
   const watchIds = new Set(entries.map((e) => e.id));
 
-  const visibleRows =
+  const watchFiltered =
     watchlistOnly && mounted ? rows.filter((row) => watchIds.has(row.id)) : rows;
 
+  const visibleRows = useMemo(
+    () =>
+      applyDexListQuery(
+        watchFiltered.map((row) => ({ ...row, change24h: row.change7d })),
+        listQuery,
+      ),
+    [watchFiltered, listQuery],
+  );
+
+  const chainIds = useMemo(
+    () => [...new Set(rows.map((row) => row.chain).filter((chain): chain is string => Boolean(chain)))],
+    [rows],
+  );
+
   const filtering = watchlistOnly && mounted;
+  const noFilterMatches = watchFiltered.length > 0 && visibleRows.length === 0;
 
   return (
     <section
       aria-labelledby="new-low-caps-heading"
       className={`${ds.panelLg} flex flex-col !p-0 overflow-hidden ${className}`.trim()}
     >
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-white/10 px-4 py-3 sm:px-5">
-        <h2 id="new-low-caps-heading" className="text-sm font-semibold text-zinc-100 sm:text-base">
-          {filtering ? "Watchlist · New & Low Caps" : heading}
-        </h2>
-        <div className="flex items-center gap-3">
-          {filtering ? (
-            <Link
-              href="/"
-              className="text-xs font-medium text-zinc-400 underline-offset-2 hover:text-zinc-200 hover:underline"
-            >
-              Show all
-            </Link>
-          ) : null}
-          {filtering ? (
-            <Link
-              href="/watchlist"
-              className="text-xs font-medium text-teal-300/90 underline-offset-2 hover:underline"
-            >
-              Full watchlist →
-            </Link>
-          ) : showViewAll ? (
-            <Link
-              href={viewAllHref}
-              className="text-xs font-medium text-teal-300/90 underline-offset-2 hover:underline"
-            >
-              View all →
-            </Link>
-          ) : null}
+      <div className="flex shrink-0 flex-col gap-2 border-b border-white/10 px-4 py-3 sm:px-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 id="new-low-caps-heading" className="text-sm font-semibold text-zinc-100 sm:text-base">
+            {filtering ? "Watchlist · New & Low Caps" : heading}
+          </h2>
+          <div className="flex items-center gap-3">
+            {filtering ? (
+              <Link
+                href="/"
+                className="text-xs font-medium text-zinc-400 underline-offset-2 hover:text-zinc-200 hover:underline"
+              >
+                Show all
+              </Link>
+            ) : null}
+            {filtering ? (
+              <Link
+                href="/watchlist"
+                className="text-xs font-medium text-teal-300/90 underline-offset-2 hover:underline"
+              >
+                Full watchlist →
+              </Link>
+            ) : showViewAll ? (
+              <Link
+                href={`${viewAllHref}${dexListQuerySearchParams(listQuery)}`}
+                className="text-xs font-medium text-teal-300/90 underline-offset-2 hover:underline"
+              >
+                View all →
+              </Link>
+            ) : null}
+          </div>
         </div>
+        {rows.length > 0 ? <DexListControls chains={chainIds} /> : null}
       </div>
 
       {!mounted && watchlistOnly ? (
@@ -111,11 +135,13 @@ export function NewLowCapsTable({
       ) : visibleRows.length === 0 ? (
         <div className="px-4 py-8 sm:px-5">
           <p className="text-sm text-zinc-500">
-            {filtering
+            {filtering && watchFiltered.length === 0
               ? "No watchlist coins in this New & Low Caps set. Star a token below (or from a coin page), or open your full watchlist."
-              : "Low-cap names will appear here when live pair data loads."}
+              : noFilterMatches
+                ? "No pairs match these filters."
+                : "Low-cap names will appear here when live pair data loads."}
           </p>
-          {filtering ? (
+          {filtering && watchFiltered.length === 0 ? (
             <div className="mt-4 flex flex-wrap gap-3">
               <Link
                 href="/"

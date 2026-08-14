@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/site-header";
 import { DexTokenView } from "@/components/dex-token-view";
 import { formatChainLabel } from "@/lib/format-chain";
 import { getDexScreenerTokenPage } from "@/lib/dexscreener-token";
+import { getDexScreenerTrades, type DexTrade } from "@/lib/dexscreener-trades";
 
 type Props = { params: Promise<{ chain: string; address: string }> };
 
@@ -63,11 +64,19 @@ export default async function DexTokenPage({ params }: Props) {
   }
   if (!token) notFound();
 
+  let trades: DexTrade[] = [];
+  try {
+    trades = await getDexScreenerTrades(token.chain, token.pairAddress);
+  } catch (err) {
+    console.warn("[token] DexScreener trades failed", err);
+    trades = [];
+  }
+
   return (
     <>
       <SiteHeader />
       <main id="main-content" className="border-b border-white/10 bg-[#0a0a0a] px-4 py-8 sm:px-6">
-        <DexTokenView token={token} />
+        <DexTokenView token={token} trades={trades} />
       </main>
     </>
   );

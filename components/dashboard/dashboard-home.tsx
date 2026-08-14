@@ -1,5 +1,6 @@
 import type { DashboardSnapshot } from "@/lib/dashboard-data";
 import Link from "next/link";
+import { Suspense } from "react";
 import { StickyRegimeBar } from "@/components/dashboard/sticky-regime-bar";
 import { DashboardHero } from "@/components/dashboard/dashboard-hero";
 import { NarrativeRotationSection } from "@/components/dashboard/narrative-rotation-section";
@@ -60,11 +61,13 @@ export function DashboardHome({
           watchlistOnly={watchlistOnly}
         />
 
-        <NewLowCapsTable
-          rows={snapshot.lowCaps}
-          watchlistOnly={watchlistOnly}
-          className="mt-4"
-        />
+        <Suspense fallback={<div className="mt-4 h-48 rounded-2xl border border-white/10 bg-[#0c0e14]" />}>
+          <NewLowCapsTable
+            rows={snapshot.lowCaps}
+            watchlistOnly={watchlistOnly}
+            className="mt-4"
+          />
+        </Suspense>
 
         <DisclaimerNote className="mt-6">
           Narrative baskets are CoinGecko category averages · switch 24H / 7D / 1M on the tracker ·
