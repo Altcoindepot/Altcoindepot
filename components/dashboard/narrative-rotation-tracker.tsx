@@ -15,35 +15,31 @@ const WINDOW_LABEL: Record<RotationWindow, string> = {
   "30d": "1M",
 };
 
-const WINDOW_SUBTITLE: Record<RotationWindow, string> = {
-  "24h": "24-hour window",
-  "7d": "7-day window",
-  "30d": "1-month window",
-};
-
 /** Desktop circular narrative rotation tracker. Hidden on small screens via parent layout. */
 export function NarrativeRotationTracker({
   narratives,
   regimeLabel,
+  cycleDay,
   window = "24h",
   className = "",
 }: {
   narratives: NarrativeView[];
   regimeLabel: string;
+  cycleDay: number;
   window?: RotationWindow;
   className?: string;
 }) {
   const nodes = narratives.slice(0, 6);
-  const size = 420;
+  const size = 520;
   const cx = size / 2;
   const cy = size / 2;
-  const radius = 148;
+  const radius = 188;
 
   return (
     <section
       id="narrative-tracker"
       aria-labelledby="narrative-tracker-heading"
-      className={`${ds.panelLg} relative hidden min-h-0 flex-col overflow-hidden md:flex ${className}`.trim()}
+      className={`${ds.panelLg} relative hidden min-h-0 flex-col overflow-visible md:flex ${className}`.trim()}
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 id="narrative-tracker-heading" className="text-base font-semibold text-zinc-100">
@@ -57,15 +53,15 @@ export function NarrativeRotationTracker({
         </p>
       </div>
 
-      <div className="relative mx-auto mt-2 flex min-h-0 w-full flex-1 items-center justify-center">
-        <div className="relative aspect-square w-full max-h-full max-w-[26rem]">
+      <div className="relative mx-auto mt-3 flex min-h-0 w-full flex-1 items-center justify-center overflow-visible px-2">
+        <div className="relative aspect-square w-full max-h-full max-w-[min(100%,34rem)]">
           <svg viewBox={`0 0 ${size} ${size}`} className="h-full w-full" aria-hidden>
             <circle
               cx={cx}
               cy={cy}
               r={radius}
               fill="none"
-              stroke="rgba(244,221,195,0.12)"
+              stroke="rgba(45,212,191,0.18)"
               strokeWidth="1.5"
               strokeDasharray="4 6"
             />
@@ -112,25 +108,28 @@ export function NarrativeRotationTracker({
             })}
           </svg>
 
-          <div className="absolute left-1/2 top-1/2 z-10 flex h-36 w-36 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border border-teal-400/40 bg-[radial-gradient(circle_at_30%_20%,rgba(45,212,191,0.25),rgba(12,14,20,0.95))] text-center shadow-[0_0_40px_rgba(45,212,191,0.2)]">
-            <p className="text-[9px] font-semibold uppercase tracking-widest text-teal-200/90">
-              Regime: {regimeLabel}
+          <div className="absolute left-1/2 top-1/2 z-10 flex h-[9.5rem] w-[9.5rem] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border-2 border-teal-400/50 bg-[radial-gradient(circle_at_30%_20%,rgba(45,212,191,0.28),rgba(10,10,10,0.96))] px-3 text-center shadow-[0_0_44px_rgba(45,212,191,0.28)] sm:h-[10.5rem] sm:w-[10.5rem]">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-teal-300">
+              Regime
             </p>
-            <p className="mt-1 text-3xl font-extrabold tracking-tight text-zinc-50">
-              {WINDOW_LABEL[window]}
+            <p className="mt-1 text-lg font-extrabold leading-tight tracking-wide text-zinc-50 sm:text-xl">
+              {regimeLabel}
             </p>
-            <p className="mt-0.5 text-[10px] text-zinc-500">{WINDOW_SUBTITLE[window]}</p>
+            <p className="mt-1.5 text-xs font-medium tabular-nums text-zinc-200">
+              Day {cycleDay}
+              <span className="text-zinc-500"> / 28</span>
+            </p>
           </div>
 
           {nodes.map((n, i) => {
             const angle = (i / nodes.length) * Math.PI * 2 - Math.PI / 2;
-            const x = 50 + Math.cos(angle) * 38;
-            const y = 50 + Math.sin(angle) * 38;
+            const x = 50 + Math.cos(angle) * 36;
+            const y = 50 + Math.sin(angle) * 36;
             return (
               <Link
                 key={n.slug}
                 href={`/narrative/${n.slug}`}
-                className="absolute z-20 flex w-[5.5rem] -translate-x-1/2 -translate-y-1/2 cursor-pointer flex-col items-center overflow-visible rounded-full border bg-[#12141a]/95 px-2 py-2 text-center shadow-[0_0_18px_var(--node-glow)] transition-all duration-300 ease-in-out hover:z-30 hover:scale-105 hover:shadow-[0_0_28px_var(--node-glow-strong),0_0_48px_var(--node-glow)]"
+                className="absolute z-20 flex w-[4.75rem] -translate-x-1/2 -translate-y-1/2 cursor-pointer flex-col items-center overflow-visible rounded-full border bg-[#0a0a0a]/95 px-1.5 py-2 text-center shadow-[0_0_18px_var(--node-glow)] transition-all duration-300 ease-in-out hover:z-30 hover:scale-105 hover:shadow-[0_0_28px_var(--node-glow-strong),0_0_48px_var(--node-glow)] xl:w-[5.25rem]"
                 style={
                   {
                     left: `${x}%`,
@@ -152,7 +151,7 @@ export function NarrativeRotationTracker({
                       style={{ backgroundColor: n.color }}
                     />
                     <span
-                      className="relative inline-flex size-1.5 rounded-full ring-1 ring-[#12141a]"
+                      className="relative inline-flex size-1.5 rounded-full ring-1 ring-[#0a0a0a]"
                       style={{
                         backgroundColor: n.color,
                         boxShadow: `0 0 8px ${n.color}`,

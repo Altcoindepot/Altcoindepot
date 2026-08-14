@@ -75,7 +75,7 @@ export default async function NarrativePage({ params }: Props) {
             className={`h-4 w-4 rounded-full ${narrative.glowClass}`}
             aria-hidden
           />
-          <h1 className="text-2xl font-extrabold tracking-tight text-zinc-50 sm:text-3xl">
+          <h1 className="text-brand-altcoindepot text-2xl font-extrabold tracking-tight sm:text-3xl">
             {narrative.title}
           </h1>
           <span className={ds.badgeInfo}>CoinGecko category</span>

@@ -90,6 +90,8 @@ export type DashboardSnapshot = {
   cycleProgressPct: number;
   updatedAt: string;
   stale: boolean;
+  /** True when the protective mock snapshot is serving instead of CoinGecko. */
+  usingMock?: boolean;
 };
 
 function avgField(
@@ -320,27 +322,34 @@ async function fetchTrendingAssets(limit = 3): Promise<TrendingAssetRow[]> {
   }
 }
 
+async function loadNarrativeCategoryCoins(categoryId: string): Promise<CoinMarket[]> {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) await sleep(400 * attempt + 250);
+    try {
+      return await loadMarketsByGeckoCategory(
+        categoryId,
+        40,
+        { next: { revalidate: REVALIDATE } },
+        { sparkline: false },
+      );
+    } catch (err) {
+      const rateLimited = err instanceof CoinGeckoRateLimitError;
+      if (rateLimited && attempt < 2) continue;
+      return [];
+    }
+  }
+  return [];
+}
+
 async function buildDashboardSnapshot(): Promise<DashboardSnapshot> {
   const narratives: NarrativeSnapshot[] = [];
   const lowCapPool: LowCapRow[] = [];
   let btcChange24h: number | null = null;
-  let hitRateLimit = false;
 
   for (let i = 0; i < NARRATIVES.length; i++) {
     const def = NARRATIVES[i]!;
-    if (i > 0) await sleep(180);
-    let coins: CoinMarket[] = [];
-    try {
-      coins = await loadMarketsByGeckoCategory(def.coingeckoCategoryId, 40, {
-        next: { revalidate: REVALIDATE },
-      });
-    } catch (err) {
-      if (err instanceof CoinGeckoRateLimitError) {
-        hitRateLimit = true;
-        break;
-      }
-      coins = [];
-    }
+    if (i > 0) await sleep(280);
+    const coins = await loadNarrativeCategoryCoins(def.coingeckoCategoryId);
     const a24 = avgField(coins, (c) => c.price_change_percentage_24h);
     const a7 = avgField(coins, (c) => c.price_change_percentage_7d_in_currency);
     const a30 = avgField(coins, (c) => c.price_change_percentage_30d_in_currency);
@@ -356,18 +365,11 @@ async function buildDashboardSnapshot(): Promise<DashboardSnapshot> {
     lowCapPool.push(...pickLowCaps(def, coins));
   }
 
-  if (hitRateLimit) {
-    throw new CoinGeckoRateLimitError("Dashboard category fetch hit CoinGecko 429");
-  }
-
   try {
     const res = await coinGeckoFetch(
       "/coins/markets?vs_currency=usd&ids=bitcoin&sparkline=false&price_change_percentage=24h",
       { next: { revalidate: REVALIDATE } },
     );
-    if (res.status === 429) {
-      throw new CoinGeckoRateLimitError("Bitcoin quote fetch hit CoinGecko 429");
-    }
     if (res.ok) {
       const data: unknown = await res.json();
       if (Array.isArray(data) && data[0] && typeof data[0] === "object") {
@@ -375,9 +377,8 @@ async function buildDashboardSnapshot(): Promise<DashboardSnapshot> {
         if (typeof ch === "number") btcChange24h = ch;
       }
     }
-  } catch (err) {
-    if (err instanceof CoinGeckoRateLimitError) throw err;
-    /* ignore soft failures */
+  } catch {
+    /* ignore soft failures — BTC quote is optional for regime */
   }
 
   const [pulse, fearGreed, trendingAssets] = await Promise.all([
@@ -413,8 +414,8 @@ async function buildDashboardSnapshot(): Promise<DashboardSnapshot> {
   );
   const cycleDay = (dayOfYear % 28) + 1;
 
-  const stale = narratives.every((n) => n.sampleSize === 0);
-  if (stale) {
+  const loadedCount = narratives.filter((n) => n.sampleSize > 0).length;
+  if (loadedCount === 0) {
     // Treat a fully empty live response as unavailable so callers can fall back to mocks.
     throw new Error("CoinGecko dashboard returned empty category payloads");
   }
@@ -432,13 +433,14 @@ async function buildDashboardSnapshot(): Promise<DashboardSnapshot> {
     cycleDay,
     cycleProgressPct,
     updatedAt: new Date().toISOString(),
-    stale: false,
+    stale: loadedCount < narratives.length,
+    usingMock: false,
   };
 }
 
 const getCachedDashboardSnapshot = unstable_cache(
   buildDashboardSnapshot,
-  ["dashboard-snapshot-v5-sparklines"],
+  ["dashboard-snapshot-v6-hourly"],
   { revalidate: REVALIDATE },
 );
 

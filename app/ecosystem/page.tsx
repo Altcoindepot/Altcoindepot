@@ -46,7 +46,7 @@ export default async function EcosystemPage() {
             <span className="text-zinc-400">Ecosystem Research</span>
           </nav>
 
-          <h1 className="mt-3 text-2xl font-bold text-white sm:text-3xl">
+          <h1 className="text-brand-altcoindepot mt-3 text-2xl font-bold tracking-tight sm:text-3xl">
             Ecosystem &amp; Developer Resources
           </h1>
           <p className={`mt-2 max-w-2xl ${ds.subtitle}`}>

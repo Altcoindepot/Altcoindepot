@@ -89,7 +89,7 @@ export default async function DexTrendingPage() {
       <SiteHeader />
       <main className="px-4 py-8 sm:px-6 sm:py-10">
         <div className="mx-auto max-w-6xl">
-          <h1 className="text-2xl font-bold text-white sm:text-3xl">DEX Trending</h1>
+          <h1 className="text-brand-altcoindepot text-2xl font-bold tracking-tight sm:text-3xl">DEX Trending</h1>
           <p className="mt-2 max-w-3xl text-sm text-zinc-400">
             Top 5 movers in the last 24h for each DEX venue, with 1h continuation signal and 24h
             volume context.

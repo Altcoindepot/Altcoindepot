@@ -36,7 +36,7 @@ export default function AlertsPage() {
     <>
       <SiteHeader />
       <main className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
-        <h1 className="text-2xl font-bold text-white">Price alerts</h1>
+        <h1 className="text-brand-altcoindepot text-2xl font-bold tracking-tight">Price alerts</h1>
         <p className="mt-2 text-sm text-zinc-400">
           Browser notifications when a coin crosses your target. Alerts are checked while this site
           is open in a tab. Data stays on this device.

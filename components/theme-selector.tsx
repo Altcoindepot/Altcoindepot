@@ -12,9 +12,9 @@ const options: {
   label: string;
   icon: "system" | "sun" | "moon";
 }[] = [
-  { value: "system", label: "System", icon: "system" },
-  { value: "light", label: "Light", icon: "sun" },
   { value: "dark", label: "Dark", icon: "moon" },
+  { value: "light", label: "Light", icon: "sun" },
+  { value: "system", label: "System", icon: "system" },
 ];
 
 function ThemeIcon({ kind }: { kind: "system" | "sun" | "moon" }) {
@@ -42,7 +42,7 @@ function ThemeIcon({ kind }: { kind: "system" | "sun" | "moon" }) {
 }
 
 export function ThemeSelector() {
-  const [preference, setPreference] = useState<ThemePreference>("system");
+  const [preference, setPreference] = useState<ThemePreference>("dark");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {

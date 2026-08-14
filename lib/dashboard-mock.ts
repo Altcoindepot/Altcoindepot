@@ -171,10 +171,11 @@ export function getMockDashboardSnapshot(): DashboardSnapshot {
     regime: "Risk-On",
     regimeLabel: "ROTATION",
     regimeSummary:
-      "Cached snapshot unavailable from CoinGecko — showing protective mock metrics so the dashboard stays usable.",
+      "Track narrative rotations, spot regime shifts, and move ahead of the crowd.",
     cycleDay: 12,
     cycleProgressPct: 48,
     updatedAt: new Date().toISOString(),
     stale: true,
+    usingMock: true,
   };
 }

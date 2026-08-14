@@ -83,7 +83,7 @@ export default async function Top100TrendingPage() {
       <SiteHeader />
       <main className="px-4 py-8 sm:px-6 sm:py-10">
         <div className="mx-auto max-w-7xl">
-          <h1 className="text-2xl font-bold text-white sm:text-3xl">Top 100 Trending</h1>
+          <h1 className="text-brand-altcoindepot text-2xl font-bold tracking-tight sm:text-3xl">Top 100 Trending</h1>
           <p className="mt-2 max-w-3xl text-sm text-zinc-400">
             Heatmap-style movers board for the top 100 coins by market cap, ranked by 24h percentage
             change. Green tiles are up, red tiles are down.

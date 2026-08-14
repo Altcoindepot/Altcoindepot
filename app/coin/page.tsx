@@ -29,7 +29,7 @@ export default async function CoinSearchRedirectPage({
       <>
         <SiteHeader />
         <main className="mx-auto max-w-lg px-4 py-20 text-center sm:px-6">
-          <h1 className="text-xl font-semibold text-white">Search</h1>
+          <h1 className="text-brand-altcoindepot text-xl font-semibold tracking-tight">Search</h1>
           <p className="mt-2 text-sm text-zinc-400">
             Search the top {TOP_COINS_SEARCH_LIMIT.toLocaleString()} coins by name or ticker. Each
             result opens a full stats page with price, ATH/ATL, charts, and feeds.
@@ -56,7 +56,7 @@ export default async function CoinSearchRedirectPage({
       <>
         <SiteHeader />
         <main className="mx-auto max-w-lg px-4 py-20 text-center sm:px-6">
-          <h1 className="text-xl font-semibold text-white">Search unavailable</h1>
+          <h1 className="text-brand-altcoindepot text-xl font-semibold tracking-tight">Search unavailable</h1>
           <p className="mt-2 text-sm text-zinc-400">
             The coin index could not be loaded. Try again shortly.
           </p>
@@ -79,7 +79,7 @@ export default async function CoinSearchRedirectPage({
     <>
       <SiteHeader />
       <main className="mx-auto max-w-xl px-4 py-12 sm:px-6">
-        <h1 className="text-xl font-semibold text-white">Search results</h1>
+        <h1 className="text-brand-altcoindepot text-xl font-semibold tracking-tight">Search results</h1>
         <p className="mt-2 text-sm text-zinc-400">
           Top {index.length.toLocaleString()} coins by market cap · query{" "}
           <span className="font-mono text-zinc-200">{query}</span>

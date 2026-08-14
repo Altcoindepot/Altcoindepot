@@ -163,7 +163,7 @@ export function DashboardSidebar({
       <aside
         aria-label="Site navigation"
         data-sidebar-nav
-        className="fixed bottom-0 left-0 top-[4.25rem] z-30 hidden w-52 flex-col border-r border-[#f4ddc3]/10 bg-[#0b0d11]/95 py-4 backdrop-blur-xl sm:top-[4.75rem] lg:flex xl:w-56"
+        className="fixed bottom-0 left-0 top-[4.25rem] z-30 hidden w-52 flex-col border-r border-white/10 bg-[#0b0d11]/78 py-4 backdrop-blur-xl sm:top-[4.75rem] lg:flex xl:w-56"
       >
         <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2">
           <NavLinks pathname={pathname} watchlistOn={watchlistOn} />
@@ -176,7 +176,7 @@ export function DashboardSidebar({
       {/* Mobile / tablet: horizontal strip (replaces header menu button) */}
       <nav
         aria-label="Site navigation"
-        className="sticky top-[4.25rem] z-40 border-b border-[#f4ddc3]/20 bg-[#0b0d11]/95 backdrop-blur-xl sm:top-[4.75rem] lg:hidden"
+        className="sticky top-[4.25rem] z-40 border-b border-white/10 bg-[#0b0d11]/78 backdrop-blur-xl sm:top-[4.75rem] lg:hidden"
       >
         <div className="flex gap-1 overflow-x-auto px-2 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {[...PRIMARY_NAV, ...MORE_NAV].map((item) => {

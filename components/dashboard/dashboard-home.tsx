@@ -55,6 +55,7 @@ export function DashboardHome({
         <NarrativeRotationSection
           narratives={snapshot.narratives}
           regimeLabel={snapshot.regimeLabel}
+          cycleDay={snapshot.cycleDay}
           trendingAssets={snapshot.trendingAssets}
           watchlistOnly={watchlistOnly}
           lowCapsSlot={
@@ -66,7 +67,12 @@ export function DashboardHome({
           Narrative baskets are CoinGecko category averages · switch 24H / 7D / 1M on the tracker ·
           informational only · not financial advice · refreshed about hourly
         </DisclaimerNote>
-        {snapshot.stale ? (
+        {snapshot.usingMock ? (
+          <p className="mt-2 text-xs text-amber-200/80">
+            Cached snapshot unavailable from CoinGecko — showing protective mock metrics so the
+            dashboard stays usable.
+          </p>
+        ) : snapshot.stale ? (
           <p className="mt-2 text-xs text-amber-200/80">
             Some category feeds were empty — showing best-effort snapshot.
           </p>

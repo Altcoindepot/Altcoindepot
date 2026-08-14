@@ -70,7 +70,7 @@ export default async function MarketOverviewPage() {
               <span className="mx-1.5 text-zinc-600">/</span>
               <span className="text-zinc-400">Market overview</span>
             </nav>
-            <h1 className="mt-3 text-2xl font-bold text-white sm:text-3xl">Market overview</h1>
+            <h1 className="text-brand-altcoindepot mt-3 text-2xl font-bold tracking-tight sm:text-3xl">Market overview</h1>
             <p className={`mt-2 max-w-2xl ${ds.subtitle}`}>
               Pulse stats, a sector heatmap, which categories are moving, and the strongest 24h
               movers among smaller-cap names.

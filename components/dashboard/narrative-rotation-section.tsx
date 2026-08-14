@@ -17,12 +17,14 @@ import { ds } from "@/lib/ui-classes";
 export function NarrativeRotationSection({
   narratives,
   regimeLabel,
+  cycleDay,
   trendingAssets,
   lowCapsSlot,
   watchlistOnly = false,
 }: {
   narratives: NarrativeSnapshot[];
   regimeLabel: string;
+  cycleDay: number;
   trendingAssets: TrendingAssetRow[];
   lowCapsSlot: ReactNode;
   watchlistOnly?: boolean;
@@ -76,46 +78,37 @@ export function NarrativeRotationSection({
     <div>
       {windowToggle}
 
-      {/* Desktop (lg+): two columns, each stacked pair spans 3 of 6 rows */}
-      <div className="hidden h-[46rem] gap-4 lg:grid lg:grid-cols-[minmax(0,1.45fr)_minmax(17rem,0.9fr)] lg:grid-rows-6">
+      {/*
+        Single tree so each section renders once.
+        Mobile: card stack (tracker hidden). Tablet: stacked. Desktop: 2×2 grid.
+      */}
+      <div className="flex flex-col gap-4 lg:grid lg:h-[48rem] lg:grid-cols-[minmax(0,1.45fr)_minmax(16rem,0.9fr)] lg:grid-rows-6">
         <NarrativeRotationTracker
           narratives={trackerNodes}
           regimeLabel={regimeLabel}
+          cycleDay={cycleDay}
           window={window}
-          className="col-start-1 row-span-3 row-start-1 h-full min-h-0"
+          className="hidden min-h-[24rem] md:flex lg:col-start-1 lg:row-span-3 lg:row-start-1 lg:h-full lg:min-h-0"
+        />
+        <TopRotations
+          narratives={top}
+          variant="mobile-primary"
+          window={window}
+          className="md:hidden"
         />
         <TrendingAssetsToday
           rows={trendingAssets}
           watchlistOnly={watchlistOnly}
-          className="col-start-2 row-span-3 row-start-1 h-full min-h-0"
+          className="lg:col-start-2 lg:row-span-3 lg:row-start-1 lg:h-full lg:min-h-0"
         />
-        <div className="col-start-1 row-span-3 row-start-4 h-full min-h-0">
+        <div className="lg:col-start-1 lg:row-span-3 lg:row-start-4 lg:h-full lg:min-h-0">
           {lowCapsSlot}
         </div>
         <TopRotations
           narratives={top}
           window={window}
-          className="col-start-2 row-span-3 row-start-4 h-full min-h-0"
+          className="hidden md:flex lg:col-start-2 lg:row-span-3 lg:row-start-4 lg:h-full lg:min-h-0"
         />
-      </div>
-
-      {/* Tablet (md–lg): node diagram on top, then stacked panels */}
-      <div className="hidden space-y-4 md:block lg:hidden">
-        <NarrativeRotationTracker
-          narratives={trackerNodes}
-          regimeLabel={regimeLabel}
-          window={window}
-        />
-        <TrendingAssetsToday rows={trendingAssets} watchlistOnly={watchlistOnly} />
-        {lowCapsSlot}
-        <TopRotations narratives={top} window={window} />
-      </div>
-
-      {/* Mobile (< md): hide node diagram; Top Rotations cards replace it */}
-      <div className="space-y-4 md:hidden">
-        <TopRotations narratives={top} variant="mobile-primary" window={window} />
-        <TrendingAssetsToday rows={trendingAssets} watchlistOnly={watchlistOnly} />
-        {lowCapsSlot}
       </div>
     </div>
   );

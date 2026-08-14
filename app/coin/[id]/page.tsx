@@ -114,7 +114,7 @@ export default async function CoinPage({ params }: Props) {
       <>
         <SiteHeader />
         <main className="min-h-[50vh] border-t border-white/5 bg-[#0a0a0a] px-4 py-20 text-center sm:px-6">
-          <h1 className="text-metallic-hero text-xl font-semibold sm:text-2xl">
+          <h1 className="text-brand-altcoindepot text-xl font-semibold sm:text-2xl">
             Asset Data Profile Currently Syncing.
           </h1>
           <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-zinc-400">

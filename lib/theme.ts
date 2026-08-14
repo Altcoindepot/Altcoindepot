@@ -7,7 +7,7 @@ export type Theme = "dark" | "light";
 /** What the user chose — `system` follows OS preference. */
 export type ThemePreference = Theme | "system";
 
-export const DEFAULT_THEME_PREFERENCE: ThemePreference = "system";
+export const DEFAULT_THEME_PREFERENCE: ThemePreference = "dark";
 
 export function isTheme(value: string | null | undefined): value is Theme {
   return value === "dark" || value === "light";

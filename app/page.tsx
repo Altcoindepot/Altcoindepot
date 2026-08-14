@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { DashboardHome } from "@/components/dashboard/dashboard-home";
-import { MarketsDataShell } from "@/components/markets-data-shell";
-import { HomeMarketsFallback } from "@/components/home-markets-fallback";
 import { getDashboardSnapshot, type DashboardSnapshot } from "@/lib/dashboard-data";
 import { getMockDashboardSnapshot } from "@/lib/dashboard-mock";
 
@@ -30,8 +27,8 @@ export const metadata: Metadata = {
 };
 
 /**
- * Dynamic so `?watchlist=` works and Vercel Hobby does not spend ISR writes
- * prerendering live CoinGecko payloads (that quota already failed last night's deploys).
+ * Dynamic so `?watchlist=` works. CoinGecko payloads are cached for 1 hour in
+ * `getDashboardSnapshot` / `coinGeckoFetch` (revalidate: 3600).
  */
 export const dynamic = "force-dynamic";
 
@@ -52,7 +49,6 @@ function relativeUpdated(iso: string): string {
  */
 async function fetchDashboardData(): Promise<DashboardSnapshot> {
   try {
-    // Cached server-side via unstable_cache + fetch revalidate: 3600 in lib/dashboard-data.
     return await getDashboardSnapshot();
   } catch (error) {
     console.error("[page] Dashboard CoinGecko fetch failed; using mock data.", error);
@@ -73,18 +69,7 @@ export default async function Home({
     <>
       <SiteHeader updatedLabel={relativeUpdated(snapshot.updatedAt)} />
       <main id="main-content" className="relative">
-        <Suspense
-          fallback={
-            <>
-              <HomeMarketsFallback />
-              <DashboardHome snapshot={snapshot} watchlistOnly={watchlistOnly} />
-            </>
-          }
-        >
-          <MarketsDataShell
-            between={<DashboardHome snapshot={snapshot} watchlistOnly={watchlistOnly} />}
-          />
-        </Suspense>
+        <DashboardHome snapshot={snapshot} watchlistOnly={watchlistOnly} />
       </main>
     </>
   );

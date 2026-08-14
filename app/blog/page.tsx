@@ -12,7 +12,7 @@ export default function BlogPage() {
     <>
       <SiteHeader />
       <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-        <h1 className="text-2xl font-bold text-white">Blog</h1>
+        <h1 className="text-brand-altcoindepot text-2xl font-bold tracking-tight">Blog</h1>
         <p className="mt-2 text-zinc-400">
           Articles and market commentary will be published here. Placeholder for now.
         </p>

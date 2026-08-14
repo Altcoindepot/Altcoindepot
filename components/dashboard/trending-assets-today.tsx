@@ -38,7 +38,7 @@ export function TrendingAssetsToday({
           {filtering ? "Watchlist · Trending" : "Trending Assets Today"}
         </h2>
         <Link
-          href={filtering ? "/watchlist" : "/#classic-markets-heading"}
+          href={filtering ? "/watchlist" : "/top-100-trending"}
           className="text-[10px] font-medium text-teal-300/90 underline-offset-2 hover:underline"
         >
           {filtering ? "Full list →" : "More →"}

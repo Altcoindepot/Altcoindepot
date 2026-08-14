@@ -34,7 +34,7 @@ export type NarrativeDef = {
 
 /**
  * Six primary narratives shown in the Rotation Tracker.
- * Edit this list to add/remove baskets — CoinGecko category ids must exist.
+ * `coingeckoCategoryId` must match CoinGecko `/coins/categories/list` (used as `category=` on `/coins/markets`).
  */
 export const NARRATIVES: readonly NarrativeDef[] = [
   {

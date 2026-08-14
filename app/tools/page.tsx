@@ -12,7 +12,7 @@ export default function ToolsPage() {
     <>
       <SiteHeader />
       <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-        <h1 className="text-2xl font-bold text-white">Tools</h1>
+        <h1 className="text-brand-altcoindepot text-2xl font-bold tracking-tight">Tools</h1>
         <p className="mt-2 text-zinc-400">
           Track coins and holdings locally — no account required.
         </p>

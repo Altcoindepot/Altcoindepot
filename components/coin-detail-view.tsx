@@ -651,7 +651,7 @@ export function CoinDetailView({
           <p className="text-xs uppercase tracking-widest text-zinc-500">
             {coin.market_cap_rank != null ? `Rank #${coin.market_cap_rank}` : "Unranked"}
           </p>
-          <h1 className="text-metallic-hero mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
+          <h1 className="text-brand-altcoindepot mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
             {coin.name}
           </h1>
           <p className="mt-1 font-mono text-base text-zinc-400">

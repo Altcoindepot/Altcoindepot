@@ -28,7 +28,7 @@ export function LegalPageLayout({
             <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
               Legal
             </p>
-            <h1 className="mt-2 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            <h1 className="mt-2 text-brand-altcoindepot text-2xl font-bold tracking-tight sm:text-3xl">
               {title}
             </h1>
             {description ? (

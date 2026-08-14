@@ -12,7 +12,7 @@ export default function PrivacyPage() {
     <>
       <SiteHeader />
       <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
-        <h1 className="text-2xl font-bold text-white sm:text-3xl">Privacy</h1>
+        <h1 className="text-brand-altcoindepot text-2xl font-bold tracking-tight sm:text-3xl">Privacy</h1>
         <div className="mt-5 space-y-4 text-sm leading-relaxed text-zinc-400 sm:text-base">
           <p>
             AltCoin Depot is designed to work without requiring an account. Watchlist, portfolio,

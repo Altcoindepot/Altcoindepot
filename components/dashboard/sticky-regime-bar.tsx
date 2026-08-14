@@ -11,7 +11,7 @@ export function StickyRegimeBar({
   cycleProgressPct: number;
 }) {
   return (
-    <div className="sticky top-[7.25rem] z-40 border-b border-[#f4ddc3]/12 bg-[#0b0d11]/92 backdrop-blur-xl lg:top-[4.75rem]">
+    <div className="sticky top-[7.25rem] z-40 border-b border-white/10 bg-[#0b0d11]/92 backdrop-blur-xl lg:top-[4.75rem]">
       <div className="mx-auto flex max-w-[90rem] flex-wrap items-center gap-3 px-4 py-2.5 sm:px-6 lg:gap-6">
         <span
           className={`${ds.badge} inline-flex items-center border-teal-400/45 bg-teal-500/10 font-semibold uppercase tracking-wide text-teal-200`}

@@ -20,9 +20,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-/** Do not persist fetch results into Vercel ISR / Data Cache (Hobby write cap). */
-export const fetchCache = "force-no-store";
-
 export const metadata: Metadata = {
   metadataBase: new URL("https://altcoindepot.com"),
   title: {
@@ -59,6 +56,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-theme="dark"
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full scroll-smooth antialiased`}
     >

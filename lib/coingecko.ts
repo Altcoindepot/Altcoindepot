@@ -37,13 +37,15 @@ export function coinGeckoHeaders(): HeadersInit {
   return headers;
 }
 
+/** Default HTTP cache TTL — CoinGecko Demo/free-tier friendly (1 hour). */
+export const COINGECKO_REVALIDATE_SECONDS = 3600;
+
 /** Fetch a CoinGecko path (e.g. `/coins/markets?...`) with the shared base URL + API key. */
 export async function coinGeckoFetch(
   path: string,
   init?: RequestInit & { next?: { revalidate?: number } },
 ): Promise<Response> {
-  // Skip live CoinGecko during `next build` so Vercel prerender does not hang
-  // or write ISR/Data Cache units (Hobby 200k write cap).
+  // Skip live CoinGecko during `next build` so prerender does not hang on rate limits.
   if (isProductionBuild()) {
     return new Response("[]", {
       status: 503,
@@ -55,14 +57,14 @@ export async function coinGeckoFetch(
   const normalized = path.startsWith("http")
     ? path
     : `${getCoinGeckoApiBase()}${path.startsWith("/") ? path : `/${path}`}`;
-  const { next: _ignoredNext, cache: _ignoredCache, ...rest } = init ?? {};
-  void _ignoredNext;
-  void _ignoredCache;
+  const { next: nextInit, cache, ...rest } = init ?? {};
+  const revalidate = nextInit?.revalidate ?? COINGECKO_REVALIDATE_SECONDS;
+
   return fetch(normalized, {
     ...rest,
-    // Avoid Vercel ISR / Data Cache writes; callers already use unstable_cache
-    // or in-process fallbacks for freshness.
-    cache: "no-store",
+    ...(cache === "no-store"
+      ? { cache: "no-store" }
+      : { next: { revalidate } }),
     headers: {
       ...coinGeckoHeaders(),
       ...(init?.headers as Record<string, string> | undefined),
@@ -228,7 +230,9 @@ async function loadCategoryHomeColumns(
     // CoinGecko free-tier rate limits are strict; sequential fetch + backoff reduces empty categories.
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        rows = await loadMarketsByGeckoCategory(def.coingeckoCategoryId, need, init);
+        rows = await loadMarketsByGeckoCategory(def.coingeckoCategoryId, need, init, {
+          sparkline: false,
+        });
         break;
       } catch {
         if (attempt < 2) {
@@ -289,8 +293,14 @@ export async function loadMarketsBundle(
   }
 }
 
+const getCachedMarketsBundle = unstable_cache(
+  async () => loadMarketsBundle({ next: { revalidate: COINGECKO_REVALIDATE_SECONDS } }),
+  ["markets-bundle-v2-hourly"],
+  { revalidate: COINGECKO_REVALIDATE_SECONDS },
+);
+
 export const getMarketsBundle = cache(async (): Promise<MarketsBundle> => {
-  return loadMarketsBundle({ next: { revalidate: 3600 } });
+  return getCachedMarketsBundle();
 });
 
 /** CoinGecko `/coins/{id}` — trimmed to fields we render */

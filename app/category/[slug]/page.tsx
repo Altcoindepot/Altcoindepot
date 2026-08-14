@@ -84,7 +84,7 @@ export default async function CategoryPage({ params }: PageProps) {
             <span className="mx-1.5 text-zinc-600">/</span>
             <span className="text-zinc-400">{cat.title}</span>
           </nav>
-          <h1 className="mt-3 text-2xl font-bold text-white sm:text-3xl">{cat.title}</h1>
+          <h1 className="text-brand-altcoindepot mt-3 text-2xl font-bold tracking-tight sm:text-3xl">{cat.title}</h1>
           <p className="mt-2 max-w-2xl text-sm text-zinc-400">{cat.description}</p>
           <p className="mt-1 text-xs text-zinc-500">
             Top 100 from CoinGecko’s <span className="font-mono text-zinc-400">{cat.coingeckoCategoryId}</span>{" "}

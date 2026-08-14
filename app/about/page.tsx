@@ -12,7 +12,7 @@ export default function AboutPage() {
     <>
       <SiteHeader />
       <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
-        <h1 className="text-2xl font-bold text-white sm:text-3xl">About AltCoin Depot</h1>
+        <h1 className="text-brand-altcoindepot text-2xl font-bold tracking-tight sm:text-3xl">About AltCoin Depot</h1>
         <div className="mt-5 space-y-4 text-sm leading-relaxed text-zinc-400 sm:text-base">
           <p>
             AltCoin Depot is a focused hub for discovering altcoins, tracking live market data, and
