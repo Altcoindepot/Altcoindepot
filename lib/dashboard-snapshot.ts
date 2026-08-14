@@ -5,6 +5,8 @@ import {
   logLiveSnapshot,
   type DashboardSnapshot,
 } from "@/lib/dashboard-data";
+
+export type { DashboardSnapshot };
 import { loadLastGood, memoryLastGood, saveLastGood } from "@/lib/dashboard-last-good";
 import { getMockDashboardSnapshot } from "@/lib/dashboard-mock";
 import { getDexScreenerLowCaps } from "@/lib/dexscreener-low-caps";
