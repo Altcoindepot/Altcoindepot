@@ -24,22 +24,6 @@ function tokenHref(row: LowCapRow): string {
   return dexTokenPath(row.chain, row.contractAddress) ?? `/coin/${encodeURIComponent(row.id)}`;
 }
 
-/** Left-edge accent for mobile New & Low Caps cards. */
-function mobileCardRailClass(row: LowCapRow): string {
-  if (row.status === "FADING") {
-    return "border-l-[3px] border-l-[#fb7185]";
-  }
-  const slug = row.narrativeSlug.toLowerCase();
-  const title = row.narrativeTitle.toLowerCase();
-  if (slug.includes("ai") || title.includes("ai")) {
-    return "border-l-[3px] border-l-[#34d399]";
-  }
-  if (slug === "rwa" || title.includes("rwa")) {
-    return "border-l-[3px] border-l-[#6366f1]";
-  }
-  return "border-l-[3px] border-l-[#3f3f46]";
-}
-
 function TokenNameLink({
   row,
   className,
@@ -144,93 +128,55 @@ export function NewLowCapsTable({
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <ul className="flex flex-col gap-2.5 p-3 md:hidden">
+          <ul className="divide-y divide-white/5 md:hidden">
             {visibleRows.map((row) => {
-              const signal = rotationSignalLabel(row.status);
-              const strongInflow = signal === "STRONG INFLOW";
               const chain = formatChainLabel(row.chain);
+              const useVolume = row.volume != null;
+              const secondary = useVolume ? row.volume : (row.liquidity ?? null);
+              const secondaryLabel = useVolume ? "Vol" : "Liq";
               return (
                 <li key={`${row.id}-${row.narrativeSlug}-card`}>
-                  <article
-                    className={`rounded-xl border border-white/10 bg-[#0c0e14] px-3 py-3 ${
-                      strongInflow
-                        ? "border-emerald-400/25 bg-gradient-to-r from-emerald-500/[0.08] to-[#0c0e14] shadow-[0_0_15px_rgba(16,185,129,0.12)]"
-                        : ""
-                    } ${mobileCardRailClass(row)}`}
+                  <Link
+                    href={tokenHref(row)}
+                    className="flex min-h-11 items-center gap-2 px-3 py-1.5 active:bg-white/[0.04]"
                   >
-                    <div className="flex items-center gap-3">
-                      <WatchlistStarButton
-                        coinId={row.id}
-                        name={row.name}
-                        symbol={row.symbol}
-                        image={row.image || undefined}
+                    {row.image ? (
+                      <Image
+                        src={row.image}
+                        alt=""
+                        width={20}
+                        height={20}
+                        className="size-5 shrink-0 rounded-full"
                       />
-                      <TokenNameLink row={row} className="flex min-w-0 flex-1 items-center gap-3">
-                        {row.image ? (
-                          <Image
-                            src={row.image}
-                            alt=""
-                            width={36}
-                            height={36}
-                            className="shrink-0 rounded-full"
-                          />
-                        ) : (
-                          <span className="size-9 shrink-0 rounded-full bg-zinc-800" />
-                        )}
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm font-semibold text-zinc-100">
-                            {row.name}
-                          </span>
-                          <span className="mt-0.5 flex items-center gap-1.5 font-mono text-[11px] uppercase text-zinc-500">
-                            <span>{row.symbol}</span>
-                            {row.chain ? (
-                              <span className="rounded bg-zinc-800 px-1 py-px text-[10px] tracking-wide text-zinc-400">
-                                {chain}
-                              </span>
-                            ) : null}
-                          </span>
+                    ) : (
+                      <span className="size-5 shrink-0 rounded-full bg-zinc-800" />
+                    )}
+                    <span className="min-w-0 flex-1">
+                      <span className="flex min-w-0 items-center gap-1.5">
+                        <span className="truncate text-[13px] font-medium leading-tight text-zinc-100">
+                          {row.name}
                         </span>
-                        <span className="shrink-0 text-right">
-                          <span
-                            className={`block font-mono text-sm font-bold tabular-nums ${
-                              (row.change7d ?? 0) >= 0 ? "text-emerald-300" : "text-red-300"
-                            }`}
-                          >
-                            {formatPct(row.change7d)}
-                          </span>
-                          <span className="mt-0.5 block text-[10px] uppercase tracking-wide text-zinc-500">
-                            24h
-                          </span>
+                        <span className="shrink-0 font-mono text-[10px] uppercase text-zinc-500">
+                          {row.symbol}
                         </span>
-                      </TokenNameLink>
-                    </div>
-                    <dl className="mt-2.5 grid grid-cols-3 gap-2 text-[11px]">
-                      <div>
-                        <dt className="text-zinc-500">MCap</dt>
-                        <dd className="font-mono tabular-nums text-zinc-300">
-                          {formatCompactUsd(row.marketCap)}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-zinc-500">Liq</dt>
-                        <dd className="font-mono tabular-nums text-zinc-300">
-                          {formatCompactUsd(row.liquidity ?? null)}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-zinc-500">Vol</dt>
-                        <dd className="font-mono tabular-nums text-zinc-300">
-                          {formatCompactUsd(row.volume)}
-                        </dd>
-                      </div>
-                    </dl>
-                    <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-                      <span className="text-[11px] text-zinc-500">{row.addedLabel}</span>
-                      {row.contractAddress ? (
-                        <CopyAddressButton address={row.contractAddress} />
-                      ) : null}
-                    </div>
-                  </article>
+                        {row.chain ? (
+                          <span className="shrink-0 rounded bg-zinc-800 px-1 py-px font-mono text-[9px] uppercase tracking-wide text-zinc-400">
+                            {chain}
+                          </span>
+                        ) : null}
+                      </span>
+                      <span className="mt-0.5 block font-mono text-[10px] tabular-nums leading-tight text-zinc-500">
+                        {secondaryLabel} {formatCompactUsd(secondary)}
+                      </span>
+                    </span>
+                    <span
+                      className={`shrink-0 font-mono text-xs font-semibold tabular-nums ${
+                        (row.change7d ?? 0) >= 0 ? "text-emerald-300" : "text-red-300"
+                      }`}
+                    >
+                      {formatPct(row.change7d)}
+                    </span>
+                  </Link>
                 </li>
               );
             })}
