@@ -1,5 +1,5 @@
 import { formatCompactUsd } from "@/lib/format-compact-usd";
-import { dexScreenerTradesEmbedUrl, type DexTrade } from "@/lib/dexscreener-trades";
+import type { DexTrade } from "@/lib/geckoterminal-trades";
 import { ds } from "@/lib/ui-classes";
 
 function formatAgo(timeMs: number): string {
@@ -42,16 +42,10 @@ function SideBadge({ side }: { side: "buy" | "sell" }) {
 export function DexRecentTrades({
   trades,
   pairUrl,
-  chain,
-  pairAddress,
 }: {
   trades: DexTrade[];
   pairUrl: string | null;
-  chain: string;
-  pairAddress: string | null;
 }) {
-  const embed = trades.length === 0 ? dexScreenerTradesEmbedUrl(pairUrl, chain, pairAddress) : null;
-
   return (
     <section className={`${ds.panelLg} mt-6 !p-0 overflow-hidden`} aria-labelledby="dex-trades-heading">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 px-3 py-3 sm:px-5">
@@ -65,7 +59,7 @@ export function DexRecentTrades({
             rel="noopener noreferrer"
             className="text-xs font-medium text-teal-300/90 underline-offset-2 hover:underline"
           >
-            DexScreener ↗
+            View trades on DexScreener ↗
           </a>
         ) : null}
       </div>
@@ -133,16 +127,20 @@ export function DexRecentTrades({
             </table>
           </div>
         </>
-      ) : embed ? (
-        <iframe
-          title="Recent DexScreener trades"
-          src={embed}
-          className="h-64 w-full max-w-full border-0 bg-[#0c0e14] sm:h-[22rem]"
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-        />
       ) : (
-        <p className="px-4 py-8 text-sm text-zinc-500 sm:px-5">Trades unavailable</p>
+        <div className="px-4 py-8 sm:px-5">
+          <p className="text-sm text-zinc-500">Trades unavailable</p>
+          {pairUrl ? (
+            <a
+              href={pairUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex text-xs font-medium text-teal-300/90 underline-offset-2 hover:underline"
+            >
+              View trades on DexScreener ↗
+            </a>
+          ) : null}
+        </div>
       )}
     </section>
   );

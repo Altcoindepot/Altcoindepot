@@ -7,7 +7,7 @@ import { DexProjectLinks } from "@/components/dex-project-links";
 import { DexRecentTrades } from "@/components/dex-recent-trades";
 import type { DexTokenPageData } from "@/lib/dexscreener-token";
 import { dexScreenerEmbedUrl } from "@/lib/dexscreener-token";
-import type { DexTrade } from "@/lib/dexscreener-trades";
+import type { DexTrade } from "@/lib/geckoterminal-trades";
 import { formatChainLabel } from "@/lib/format-chain";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
 import { ds } from "@/lib/ui-classes";
@@ -150,12 +150,7 @@ export function DexTokenView({ token, trades = [] }: { token: DexTokenPageData; 
         )}
       </section>
 
-      <DexRecentTrades
-        trades={trades}
-        pairUrl={token.pairUrl}
-        chain={token.chain}
-        pairAddress={token.pairAddress}
-      />
+      <DexRecentTrades trades={trades} pairUrl={token.pairUrl} />
 
       <p className="mt-6 rounded-xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-sm leading-relaxed text-amber-100/90">
         High-risk DEX token. New and low-cap pairs can be illiquid or fraudulent. This page is

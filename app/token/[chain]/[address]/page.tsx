@@ -4,7 +4,7 @@ import { SiteHeader } from "@/components/site-header";
 import { DexTokenView } from "@/components/dex-token-view";
 import { formatChainLabel } from "@/lib/format-chain";
 import { getDexScreenerTokenPage } from "@/lib/dexscreener-token";
-import { getDexScreenerTrades, type DexTrade } from "@/lib/dexscreener-trades";
+import { getGeckoTerminalTrades, type DexTrade } from "@/lib/geckoterminal-trades";
 
 type Props = { params: Promise<{ chain: string; address: string }> };
 
@@ -66,9 +66,9 @@ export default async function DexTokenPage({ params }: Props) {
 
   let trades: DexTrade[] = [];
   try {
-    trades = await getDexScreenerTrades(token.chain, token.pairAddress);
+    trades = await getGeckoTerminalTrades(token.chain, token.pairAddress);
   } catch (err) {
-    console.warn("[token] DexScreener trades failed", err);
+    console.warn("[token] GeckoTerminal trades failed", err);
     trades = [];
   }
 
