@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { NewLowCapsTable } from "@/components/dashboard/new-low-caps-table";
+import { LowCapsDisclaimerModal } from "@/components/low-caps-disclaimer-modal";
 import { getMockDashboardSnapshot } from "@/lib/dashboard-mock";
 import { getDexScreenerLowCaps } from "@/lib/dexscreener-low-caps";
 import type { LowCapRow } from "@/lib/dashboard-data";
@@ -67,6 +68,7 @@ export default async function NewLowCapsPage() {
           <NewLowCapsTable rows={rows} showViewAll={false} className="mt-6" />
         </div>
       </main>
+      <LowCapsDisclaimerModal />
     </>
   );
 }
