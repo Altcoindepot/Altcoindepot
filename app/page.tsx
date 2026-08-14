@@ -6,7 +6,7 @@ import { getMockDashboardSnapshot } from "@/lib/dashboard-mock";
 
 const TITLE = "AltCoin Depot – Narrative Rotation Dashboard";
 const DESCRIPTION =
-  "See what’s actually moving, before the rest of the market does: Market Regime, narrative rotations, Market Pulse, and new & low caps — live crypto dashboard on AltCoin Depot.";
+  "See what’s actually moving, before the rest of the market does: Market Regime, narrative rotations, Market Pulse, and live new and low-cap DEX tokens on AltCoin Depot.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },

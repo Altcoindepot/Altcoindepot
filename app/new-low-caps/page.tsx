@@ -7,9 +7,9 @@ import { getMockDashboardSnapshot } from "@/lib/dashboard-mock";
 import { getDexScreenerLowCaps } from "@/lib/dexscreener-low-caps";
 import type { LowCapRow } from "@/lib/dashboard-data";
 
-const TITLE = "New & Low Cap Crypto Tokens | AltCoin Depot";
+const TITLE = "New & Low Cap Crypto Tokens – Live DEX Pairs | AltCoin Depot";
 const DESCRIPTION =
-  "Live new and low-cap crypto tokens from DexScreener: recently active pairs with market cap, liquidity, 24h change, volume, pair age, and contract addresses.";
+  "Track new and low-cap crypto tokens from live DEX pairs. See liquidity, volume, 24h change, chain, and contract addresses. Data updated from DexScreener. Informational only — not financial advice.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
