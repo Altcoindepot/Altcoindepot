@@ -12,6 +12,7 @@ import {
   type DexProjectLink,
 } from "@/lib/dex-project-links";
 import { getDexProfileLinksByToken } from "@/lib/dexscreener-profile-links";
+import { geckoNetworkFromDexChain } from "@/lib/geckoterminal-trades";
 
 const DEX_BASE = "https://api.dexscreener.com";
 /** Short TTL — avoid long-lived empty/miss caches on cold token pages. */
@@ -243,6 +244,11 @@ export function dexScreenerEmbedUrl(
   chain: string,
   pairAddress: string | null,
 ): string | null {
+  const chainId = normalizeDexChainId(chain) ?? (chain?.trim().toLowerCase() || null);
+  // Prefer the pair-address embed path — token URLs often hang on “Loading pair…”.
+  if (chainId && pairAddress) {
+    return `https://dexscreener.com/${encodeURIComponent(chainId)}/${encodeURIComponent(pairAddress)}?embed=1&theme=dark&trades=0&info=0`;
+  }
   if (pairUrl && pairUrl.startsWith("https://dexscreener.com/")) {
     try {
       const url = new URL(pairUrl);
@@ -252,12 +258,24 @@ export function dexScreenerEmbedUrl(
       url.searchParams.set("info", "0");
       return url.toString();
     } catch {
-      /* fall through */
+      return null;
     }
   }
-  if (pairAddress) {
-    const chainId = normalizeDexChainId(chain) ?? chain;
-    return `https://dexscreener.com/${encodeURIComponent(chainId)}/${encodeURIComponent(pairAddress)}?embed=1&theme=dark&trades=0&info=0`;
-  }
   return null;
+}
+
+/** GeckoTerminal pool chart embed (preferred over DexScreener for token pages). */
+export function geckoTerminalChartEmbedUrl(
+  chain: string | undefined,
+  pairAddress: string | null | undefined,
+): string | null {
+  if (!pairAddress) return null;
+  const network = geckoNetworkFromDexChain(chain);
+  if (!network) return null;
+  const pool =
+    network === "solana" || network === "sui"
+      ? pairAddress.trim()
+      : pairAddress.trim().toLowerCase();
+  if (!pool) return null;
+  return `https://www.geckoterminal.com/${encodeURIComponent(network)}/pools/${encodeURIComponent(pool)}?embed=1&info=0&swaps=0`;
 }

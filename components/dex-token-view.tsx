@@ -5,8 +5,9 @@ import { CopyAddressButton } from "@/components/copy-address-button";
 import { DisclaimerNote } from "@/components/disclaimer-note";
 import { DexProjectLinks } from "@/components/dex-project-links";
 import { DexRecentTrades } from "@/components/dex-recent-trades";
+import { DexScreenerChart } from "@/components/dex-screener-chart";
 import type { DexTokenPageData } from "@/lib/dexscreener-token";
-import { dexScreenerEmbedUrl } from "@/lib/dexscreener-token";
+import { geckoTerminalChartEmbedUrl } from "@/lib/dexscreener-token";
 import type { DexTrade } from "@/lib/geckoterminal-trades";
 import { formatChainLabel } from "@/lib/format-chain";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
@@ -37,7 +38,7 @@ function Stat({ label, children }: { label: string; children: ReactNode }) {
 export function DexTokenView({ token, trades = [] }: { token: DexTokenPageData; trades?: DexTrade[] }) {
   const chainLabel = formatChainLabel(token.chain);
   const symbol = token.symbol.toUpperCase();
-  const embed = dexScreenerEmbedUrl(token.pairUrl, token.chain, token.pairAddress);
+  const embed = geckoTerminalChartEmbedUrl(token.chain, token.pairAddress);
   const changePositive = (token.change24h ?? 0) >= 0;
 
   return (
@@ -125,29 +126,11 @@ export function DexTokenView({ token, trades = [] }: { token: DexTokenPageData; 
             </a>
           ) : null}
         </div>
-        {embed ? (
-          <iframe
-            title={`${token.name} DexScreener chart`}
-            src={embed}
-            className="h-[28rem] w-full border-0 bg-[#0c0e14] sm:h-[32rem]"
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-          />
-        ) : (
-          <div className="px-4 py-10 text-center sm:px-5">
-            <p className="text-sm text-zinc-400">Chart embed is unavailable for this pair.</p>
-            {token.pairUrl ? (
-              <a
-                href={token.pairUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`${ds.btnSecondary} mt-4`}
-              >
-                Chart on DexScreener
-              </a>
-            ) : null}
-          </div>
-        )}
+        <DexScreenerChart
+          embedUrl={embed}
+          pairUrl={token.pairUrl}
+          title={`${token.name} chart`}
+        />
       </section>
 
       <DexRecentTrades trades={trades} pairUrl={token.pairUrl} />

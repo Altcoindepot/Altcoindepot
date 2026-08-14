@@ -26,25 +26,55 @@ function tokenHref(row: JustLaunchedRow): string {
 export function JustLaunchedTable({
   rows,
   className = "",
+  filterLabel,
+  totalCount,
+  onClearFilter,
 }: {
   rows: JustLaunchedRow[];
   className?: string;
+  /** When a Launch Pulse bucket is active. */
+  filterLabel?: string | null;
+  /** Unfiltered pair count for the header. */
+  totalCount?: number;
+  onClearFilter?: () => void;
 }) {
+  const allCount = totalCount ?? rows.length;
+  const filtered = Boolean(filterLabel);
+
   return (
     <section
+      id="just-launched-list"
       aria-labelledby="just-launched-heading"
       className={`${ds.panelLg} flex flex-col !p-0 overflow-hidden ${className}`.trim()}
     >
-      <div className="flex shrink-0 items-center justify-between gap-2 border-b border-white/10 px-4 py-3 sm:px-5">
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-white/10 px-4 py-3 sm:px-5">
         <h2 id="just-launched-heading" className="text-sm font-semibold text-zinc-100 sm:text-base">
           Last 60 minutes
+          {filtered ? (
+            <span className="ml-2 text-xs font-medium text-teal-300/80">· {filterLabel}</span>
+          ) : null}
         </h2>
-        <span className="text-[11px] text-zinc-500">{rows.length} pairs</span>
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-zinc-500">
+            {filtered ? `${rows.length} of ${allCount} pairs` : `${rows.length} pairs`}
+          </span>
+          {onClearFilter ? (
+            <button
+              type="button"
+              onClick={onClearFilter}
+              className="text-[11px] font-medium text-teal-300/90 underline-offset-2 hover:underline"
+            >
+              Clear
+            </button>
+          ) : null}
+        </div>
       </div>
 
       {rows.length === 0 ? (
         <p className="px-4 py-8 text-sm text-zinc-500 sm:px-5">
-          No pairs launched in the last hour passed the liquidity filter. Check back shortly.
+          {filtered
+            ? "No pairs in this Launch Pulse bucket right now."
+            : "No pairs launched in the last hour passed the liquidity filter. Check back shortly."}
         </p>
       ) : (
         <div className="overflow-x-auto">

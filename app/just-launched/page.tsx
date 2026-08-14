@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
-import { JustLaunchedTable } from "@/components/just-launched-table";
+import { JustLaunchedSection } from "@/components/just-launched-section";
 import { JustLaunchedDisclaimerModal } from "@/components/just-launched-disclaimer-modal";
 import { getJustLaunchedPairs, type JustLaunchedRow } from "@/lib/dexscreener-just-launched";
 
@@ -58,14 +58,14 @@ export default async function JustLaunchedPage() {
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-400">
             DEX pairs created in about the last 60 minutes, newest first. Liquidity filter applied.
-            Extremely high risk — informational only, not financial advice.
+            High risk — pumps and dumps are common. Informational only, not financial advice.
           </p>
           {failed && rows.length === 0 ? (
             <p className="mt-6 rounded-xl border border-white/10 bg-[#0c0e14] px-4 py-8 text-sm text-zinc-500">
               Couldn&apos;t load just-launched pairs right now. Try again in a few minutes.
             </p>
           ) : (
-            <JustLaunchedTable rows={rows} className="mt-6" />
+            <JustLaunchedSection rows={rows} />
           )}
         </div>
       </main>
