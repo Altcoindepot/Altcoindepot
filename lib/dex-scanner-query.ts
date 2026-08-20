@@ -122,15 +122,36 @@ export function dexScannerSearchParams(
 
 export function scannerQuerySummary(query: DexScannerQuery): string {
   const parts: string[] = [];
-  parts.push(query.chain === "all" ? "All chains" : query.chain);
-  parts.push(`Liq ≥ $${query.minLiq.toLocaleString("en-US")}`);
-  if (query.maxLiq != null) parts.push(`Liq ≤ $${query.maxLiq.toLocaleString("en-US")}`);
-  parts.push(`Vol ≥ $${query.minVol.toLocaleString("en-US")}`);
-  if (query.maxVol != null) parts.push(`Vol ≤ $${query.maxVol.toLocaleString("en-US")}`);
-  if (query.minMcap > 0) parts.push(`Mcap ≥ $${query.minMcap.toLocaleString("en-US")}`);
-  if (query.maxMcap != null) parts.push(`Mcap ≤ $${query.maxMcap.toLocaleString("en-US")}`);
-  parts.push(`${query.sort} ${query.dir}`);
+  parts.push(query.chain === "all" ? "All" : query.chain);
+  parts.push(compactUsdGate("Liq", query.minLiq));
+  if (query.maxLiq != null) parts.push(`Liq≤${compactUsd(query.maxLiq)}`);
+  parts.push(compactUsdGate("Vol", query.minVol));
+  if (query.maxVol != null) parts.push(`Vol≤${compactUsd(query.maxVol)}`);
+  if (query.minMcap > 0) parts.push(compactUsdGate("Mcap", query.minMcap));
+  if (query.maxMcap != null) parts.push(`Mcap≤${compactUsd(query.maxMcap)}`);
+  const sortShort =
+    query.sort === "volume"
+      ? "Vol"
+      : query.sort === "liquidity"
+        ? "Liq"
+        : query.sort === "change"
+          ? "%"
+          : query.sort === "mcap"
+            ? "Mcap"
+            : "New";
+  parts.push(`${sortShort}${query.dir === "asc" ? "↑" : "↓"}`);
   if (query.q) parts.push(`“${query.q}”`);
   if (!query.includeMajors) parts.push("No majors");
   return parts.join(" · ");
+}
+
+function compactUsd(n: number): string {
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(n % 1_000_000 === 0 ? 0 : 1)}M`;
+  if (n >= 1_000) return `$${(n / 1_000).toFixed(n % 1_000 === 0 ? 0 : 1)}k`;
+  return `$${n}`;
+}
+
+function compactUsdGate(label: string, n: number): string {
+  if (n <= 0) return `${label}>$0`;
+  return `${label}>${compactUsd(n)}`;
 }

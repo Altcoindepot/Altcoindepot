@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -76,7 +76,7 @@ function NumberField({
           const n = Number(raw);
           onCommit(Number.isFinite(n) && n >= 0 ? n : null);
         }}
-        className="h-10 w-full rounded-lg border border-white/12 bg-[#0c0e14] px-2.5 font-mono text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-teal-400/40 focus:outline-none focus:ring-2 focus:ring-teal-400/20"
+        className="h-11 w-full rounded-lg border border-white/12 bg-[#0c0e14] px-2.5 font-mono text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-teal-400/40 focus:outline-none focus:ring-2 focus:ring-teal-400/20"
       />
     </label>
   );
@@ -86,9 +86,9 @@ function ScannerRowMobile({ row }: { row: DexScannerRow }) {
   return (
     <Link
       href={tokenHref(row)}
-      className="flex items-center gap-2.5 px-3 py-2.5 active:bg-white/[0.04]"
+      className="flex min-h-14 items-center gap-2.5 px-3 py-2.5 active:bg-white/[0.04]"
     >
-      <TokenAvatar symbol={row.symbol} size={28} />
+      <TokenAvatar symbol={row.symbol} size={32} />
       <span className="min-w-0 flex-1">
         <span className="flex min-w-0 items-baseline gap-1.5">
           <span className="truncate font-mono text-[13px] font-bold uppercase text-zinc-50">
@@ -96,13 +96,12 @@ function ScannerRowMobile({ row }: { row: DexScannerRow }) {
           </span>
           <span className="truncate text-[11px] text-zinc-500">{row.name}</span>
         </span>
+        <span className="mt-0.5 block font-mono text-[10px] tabular-nums text-zinc-500">
+          {formatCompactUsd(row.volume24h)} vol · {formatCompactUsd(row.liquidityUsd)} liq
+        </span>
         <span className="mt-1 flex items-center gap-1.5">
           <ChainIcon chainId={row.chain} size={16} />
           <DexVenueBadge dexId={row.dex} dexLabel={row.dexLabel} iconOnly size={16} />
-        </span>
-        <span className="mt-0.5 block font-mono text-[10px] tabular-nums text-zinc-500">
-          {formatCompactUsd(row.volume24h)} vol · {formatCompactUsd(row.liquidityUsd)} liq ·{" "}
-          {formatCompactUsd(row.marketCap)} mcap · {row.ageLabel}
         </span>
       </span>
       <span className="flex shrink-0 flex-col items-end gap-0.5">
@@ -121,102 +120,90 @@ function ScannerRowMobile({ row }: { row: DexScannerRow }) {
   );
 }
 
-export function DexScannerExplorer({
-  rows,
-  error,
+function ChainChips({
+  query,
+  onSelect,
+  chipClass,
 }: {
-  rows: DexScannerRow[];
-  error?: string | null;
+  query: DexScannerQuery;
+  onSelect: (chain: string) => void;
+  chipClass: (active: boolean) => string;
 }) {
-  const router = useRouter();
-  const pathname = usePathname() ?? "/dex-scanner";
-  const searchParams = useSearchParams();
-  const query = parseDexScannerQuery(searchParams, DEX_SCANNER_DEFAULT_QUERY);
-  const [visible, setVisible] = useState(DEX_SCANNER_INITIAL_ROWS);
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  return (
+    <div className="-mx-0.5 flex gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {SCANNER_CHAIN_CHIPS.map((chip) => (
+        <button
+          key={chip.id}
+          type="button"
+          className={chipClass(query.chain === chip.id)}
+          onClick={() => onSelect(chip.id)}
+        >
+          {chip.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
-  const filtered = useMemo(() => applyDexScannerQuery(rows, query), [rows, query]);
-  const shown = filtered.slice(0, Math.min(visible, DEX_SCANNER_MAX_ROWS));
-  const summary = scannerQuerySummary(query);
-
-  const push = (next: DexScannerQuery) => {
-    setVisible(DEX_SCANNER_INITIAL_ROWS);
-    router.replace(`${pathname}${dexScannerSearchParams(next)}`, { scroll: false });
-  };
-
-  const chipClass = (active: boolean) =>
-    `inline-flex min-h-9 shrink-0 items-center rounded-full px-3 text-xs font-semibold transition-colors ${
-      active
-        ? "bg-teal-500/20 text-teal-200"
-        : "bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-zinc-200"
-    }`;
-
-  const filterPanel = (
-    <div className="space-y-3 rounded-xl border border-white/10 bg-[#0c0e14] p-3 sm:p-4">
-      <p className="text-[11px] leading-relaxed text-amber-200/80">
+function AdvancedFilters({
+  query,
+  push,
+  chipClass,
+  idsPrefix = "",
+}: {
+  query: DexScannerQuery;
+  push: (next: DexScannerQuery) => void;
+  chipClass: (active: boolean) => string;
+  idsPrefix?: string;
+}) {
+  return (
+    <div className="space-y-3">
+      <p className="text-[12px] leading-relaxed text-amber-200/85">
         Low thresholds include illiquid / high-risk pairs. Not financial advice.
       </p>
 
-      <div>
-        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-600">
-          Chain
-        </p>
-        <div className="-mx-0.5 flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {SCANNER_CHAIN_CHIPS.map((chip) => (
-            <button
-              key={chip.id}
-              type="button"
-              className={chipClass(query.chain === chip.id)}
-              onClick={() => push({ ...query, chain: chip.id })}
-            >
-              {chip.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
         <NumberField
-          key={`minLiq-${query.minLiq}`}
-          id="minLiq"
+          key={`${idsPrefix}minLiq-${query.minLiq}`}
+          id={`${idsPrefix}minLiq`}
           label="Min liquidity"
           value={query.minLiq}
           placeholder="5000"
           onCommit={(n) => push({ ...query, minLiq: n ?? 0 })}
         />
         <NumberField
-          key={`maxLiq-${query.maxLiq ?? "x"}`}
-          id="maxLiq"
+          key={`${idsPrefix}maxLiq-${query.maxLiq ?? "x"}`}
+          id={`${idsPrefix}maxLiq`}
           label="Max liquidity"
           value={query.maxLiq}
           onCommit={(n) => push({ ...query, maxLiq: n })}
         />
         <NumberField
-          key={`minVol-${query.minVol}`}
-          id="minVol"
+          key={`${idsPrefix}minVol-${query.minVol}`}
+          id={`${idsPrefix}minVol`}
           label="Min volume 24h"
           value={query.minVol}
           placeholder="1000"
           onCommit={(n) => push({ ...query, minVol: n ?? 0 })}
         />
         <NumberField
-          key={`maxVol-${query.maxVol ?? "x"}`}
-          id="maxVol"
+          key={`${idsPrefix}maxVol-${query.maxVol ?? "x"}`}
+          id={`${idsPrefix}maxVol`}
           label="Max volume 24h"
           value={query.maxVol}
           onCommit={(n) => push({ ...query, maxVol: n })}
         />
         <NumberField
-          key={`minMcap-${query.minMcap}`}
-          id="minMcap"
+          key={`${idsPrefix}minMcap-${query.minMcap}`}
+          id={`${idsPrefix}minMcap`}
           label="Min mcap"
           value={query.minMcap}
           placeholder="0"
           onCommit={(n) => push({ ...query, minMcap: n ?? 0 })}
         />
         <NumberField
-          key={`maxMcap-${query.maxMcap ?? "x"}`}
-          id="maxMcap"
+          key={`${idsPrefix}maxMcap-${query.maxMcap ?? "x"}`}
+          id={`${idsPrefix}maxMcap`}
           label="Max mcap"
           value={query.maxMcap}
           onCommit={(n) => push({ ...query, maxMcap: n })}
@@ -225,16 +212,19 @@ export function DexScannerExplorer({
 
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
         <div className="min-w-0 flex-1 space-y-1.5">
-          <label className="block text-[11px] font-medium text-zinc-400" htmlFor="scanner-q">
+          <label
+            className="block text-[11px] font-medium text-zinc-400"
+            htmlFor={`${idsPrefix}scanner-q`}
+          >
             Search
           </label>
           <input
-            id="scanner-q"
+            id={`${idsPrefix}scanner-q`}
             type="search"
             defaultValue={query.q}
             key={query.q}
             placeholder="Symbol, name, or contract"
-            className="h-10 w-full max-w-md rounded-lg border border-white/12 bg-[#0a0a0a] px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-teal-400/40 focus:outline-none focus:ring-2 focus:ring-teal-400/20"
+            className="h-11 w-full max-w-md rounded-lg border border-white/12 bg-[#0a0a0a] px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-teal-400/40 focus:outline-none focus:ring-2 focus:ring-teal-400/20"
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 push({ ...query, q: (e.target as HTMLInputElement).value.trim() });
@@ -293,38 +283,138 @@ export function DexScannerExplorer({
       </div>
     </div>
   );
+}
+
+export function DexScannerExplorer({
+  rows,
+  error,
+}: {
+  rows: DexScannerRow[];
+  error?: string | null;
+}) {
+  const router = useRouter();
+  const pathname = usePathname() ?? "/dex-scanner";
+  const searchParams = useSearchParams();
+  const query = parseDexScannerQuery(searchParams, DEX_SCANNER_DEFAULT_QUERY);
+  const [visible, setVisible] = useState(DEX_SCANNER_INITIAL_ROWS);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const filtered = useMemo(() => applyDexScannerQuery(rows, query), [rows, query]);
+  const shown = filtered.slice(0, Math.min(visible, DEX_SCANNER_MAX_ROWS));
+  const summary = scannerQuerySummary(query);
+  const canLoadMore = shown.length < Math.min(filtered.length, DEX_SCANNER_MAX_ROWS);
+
+  const push = (next: DexScannerQuery) => {
+    setVisible(DEX_SCANNER_INITIAL_ROWS);
+    router.replace(`${pathname}${dexScannerSearchParams(next)}`, { scroll: false });
+  };
+
+  useEffect(() => {
+    if (!filtersOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setFiltersOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [filtersOpen]);
+
+  const chipClass = (active: boolean) =>
+    `inline-flex min-h-11 shrink-0 items-center rounded-full px-3.5 text-xs font-semibold transition-colors ${
+      active
+        ? "bg-teal-500/20 text-teal-200"
+        : "bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-zinc-200"
+    }`;
 
   return (
-    <div className="space-y-3">
-      {/* Mobile sticky summary + expand */}
-      <div className="sticky top-[3.25rem] z-30 -mx-3 border-b border-white/10 bg-[#0a0a0a]/95 px-3 py-2 backdrop-blur-xl sm:top-[3.5rem] lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
-        <div className="flex items-start justify-between gap-2 lg:hidden">
-          <p className="min-w-0 flex-1 truncate text-[11px] text-zinc-400">{summary}</p>
+    <div className="space-y-3 overflow-x-hidden">
+      {/* Mobile: sticky summary + chain chips + Filters CTA */}
+      <div className="sticky top-[3.25rem] z-30 -mx-3 space-y-2 border-b border-white/10 bg-[#0a0a0a]/95 px-3 py-2.5 backdrop-blur-xl sm:top-[3.5rem] md:hidden">
+        <div className="flex items-center gap-2">
+          <p className="min-w-0 flex-1 truncate text-[11px] tabular-nums text-zinc-400">
+            {summary}
+          </p>
           <button
             type="button"
-            className="shrink-0 text-[11px] font-semibold text-teal-300"
-            onClick={() => setFiltersOpen((v) => !v)}
+            className="inline-flex min-h-11 shrink-0 items-center rounded-full border border-teal-400/30 bg-teal-500/10 px-4 text-xs font-semibold text-teal-200"
+            onClick={() => setFiltersOpen(true)}
+            aria-haspopup="dialog"
+            aria-expanded={filtersOpen}
           >
-            {filtersOpen ? "Hide filters" : "Filters"}
+            Filters
           </button>
         </div>
-        <div className={`mt-2 lg:mt-0 ${filtersOpen ? "block" : "hidden lg:block"}`}>
-          {filterPanel}
-        </div>
+        <ChainChips
+          query={query}
+          onSelect={(chain) => push({ ...query, chain })}
+          chipClass={chipClass}
+        />
       </div>
 
+      {/* Desktop / tablet filters (full panel, including chains) */}
+      <div className="hidden space-y-3 rounded-xl border border-white/10 bg-[#0c0e14] p-3 sm:p-4 md:block">
+        <div>
+          <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-600">
+            Chain
+          </p>
+          <ChainChips
+            query={query}
+            onSelect={(chain) => push({ ...query, chain })}
+            chipClass={chipClass}
+          />
+        </div>
+        <AdvancedFilters query={query} push={push} chipClass={chipClass} idsPrefix="desk-" />
+        <p className="truncate text-[11px] text-zinc-500">{summary}</p>
+      </div>
+
+      {/* Mobile bottom sheet */}
+      {filtersOpen ? (
+        <div className="fixed inset-0 z-[60] md:hidden" role="dialog" aria-modal="true">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/60"
+            aria-label="Close filters"
+            onClick={() => setFiltersOpen(false)}
+          />
+          <div className="absolute inset-x-0 bottom-0 max-h-[min(88vh,40rem)] overflow-y-auto rounded-t-2xl border border-white/10 bg-[#0c0e14] shadow-2xl pb-[calc(1rem+env(safe-area-inset-bottom))]">
+            <div className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-white/10 bg-[#0c0e14] px-4 py-3">
+              <p className="text-sm font-semibold text-zinc-100">Filters</p>
+              <button
+                type="button"
+                className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-sm font-semibold text-teal-300"
+                onClick={() => setFiltersOpen(false)}
+              >
+                Done
+              </button>
+            </div>
+            <div className="space-y-3 px-4 py-3">
+              <AdvancedFilters
+                query={query}
+                push={push}
+                chipClass={chipClass}
+                idsPrefix="sheet-"
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {error ? (
-        <p className="rounded-xl border border-red-500/40 bg-red-950/30 px-4 py-3 text-sm text-red-300">
+        <p className="rounded-xl border border-red-500/40 bg-red-950/30 px-4 py-3 text-sm leading-relaxed text-red-300">
           DexScreener fetch failed: {error}
         </p>
       ) : null}
 
       {!error && filtered.length === 0 ? (
         <div className="rounded-xl border border-white/10 bg-[#0c0e14] px-4 py-8 text-center">
-          <p className="text-sm text-zinc-500">No pairs match these filters</p>
+          <p className="text-sm leading-relaxed text-zinc-500">No pairs match these filters</p>
           <button
             type="button"
-            className="mt-3 text-xs font-semibold text-teal-300 underline-offset-2 hover:underline"
+            className="mt-3 inline-flex min-h-11 items-center px-4 text-xs font-semibold text-teal-300 underline-offset-2 hover:underline"
             onClick={() => push({ ...DEX_SCANNER_DEFAULT_QUERY })}
           >
             Reset filters
@@ -444,17 +534,17 @@ export function DexScannerExplorer({
       ) : null}
 
       {!error && shown.length > 0 ? (
-        <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+        <div className="space-y-2 px-1 pb-2">
           <p className="text-[11px] tabular-nums text-zinc-500">
             Showing {shown.length} of {Math.min(filtered.length, DEX_SCANNER_MAX_ROWS)}
             {filtered.length > DEX_SCANNER_MAX_ROWS
               ? ` (capped at ${DEX_SCANNER_MAX_ROWS})`
               : ""}
           </p>
-          {shown.length < Math.min(filtered.length, DEX_SCANNER_MAX_ROWS) ? (
+          {canLoadMore ? (
             <button
               type="button"
-              className="inline-flex min-h-11 items-center rounded-full border border-white/12 bg-white/[0.04] px-4 text-xs font-semibold text-zinc-200 hover:bg-white/[0.08]"
+              className="flex min-h-11 w-full items-center justify-center rounded-xl border border-white/12 bg-white/[0.04] text-sm font-semibold text-zinc-100 hover:bg-white/[0.08] md:inline-flex md:w-auto md:rounded-full md:px-5"
               onClick={() =>
                 setVisible((v) =>
                   Math.min(v + DEX_SCANNER_PAGE_STEP, filtered.length, DEX_SCANNER_MAX_ROWS),
@@ -467,7 +557,7 @@ export function DexScannerExplorer({
         </div>
       ) : null}
 
-      <p className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-zinc-600">
+      <p className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] leading-relaxed text-zinc-600">
         <Link href="/pairs" className="text-teal-300/90 underline-offset-2 hover:underline">
           Simple Pairs explorer →
         </Link>
