@@ -165,25 +165,25 @@ export function JustLaunchedTable({
                     key={row.id}
                     className="border-b border-white/5 last:border-0 transition-colors hover:bg-slate-800/30"
                   >
-                    <td className="px-3 py-3 sm:px-4">
+                <td className="px-3 py-1.5 sm:px-4">
                       <div className="flex items-start gap-2">
                         <Link href={tokenHref(row)} className="inline-flex min-w-0 items-center gap-2">
                           {row.image ? (
                             <Image
                               src={row.image}
                               alt=""
-                              width={24}
-                              height={24}
+                              width={20}
+                              height={20}
                               className="rounded-full"
                             />
                           ) : (
-                            <span className="size-6 rounded-full bg-zinc-800" />
+                            <span className="size-5 rounded-full bg-zinc-800" />
                           )}
                           <span className="min-w-0">
-                            <span className="block truncate text-sm font-medium text-zinc-100">
+                            <span className="block truncate text-[13px] font-medium text-zinc-100">
                               {row.name}
                             </span>
-                            <span className="font-mono text-[11px] uppercase text-zinc-500">
+                            <span className="font-mono text-[10px] uppercase text-zinc-500">
                               {row.symbol}
                             </span>
                           </span>
@@ -197,30 +197,30 @@ export function JustLaunchedTable({
                         </span>
                       </div>
                     </td>
-                    <td className="px-3 py-3 font-mono text-xs tabular-nums text-zinc-200">
+                    <td className="px-3 py-1.5 font-mono text-xs tabular-nums text-zinc-200">
                       {formatPrice(row.priceUsd)}
                     </td>
-                    <td className="px-3 py-3">
+                    <td className="px-3 py-1.5">
                       <span className={`${ds.badgeInfo}`}>{chain}</span>
                     </td>
-                    <td className="px-3 py-3">
+                    <td className="px-3 py-1.5">
                       <DexVenueBadge dexId={row.dexId} dexLabel={row.dexLabel} />
                     </td>
                     <td
-                      className={`px-3 py-3 font-mono text-xs font-semibold tabular-nums ${
+                      className={`px-3 py-1.5 font-mono text-xs font-semibold tabular-nums ${
                         (row.change ?? 0) >= 0 ? "text-emerald-300" : "text-red-300"
                       }`}
                     >
                       {formatPct(row.change)}
                     </td>
-                    <td className="px-3 py-3 font-mono text-xs tabular-nums text-zinc-300">
+                    <td className="px-3 py-1.5 font-mono text-xs tabular-nums text-zinc-300">
                       {formatCompactUsd(row.liquidity)}
                     </td>
-                    <td className="px-3 py-3 font-mono text-xs tabular-nums text-zinc-400">
+                    <td className="px-3 py-1.5 font-mono text-xs tabular-nums text-zinc-400">
                       {formatCompactUsd(row.volume)}
                     </td>
-                    <td className="px-3 py-3 text-xs text-zinc-300">{row.ageLabel}</td>
-                    <td className="px-3 py-3">
+                    <td className="px-3 py-1.5 text-xs text-zinc-300">{row.ageLabel}</td>
+                    <td className="px-3 py-1.5">
                       <CopyAddressButton address={row.contractAddress} />
                     </td>
                   </tr>

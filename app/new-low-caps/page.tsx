@@ -67,29 +67,30 @@ export default async function NewLowCapsPage() {
   return (
     <>
       <SiteHeader fetchedAt={fetchedAt} />
-      <main id="main-content" className="border-b border-white/10 bg-[#0a0a0a] px-4 py-8 sm:px-6">
+      <main id="main-content" className="border-b border-white/10 bg-[#0a0a0a] px-3 py-4 sm:px-6 sm:py-6">
         <div className="mx-auto max-w-[90rem]">
-          <p className="text-xs uppercase tracking-widest text-zinc-500">
+          <p className="text-[10px] uppercase tracking-widest text-zinc-500">
             <Link href="/" className="hover:text-teal-200">
               Home
             </Link>
             <span className="mx-2 text-zinc-700">/</span>
             New &amp; Low Caps
           </p>
-          <h1 className="mt-3 text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">
-            New &amp; low cap crypto tokens
+          <h1 className="mt-2 text-xl font-bold tracking-tight text-zinc-50 sm:text-2xl">
+            New &amp; low caps
           </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-400">
-            Live DEX pairs with price, liquidity, 24h change, volume, and pair age from DexScreener.
-            Informational only — not financial advice.
+          <p className="mt-1 max-w-2xl text-xs leading-relaxed text-zinc-500 sm:text-sm">
+            Live price, liq, vol, age · DexScreener · not financial advice
           </p>
 
-          <DexPairPriceTable rows={live.rows} error={live.error} title="Live DEX pairs (prices)" />
+          <DexPairPriceTable rows={live.rows} error={live.error} title="Live pairs" />
 
           {!live.error && rows.length > 0 ? (
-            <Suspense fallback={<div className="mt-6 h-48 rounded-2xl border border-white/10 bg-[#0c0e14]" />}>
-              <NewLowCapsTable rows={rows} showViewAll={false} className="mt-6" />
-            </Suspense>
+            <div className="mt-4 hidden md:block">
+              <Suspense fallback={<div className="h-40 rounded-xl border border-white/10 bg-[#0c0e14]" />}>
+                <NewLowCapsTable rows={rows} showViewAll={false} />
+              </Suspense>
+            </div>
           ) : null}
         </div>
       </main>

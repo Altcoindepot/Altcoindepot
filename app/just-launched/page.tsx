@@ -75,34 +75,33 @@ export default async function JustLaunchedPage() {
   return (
     <>
       <SiteHeader fetchedAt={fetchedAt} />
-      <main id="main-content" className="border-b border-white/10 bg-[#0a0a0a] px-4 py-8 sm:px-6">
+      <main id="main-content" className="border-b border-white/10 bg-[#0a0a0a] px-3 py-4 sm:px-6 sm:py-6">
         <div className="mx-auto max-w-[90rem]">
-          <p className="text-xs uppercase tracking-widest text-zinc-500">
+          <p className="text-[10px] uppercase tracking-widest text-zinc-500">
             <Link href="/" className="hover:text-teal-200">
               Home
             </Link>
             <span className="mx-2 text-zinc-700">/</span>
             Just Launched
           </p>
-          <h1 className="mt-3 text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">
+          <h1 className="mt-2 text-xl font-bold tracking-tight text-zinc-50 sm:text-2xl">
             Just launched pairs
           </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-400">
-            DEX pairs with live price, liquidity, volume, and age from DexScreener. High risk —
-            informational only, not financial advice.
+          <p className="mt-1 max-w-2xl text-xs leading-relaxed text-zinc-500 sm:text-sm">
+            Live price, liq, vol, age · high risk · not financial advice
           </p>
 
-          {failed && rows.length === 0 && !live.error && live.rows.length === 0 ? (
-            <p className="mt-6 rounded-xl border border-red-500/40 bg-red-950/30 px-4 py-6 text-sm text-red-300">
+          <DexPairPriceTable rows={live.rows} error={live.error} title="Live pairs" />
+
+          {failed && rows.length === 0 && live.rows.length === 0 ? (
+            <p className="mt-4 rounded-xl border border-red-500/40 bg-red-950/30 px-4 py-4 text-sm text-red-300">
               DexScreener fetch failed: no just-launched pairs returned.
             </p>
-          ) : (
-            <Suspense fallback={<div className="mt-6 h-48 rounded-2xl border border-white/10 bg-[#0c0e14]" />}>
-              <JustLaunchedSection rows={rows} />
+          ) : rows.length > 0 ? (
+            <Suspense fallback={<div className="mt-4 h-40 rounded-xl border border-white/10 bg-[#0c0e14]" />}>
+              <JustLaunchedSection rows={rows} compactPulse />
             </Suspense>
-          )}
-
-          <DexPairPriceTable rows={live.rows} error={live.error} title="Live DEX pairs (prices)" />
+          ) : null}
         </div>
       </main>
       <JustLaunchedDisclaimerModal />

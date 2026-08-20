@@ -199,11 +199,60 @@ function LaunchPulseMobile({
   nodes,
   active,
   onSelect,
+  compact = false,
 }: {
   nodes: LaunchPulseNode[];
   active: LaunchPulseBucketId | null;
   onSelect: (id: LaunchPulseBucketId | null) => void;
+  compact?: boolean;
 }) {
+  if (compact) {
+    return (
+      <section aria-label="Launch Pulse" className="md:hidden">
+        <div className="mb-1.5 flex items-center justify-between gap-2">
+          <h2 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+            Launch Pulse · 60m
+          </h2>
+          {active ? (
+            <button
+              type="button"
+              onClick={() => onSelect(null)}
+              className="text-[11px] font-medium text-teal-300/90 underline-offset-2 hover:underline"
+            >
+              Clear
+            </button>
+          ) : null}
+        </div>
+        <div className="flex gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {nodes.map((n) => {
+            const selected = active === n.id;
+            const disabled = n.empty;
+            return (
+              <button
+                key={n.id}
+                type="button"
+                disabled={disabled}
+                aria-pressed={selected}
+                onClick={() => onSelect(selected ? null : n.id)}
+                className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-semibold ${
+                  disabled
+                    ? "cursor-default border-white/5 text-zinc-600 opacity-50"
+                    : selected
+                      ? "border-teal-400/40 bg-teal-500/10 text-teal-100"
+                      : "border-white/10 bg-[#0c0e14] text-zinc-300"
+                }`}
+              >
+                <span className="size-1.5 rounded-full" style={{ backgroundColor: n.color }} aria-hidden />
+                {n.title}
+                <span className="font-mono tabular-nums text-zinc-400">{n.count}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section
       aria-labelledby="launch-pulse-mobile-heading"
@@ -275,22 +324,90 @@ function LaunchPulseMobile({
   );
 }
 
+/** Compact horizontal strip for desktop when orbit would dominate the scanner. */
+function LaunchPulseCompactDesktop({
+  nodes,
+  active,
+  onSelect,
+}: {
+  nodes: LaunchPulseNode[];
+  active: LaunchPulseBucketId | null;
+  onSelect: (id: LaunchPulseBucketId | null) => void;
+}) {
+  return (
+    <section aria-label="Launch Pulse" className="hidden md:block">
+      <div className="mb-1.5 flex items-center justify-between gap-2">
+        <h2 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+          Launch Pulse · Last 60m
+        </h2>
+        {active ? (
+          <button
+            type="button"
+            onClick={() => onSelect(null)}
+            className="text-[11px] font-medium text-teal-300/90 underline-offset-2 hover:underline"
+          >
+            Clear filter
+          </button>
+        ) : null}
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {nodes.map((n) => {
+          const selected = active === n.id;
+          const disabled = n.empty;
+          return (
+            <button
+              key={n.id}
+              type="button"
+              disabled={disabled}
+              aria-pressed={selected}
+              onClick={() => onSelect(selected ? null : n.id)}
+              className={`inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold ${
+                disabled
+                  ? "cursor-default border-white/5 text-zinc-600 opacity-50"
+                  : selected
+                    ? "border-teal-400/40 bg-teal-500/10 text-teal-100"
+                    : "border-white/10 bg-[#0c0e14] text-zinc-300 hover:border-white/20"
+              }`}
+            >
+              <span className="size-1.5 rounded-full" style={{ backgroundColor: n.color }} aria-hidden />
+              {n.title}
+              <span className="font-mono tabular-nums text-zinc-400">{n.headline}</span>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 export function LaunchPulse({
   nodes,
   active,
   onSelect,
   className = "",
+  compact = false,
 }: {
   nodes: LaunchPulseNode[];
   active: LaunchPulseBucketId | null;
   onSelect: (id: LaunchPulseBucketId | null) => void;
   className?: string;
+  /** Horizontal chips instead of orbit / large cards — preferred on scanner home. */
+  compact?: boolean;
 }) {
   if (nodes.length === 0) return null;
   return (
     <div className={className}>
-      <LaunchPulseOrbit nodes={nodes} active={active} onSelect={onSelect} />
-      <LaunchPulseMobile nodes={nodes} active={active} onSelect={onSelect} />
+      {compact ? (
+        <>
+          <LaunchPulseCompactDesktop nodes={nodes} active={active} onSelect={onSelect} />
+          <LaunchPulseMobile nodes={nodes} active={active} onSelect={onSelect} compact />
+        </>
+      ) : (
+        <>
+          <LaunchPulseOrbit nodes={nodes} active={active} onSelect={onSelect} />
+          <LaunchPulseMobile nodes={nodes} active={active} onSelect={onSelect} />
+        </>
+      )}
     </div>
   );
 }

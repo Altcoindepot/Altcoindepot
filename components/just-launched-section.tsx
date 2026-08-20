@@ -23,8 +23,16 @@ function asPulse(id: LaunchPulseBucketId | null): DexListPulse {
   return id ?? "all";
 }
 
-/** Just Launched page body: Launch Pulse summary + filterable pair list. */
-export function JustLaunchedSection({ rows }: { rows: JustLaunchedRow[] }) {
+/** Just Launched page body: compact pulse + filterable dense pair list. */
+export function JustLaunchedSection({
+  rows,
+  compactPulse = true,
+  showSegment = true,
+}: {
+  rows: JustLaunchedRow[];
+  compactPulse?: boolean;
+  showSegment?: boolean;
+}) {
   const router = useRouter();
   const pathname = usePathname() ?? "/just-launched";
   const searchParams = useSearchParams();
@@ -68,10 +76,15 @@ export function JustLaunchedSection({ rows }: { rows: JustLaunchedRow[] }) {
   };
 
   return (
-    <div className="mt-6 space-y-4">
-      <DexListSegment />
+    <div className="mt-3 space-y-3">
+      {showSegment ? <DexListSegment /> : null}
       {rows.length > 0 ? (
-        <LaunchPulse nodes={nodes} active={activePulse} onSelect={onSelect} />
+        <LaunchPulse
+          nodes={nodes}
+          active={activePulse}
+          onSelect={onSelect}
+          compact={compactPulse}
+        />
       ) : null}
       <DexPulseChips defaults={JUST_LAUNCHED_DEFAULT_QUERY} />
       <RecentlyViewedStrip />
@@ -83,11 +96,7 @@ export function JustLaunchedSection({ rows }: { rows: JustLaunchedRow[] }) {
         rows={visible}
         filterLabel={activeTitle}
         totalCount={rows.length}
-        onClearFilter={
-          activePulse
-            ? () => onSelect(null)
-            : undefined
-        }
+        onClearFilter={activePulse ? () => onSelect(null) : undefined}
       />
     </div>
   );

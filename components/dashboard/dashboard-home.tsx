@@ -4,17 +4,19 @@ import type { DexLivePairRow } from "@/lib/dexscreener-live-pairs";
 import type { LowCapRow } from "@/lib/dashboard-data";
 import Link from "next/link";
 import { Suspense } from "react";
-import { JustLaunchedSection } from "@/components/just-launched-section";
+import { HomeLaunchPulse } from "@/components/home-launch-pulse";
 import { DexPairPriceTable } from "@/components/dex-pair-price-table";
 import { NewLowCapsTable } from "@/components/dashboard/new-low-caps-table";
+import { RecentlyViewedStrip } from "@/components/recently-viewed-strip";
 import { StickyRegimeBar } from "@/components/dashboard/sticky-regime-bar";
 import { NarrativeRotationSection } from "@/components/dashboard/narrative-rotation-section";
 import { MarketSentimentWidget } from "@/components/dashboard/market-sentiment-widget";
 import { DisclaimerNote } from "@/components/disclaimer-note";
 
 /**
- * Scanner-first homepage: Launch Pulse / filters / recents / Just Launched /
- * New & Low Caps lead. Macro narrative widgets sit below (secondary).
+ * Scanner-first homepage (mockup hierarchy):
+ * sticky filters (header) → compact Launch Pulse → recently viewed → dense price rows.
+ * Macro widgets are desktop-secondary only.
  */
 export function DashboardHome({
   snapshot,
@@ -35,81 +37,88 @@ export function DashboardHome({
 }) {
   return (
     <div className="w-full">
-      <div className="mx-auto max-w-[90rem] px-4 pb-8 pt-4 sm:px-6 sm:pb-10 sm:pt-5">
-        <header className="mb-3">
-          <h1 className="text-lg font-bold tracking-tight text-zinc-50 sm:text-xl">
-            DEX Scanner
-          </h1>
-          <p className="mt-1 max-w-2xl text-sm leading-relaxed text-zinc-500">
-            Live DexScreener pairs — price, liquidity, volume, age, and venue. Extremely high risk.
-            Informational only, not financial advice.
-          </p>
+      <div className="mx-auto max-w-[90rem] px-3 pb-8 pt-3 sm:px-6 sm:pb-10 sm:pt-4">
+        <header className="mb-2 flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h1 className="text-base font-bold tracking-tight text-zinc-50 sm:text-lg">
+              DEX Scanner
+            </h1>
+            <p className="mt-0.5 text-[11px] leading-snug text-zinc-500 sm:text-xs">
+              Live DexScreener pairs · high risk · not financial advice
+            </p>
+          </div>
+          <div className="flex gap-3 text-[11px]">
+            <Link href="/just-launched" className="font-medium text-zinc-500 hover:text-teal-200">
+              Just Launched
+            </Link>
+            <Link href="/new-low-caps" className="font-medium text-zinc-500 hover:text-teal-200">
+              Low Caps
+            </Link>
+          </div>
         </header>
 
         {watchlistOnly ? (
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-teal-400/25 bg-teal-500/10 px-4 py-3">
-            <p className="text-sm text-teal-100">
-              Watchlist filter on — New &amp; Low Caps shows only assets you starred on this device.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <Link href="/" className="text-xs font-semibold text-teal-200 underline-offset-2 hover:underline">
-                Clear filter
-              </Link>
-              <Link
-                href="/watchlist"
-                className="text-xs font-semibold text-teal-200 underline-offset-2 hover:underline"
-              >
-                Full watchlist page →
-              </Link>
-            </div>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-teal-400/25 bg-teal-500/10 px-3 py-2">
+            <p className="text-xs text-teal-100">Watchlist filter on</p>
+            <Link href="/" className="text-[11px] font-semibold text-teal-200 underline-offset-2 hover:underline">
+              Clear
+            </Link>
           </div>
         ) : null}
 
         {justLaunchedFailed && justLaunched.length === 0 ? (
-          <p className="mb-4 rounded-xl border border-white/10 bg-[#0c0e14] px-4 py-6 text-sm text-zinc-500">
-            Couldn&apos;t load just-launched pairs right now.{" "}
+          <p className="mb-3 rounded-lg border border-white/10 bg-[#0c0e14] px-3 py-3 text-xs text-zinc-500">
+            Just-launched pulse unavailable.{" "}
             <Link href="/just-launched" className="text-teal-300 underline-offset-2 hover:underline">
-              Try Just Launched →
+              Open Just Launched →
             </Link>
           </p>
         ) : (
-          <Suspense fallback={<div className="mt-4 h-56 rounded-2xl border border-white/10 bg-[#0c0e14]" />}>
-            <JustLaunchedSection rows={justLaunched} />
+          <Suspense fallback={null}>
+            <div className="mb-3">
+              <HomeLaunchPulse rows={justLaunched} />
+            </div>
           </Suspense>
         )}
+
+        <RecentlyViewedStrip className="mb-3" />
 
         <DexPairPriceTable
           rows={livePairs}
           error={livePairsError}
-          title="Live DEX pairs (prices)"
+          title="Live pairs"
         />
 
-        <Suspense fallback={<div className="mt-6 h-48 rounded-2xl border border-white/10 bg-[#0c0e14]" />}>
-          <NewLowCapsTable
-            rows={lowCaps}
-            watchlistOnly={watchlistOnly}
-            className="mt-6"
-            showViewAll
-            showListChrome={false}
-            heading="New & Low Caps"
-          />
-        </Suspense>
+        {/* Secondary dense list on desktop; mobile relies on live pairs table above */}
+        <div className="mt-4 hidden md:block">
+          <Suspense fallback={<div className="h-40 rounded-xl border border-white/10 bg-[#0c0e14]" />}>
+            <NewLowCapsTable
+              rows={lowCaps}
+              watchlistOnly={watchlistOnly}
+              showViewAll
+              showListChrome={false}
+              heading="New & Low Caps"
+            />
+          </Suspense>
+        </div>
 
-        <p className="mt-3 text-xs text-zinc-600">
+        <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-zinc-600 md:hidden">
+          <Link href="/just-launched" className="text-teal-300/90 underline-offset-2 hover:underline">
+            Just Launched →
+          </Link>
           <Link href="/new-low-caps" className="text-teal-300/90 underline-offset-2 hover:underline">
-            Open full New &amp; Low Caps scanner →
+            New &amp; Low Caps →
           </Link>
         </p>
 
-        <DisclaimerNote className="mt-6">
-          Pair stats from DexScreener · filters are shareable via URL · informational only · not
-          financial advice
+        <DisclaimerNote className="mt-4 text-[11px]">
+          Pair stats from DexScreener · informational only · not financial advice
         </DisclaimerNote>
 
-        {/* Macro context — secondary, below scanner lists */}
+        {/* Macro context — desktop/secondary only; not primary mobile scanner */}
         <section
           aria-labelledby="market-context-heading"
-          className="mt-10 border-t border-white/10 pt-8"
+          className="mt-10 hidden border-t border-white/10 pt-8 lg:block"
         >
           <h2
             id="market-context-heading"
@@ -118,7 +127,7 @@ export function DashboardHome({
             Market context
           </h2>
           <p className="mt-1 text-sm text-zinc-500">
-            Regime and narrative rotation (CoinGecko categories) — secondary to the DEX lists above.
+            Regime and narrative rotation — secondary to the DEX scanner above.
           </p>
 
           <div className="mt-4">
@@ -143,8 +152,7 @@ export function DashboardHome({
 
           {snapshot.usingMock ? (
             <p className="mt-3 text-xs text-amber-200/80">
-              CoinGecko snapshot unavailable — Market context uses fallback metrics. DEX lists load
-              from DexScreener when available.
+              CoinGecko snapshot unavailable — Market context uses fallback metrics.
             </p>
           ) : null}
         </section>
