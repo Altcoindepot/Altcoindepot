@@ -6,13 +6,17 @@ import { BrandLogo } from "@/components/brand-logo";
 import { ThemeSelector } from "@/components/theme-selector";
 import { ResourcesNavAccordion } from "@/components/resources-nav-accordion";
 
-/** Secondary-only hamburger destinations (scanner routes live in header + bottom tabs). */
+/** Secondary destinations — Resources stays nested; primary scanner routes live in bottom tabs. */
 const SECONDARY = [
-  { href: "/about", label: "About" },
-  { href: "/disclaimer", label: "Disclaimer" },
   { href: "/watchlist", label: "Watchlist" },
+  { href: "/portfolio", label: "Portfolio" },
   { href: "/alerts", label: "Alerts" },
   { href: "/sectors", label: "Sectors" },
+  { href: "/just-launched", label: "Just Launched" },
+  { href: "/new-low-caps", label: "New & Low Caps" },
+  { href: "/top-100-trending", label: "Tokens" },
+  { href: "/about", label: "About" },
+  { href: "/disclaimer", label: "Disclaimer" },
   { href: "/privacy", label: "Privacy" },
 ] as const;
 
@@ -58,9 +62,12 @@ export function SiteMoreDrawer({
           </p>
           <ThemeSelector />
           <p className="px-3 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
-            Browse
+            Resources
           </p>
           <ResourcesNavAccordion onNavigate={onClose} />
+          <p className="px-3 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
+            More
+          </p>
           {SECONDARY.map((item) => {
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (

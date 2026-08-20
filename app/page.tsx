@@ -3,23 +3,15 @@ import { SiteHeader } from "@/components/site-header";
 import { DashboardHome } from "@/components/dashboard/dashboard-home";
 import { getDashboardSnapshot, type DashboardSnapshot } from "@/lib/dashboard-snapshot";
 import { getMockDashboardSnapshot } from "@/lib/dashboard-mock";
-import { peekDexLowCapsFetchedAt } from "@/lib/dexscreener-low-caps";
 import {
-  getJustLaunchedPairs,
-  peekJustLaunchedFetchedAt,
-  type JustLaunchedRow,
-} from "@/lib/dexscreener-just-launched";
-import {
-  DexScreenerFetchError,
-  getLiveDexPairs,
-  type DexLivePairRow,
-} from "@/lib/dexscreener-live-pairs";
-import { livePairsToLowCapRows } from "@/lib/live-pairs-to-low-cap";
-import type { LowCapRow } from "@/lib/dashboard-data";
+  getChainMovers,
+  peekChainMoversFetchedAt,
+  type ChainMoversBoard,
+} from "@/lib/dex-chain-movers";
 
-const TITLE = "AltCoin Depot – DEX Scanner | Just Launched & Low Caps";
+const TITLE = "AltCoin Depot – Narrative Rotation & DEX Movers";
 const DESCRIPTION =
-  "Live DexScreener scanner: just-launched pairs, new & low-cap tokens, filters, DEX venues, and on-site token pages. Informational only — not financial advice.";
+  "Track narrative rotation and top DexScreener gainers and losers by chain. Just Launched and New & Low Caps live on dedicated scanner pages. Informational only — not financial advice.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -50,40 +42,12 @@ async function fetchDashboardData(): Promise<DashboardSnapshot> {
   }
 }
 
-async function loadJustLaunched(): Promise<{ rows: JustLaunchedRow[]; failed: boolean }> {
+async function loadMovers(): Promise<ChainMoversBoard[]> {
   try {
-    const rows = await getJustLaunchedPairs();
-    console.info("[page] Just Launched DexScreener", { count: rows.length, live: rows.length > 0 });
-    return { rows, failed: false };
+    return await getChainMovers();
   } catch (err) {
-    console.warn("[page] Just Launched DexScreener failed", err);
-    return { rows: [], failed: true };
-  }
-}
-
-async function loadLowCaps(): Promise<LowCapRow[]> {
-  try {
-    const rows = livePairsToLowCapRows(await getLiveDexPairs(50));
-    if (rows.length > 0) return rows;
-  } catch (err) {
-    console.warn("[page] live Dex pairs for low-caps failed", err);
-  }
-  return [];
-}
-
-async function loadLivePairs(): Promise<{ rows: DexLivePairRow[]; error: string | null }> {
-  try {
-    const rows = await getLiveDexPairs(25);
-    return { rows, error: null };
-  } catch (err) {
-    const message =
-      err instanceof DexScreenerFetchError
-        ? err.message
-        : err instanceof Error
-          ? err.message
-          : String(err);
-    console.error("[page] getLiveDexPairs failed:", message);
-    return { rows: [], error: message };
+    console.warn("[page] chain movers failed", err);
+    return [];
   }
 }
 
@@ -95,17 +59,9 @@ export default async function Home({
   const params = await searchParams;
   const watchlistOnly = params.watchlist === "1" || params.watchlist === "true";
 
-  const [snapshot, launched, lowCaps, live] = await Promise.all([
-    fetchDashboardData(),
-    loadJustLaunched(),
-    loadLowCaps(),
-    loadLivePairs(),
-  ]);
+  const [snapshot, chainMovers] = await Promise.all([fetchDashboardData(), loadMovers()]);
 
-  const fetchedAt =
-    peekJustLaunchedFetchedAt() ??
-    peekDexLowCapsFetchedAt() ??
-    Date.parse(snapshot.updatedAt);
+  const fetchedAt = peekChainMoversFetchedAt() ?? Date.parse(snapshot.updatedAt);
 
   return (
     <>
@@ -113,12 +69,8 @@ export default async function Home({
       <main id="main-content" className="relative">
         <DashboardHome
           snapshot={snapshot}
-          justLaunched={launched.rows}
-          lowCaps={lowCaps.length > 0 ? lowCaps : livePairsToLowCapRows(live.rows)}
-          livePairs={live.rows}
-          livePairsError={live.error}
+          chainMovers={chainMovers}
           watchlistOnly={watchlistOnly}
-          justLaunchedFailed={launched.failed}
         />
       </main>
     </>

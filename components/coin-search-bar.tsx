@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import {
@@ -146,19 +145,11 @@ export function CoinSearchBar({
     [goToCoin, router],
   );
 
-  const inputClass =
-    variant === "wide"
-      ? "min-h-12 w-full flex-1 rounded-lg border border-[#f4ddc3]/20 bg-[rgba(20,18,22,0.65)] px-3 py-2.5 text-base text-white placeholder:text-zinc-500 focus:border-[#d1a173]/60 focus:outline-none focus:ring-2 focus:ring-[#d1a173]/35 sm:text-sm"
-      : "h-10 w-full min-w-0 rounded-lg border border-[#f4ddc3]/25 bg-[rgba(20,18,22,0.7)] px-3 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-[#d1a173]/60 focus:outline-none focus:ring-2 focus:ring-[#d1a173]/35 sm:w-56 md:w-64";
-
-  const wrapperClass =
-    variant === "wide" ? "relative w-full" : "relative hidden md:block";
-
   const showDropdown = open && (results.length > 0 || indexError || searched);
 
   return (
     <>
-      <div ref={rootRef} className={wrapperClass}>
+      <div ref={rootRef} className={variant === "wide" ? "relative w-full" : "relative block"}>
         <form
           role="search"
           className={
@@ -176,7 +167,7 @@ export function CoinSearchBar({
           }}
         >
           <label htmlFor={fieldId} className="sr-only">
-            Search asset information
+            Search tokens and pairs
           </label>
           <div className="relative min-w-0 flex-1">
             <input
@@ -207,7 +198,11 @@ export function CoinSearchBar({
               aria-expanded={showDropdown ? true : false}
               aria-controls={listId}
               aria-autocomplete="list"
-              className={inputClass}
+              className={
+                variant === "wide"
+                  ? "min-h-12 w-full flex-1 rounded-lg border border-[#f4ddc3]/20 bg-[rgba(20,18,22,0.65)] px-3 py-2.5 text-base text-white placeholder:text-zinc-500 focus:border-teal-400/50 focus:outline-none focus:ring-2 focus:ring-teal-400/25 sm:text-sm"
+                  : "h-10 w-full min-w-0 rounded-full border border-white/12 bg-white/[0.04] px-3.5 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-teal-400/45 focus:outline-none focus:ring-2 focus:ring-teal-400/20 lg:w-52 xl:w-64"
+              }
             />
             {showDropdown ? (
               <ul
@@ -298,14 +293,6 @@ export function CoinSearchBar({
           ) : null}
         </form>
       </div>
-      {variant === "header" ? (
-        <Link
-          href="/coin"
-          className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-[#f4ddc3]/25 bg-[rgba(20,18,22,0.7)] px-3 py-2 text-sm font-medium text-zinc-200 md:hidden"
-        >
-          Search
-        </Link>
-      ) : null}
     </>
   );
 }
