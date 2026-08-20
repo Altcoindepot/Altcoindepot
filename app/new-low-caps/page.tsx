@@ -2,15 +2,21 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { SiteHeader } from "@/components/site-header";
+import { DexPairPriceTable } from "@/components/dex-pair-price-table";
 import { NewLowCapsTable } from "@/components/dashboard/new-low-caps-table";
 import { LowCapsDisclaimerModal } from "@/components/low-caps-disclaimer-modal";
-import { getMockDashboardSnapshot } from "@/lib/dashboard-mock";
-import { getDexScreenerLowCaps, peekDexLowCapsFetchedAt } from "@/lib/dexscreener-low-caps";
+import { peekDexLowCapsFetchedAt } from "@/lib/dexscreener-low-caps";
+import {
+  DexScreenerFetchError,
+  getLiveDexPairs,
+  type DexLivePairRow,
+} from "@/lib/dexscreener-live-pairs";
+import { livePairsToLowCapRows } from "@/lib/live-pairs-to-low-cap";
 import type { LowCapRow } from "@/lib/dashboard-data";
 
 const TITLE = "New & Low Cap Crypto Tokens – Live DEX Pairs | AltCoin Depot";
 const DESCRIPTION =
-  "Track new and low-cap crypto tokens from live DEX pairs. See liquidity, volume, 24h change, chain, and contract addresses. Data updated from DexScreener. Informational only — not financial advice.";
+  "Track new and low-cap crypto tokens from live DEX pairs. See price, liquidity, 24h change, volume, and contract addresses. Data from DexScreener. Informational only — not financial advice.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -33,25 +39,29 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-async function loadRows(): Promise<LowCapRow[]> {
+function liveToLowCapRows(live: DexLivePairRow[]): LowCapRow[] {
+  return livePairsToLowCapRows(live);
+}
+
+async function loadLive(): Promise<{ rows: DexLivePairRow[]; error: string | null }> {
   try {
-    const rows = await getDexScreenerLowCaps();
-    if (rows.length > 0) {
-      console.info("[new-low-caps] live DexScreener rows", {
-        count: rows.length,
-        withPrice: rows.filter((r) => r.priceUsd != null).length,
-      });
-      return rows;
-    }
+    const rows = await getLiveDexPairs(50);
+    return { rows, error: null };
   } catch (err) {
-    console.warn("[new-low-caps] DexScreener failed; using mock rows", err);
+    const message =
+      err instanceof DexScreenerFetchError
+        ? err.message
+        : err instanceof Error
+          ? err.message
+          : String(err);
+    console.error("[new-low-caps] getLiveDexPairs failed:", message);
+    return { rows: [], error: message };
   }
-  console.info("[new-low-caps] using mock fallback (no live Dex rows)");
-  return getMockDashboardSnapshot().lowCaps;
 }
 
 export default async function NewLowCapsPage() {
-  const rows = await loadRows();
+  const live = await loadLive();
+  const rows = liveToLowCapRows(live.rows);
   const fetchedAt = peekDexLowCapsFetchedAt();
 
   return (
@@ -70,21 +80,17 @@ export default async function NewLowCapsPage() {
             New &amp; low cap crypto tokens
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-400">
-            Recently active DEX pairs with price, liquidity, 24h change, volume, and pair age. Data is
-            cached about every 10 minutes from DexScreener. Informational only — not financial
-            advice.
+            Live DEX pairs with price, liquidity, 24h change, volume, and pair age from DexScreener.
+            Informational only — not financial advice.
           </p>
-          <p className="mt-3">
-            <Link
-              href="/just-launched"
-              className="text-xs font-medium text-zinc-500 underline-offset-2 hover:text-teal-200 hover:underline"
-            >
-              Just launched pairs →
-            </Link>
-          </p>
-          <Suspense fallback={<div className="mt-6 h-48 rounded-2xl border border-white/10 bg-[#0c0e14]" />}>
-            <NewLowCapsTable rows={rows} showViewAll={false} className="mt-6" />
-          </Suspense>
+
+          <DexPairPriceTable rows={live.rows} error={live.error} title="Live DEX pairs (prices)" />
+
+          {!live.error && rows.length > 0 ? (
+            <Suspense fallback={<div className="mt-6 h-48 rounded-2xl border border-white/10 bg-[#0c0e14]" />}>
+              <NewLowCapsTable rows={rows} showViewAll={false} className="mt-6" />
+            </Suspense>
+          ) : null}
         </div>
       </main>
       <LowCapsDisclaimerModal />

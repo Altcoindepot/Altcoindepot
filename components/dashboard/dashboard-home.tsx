@@ -1,9 +1,11 @@
 import type { DashboardSnapshot } from "@/lib/dashboard-data";
 import type { JustLaunchedRow } from "@/lib/dexscreener-just-launched";
+import type { DexLivePairRow } from "@/lib/dexscreener-live-pairs";
 import type { LowCapRow } from "@/lib/dashboard-data";
 import Link from "next/link";
 import { Suspense } from "react";
 import { JustLaunchedSection } from "@/components/just-launched-section";
+import { DexPairPriceTable } from "@/components/dex-pair-price-table";
 import { NewLowCapsTable } from "@/components/dashboard/new-low-caps-table";
 import { StickyRegimeBar } from "@/components/dashboard/sticky-regime-bar";
 import { NarrativeRotationSection } from "@/components/dashboard/narrative-rotation-section";
@@ -18,12 +20,16 @@ export function DashboardHome({
   snapshot,
   justLaunched,
   lowCaps,
+  livePairs,
+  livePairsError,
   watchlistOnly = false,
   justLaunchedFailed = false,
 }: {
   snapshot: DashboardSnapshot;
   justLaunched: JustLaunchedRow[];
   lowCaps: LowCapRow[];
+  livePairs: DexLivePairRow[];
+  livePairsError?: string | null;
   watchlistOnly?: boolean;
   justLaunchedFailed?: boolean;
 }) {
@@ -71,6 +77,12 @@ export function DashboardHome({
             <JustLaunchedSection rows={justLaunched} />
           </Suspense>
         )}
+
+        <DexPairPriceTable
+          rows={livePairs}
+          error={livePairsError}
+          title="Live DEX pairs (prices)"
+        />
 
         <Suspense fallback={<div className="mt-6 h-48 rounded-2xl border border-white/10 bg-[#0c0e14]" />}>
           <NewLowCapsTable

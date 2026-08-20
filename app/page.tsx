@@ -3,12 +3,18 @@ import { SiteHeader } from "@/components/site-header";
 import { DashboardHome } from "@/components/dashboard/dashboard-home";
 import { getDashboardSnapshot, type DashboardSnapshot } from "@/lib/dashboard-snapshot";
 import { getMockDashboardSnapshot } from "@/lib/dashboard-mock";
-import { getDexScreenerLowCaps, peekDexLowCapsFetchedAt } from "@/lib/dexscreener-low-caps";
+import { peekDexLowCapsFetchedAt } from "@/lib/dexscreener-low-caps";
 import {
   getJustLaunchedPairs,
   peekJustLaunchedFetchedAt,
   type JustLaunchedRow,
 } from "@/lib/dexscreener-just-launched";
+import {
+  DexScreenerFetchError,
+  getLiveDexPairs,
+  type DexLivePairRow,
+} from "@/lib/dexscreener-live-pairs";
+import { livePairsToLowCapRows } from "@/lib/live-pairs-to-low-cap";
 import type { LowCapRow } from "@/lib/dashboard-data";
 
 const TITLE = "AltCoin Depot – DEX Scanner | Just Launched & Low Caps";
@@ -57,16 +63,28 @@ async function loadJustLaunched(): Promise<{ rows: JustLaunchedRow[]; failed: bo
 
 async function loadLowCaps(): Promise<LowCapRow[]> {
   try {
-    const rows = await getDexScreenerLowCaps();
-    if (rows.length > 0) {
-      console.info("[page] New & Low Caps DexScreener", { count: rows.length, live: true });
-      return rows;
-    }
+    const rows = livePairsToLowCapRows(await getLiveDexPairs(50));
+    if (rows.length > 0) return rows;
   } catch (err) {
-    console.warn("[page] New & Low Caps DexScreener failed; using mock rows", err);
+    console.warn("[page] live Dex pairs for low-caps failed", err);
   }
-  console.info("[page] New & Low Caps using mock fallback");
-  return getMockDashboardSnapshot().lowCaps;
+  return [];
+}
+
+async function loadLivePairs(): Promise<{ rows: DexLivePairRow[]; error: string | null }> {
+  try {
+    const rows = await getLiveDexPairs(25);
+    return { rows, error: null };
+  } catch (err) {
+    const message =
+      err instanceof DexScreenerFetchError
+        ? err.message
+        : err instanceof Error
+          ? err.message
+          : String(err);
+    console.error("[page] getLiveDexPairs failed:", message);
+    return { rows: [], error: message };
+  }
 }
 
 export default async function Home({
@@ -77,10 +95,11 @@ export default async function Home({
   const params = await searchParams;
   const watchlistOnly = params.watchlist === "1" || params.watchlist === "true";
 
-  const [snapshot, launched, lowCaps] = await Promise.all([
+  const [snapshot, launched, lowCaps, live] = await Promise.all([
     fetchDashboardData(),
     loadJustLaunched(),
     loadLowCaps(),
+    loadLivePairs(),
   ]);
 
   const fetchedAt =
@@ -95,7 +114,9 @@ export default async function Home({
         <DashboardHome
           snapshot={snapshot}
           justLaunched={launched.rows}
-          lowCaps={lowCaps}
+          lowCaps={lowCaps.length > 0 ? lowCaps : livePairsToLowCapRows(live.rows)}
+          livePairs={live.rows}
+          livePairsError={live.error}
           watchlistOnly={watchlistOnly}
           justLaunchedFailed={launched.failed}
         />
