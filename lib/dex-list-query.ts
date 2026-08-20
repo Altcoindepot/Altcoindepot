@@ -53,6 +53,16 @@ export const JUST_LAUNCHED_DEFAULT_QUERY: DexListQuery = {
   pulse: "all",
 };
 
+/** /pairs explorer: volume-first with shareable chain/sort params. */
+export const PAIRS_DEFAULT_QUERY: DexListQuery = {
+  sort: "volume",
+  dir: "desc",
+  chain: "all",
+  minLiq: "25k",
+  age: "all",
+  pulse: "all",
+};
+
 export const DEX_LIST_SORT_LABELS: Record<DexListSort, string> = {
   newest: "Most recent",
   volume: "Highest volume",

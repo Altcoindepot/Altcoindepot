@@ -4,6 +4,7 @@
  * Fallback: latest/dex/search.
  */
 
+import { unstable_cache } from "next/cache";
 import { dexVenueLabel } from "@/lib/dex-venue";
 import { normalizeDexChainId } from "@/lib/dex-token-path";
 import { parseDexUsdNumber } from "@/lib/dex-pair-fields";
@@ -11,6 +12,10 @@ import { parseDexUsdNumber } from "@/lib/dex-pair-fields";
 const DEX_BASE = "https://api.dexscreener.com";
 export const LIVE_PAIRS_REVALIDATE_SECONDS = 120;
 export const LIVE_PAIRS_MIN_ROWS = 10;
+/** Soft cap for /pairs explorer (Load more stops here). */
+export const DEX_EXPLORER_MAX_ROWS = 300;
+export const DEX_EXPLORER_MIN_LIQ_USD = 10_000;
+export const DEX_EXPLORER_REVALIDATE_SECONDS = 180;
 
 export type DexLivePairRow = {
   id: string;
@@ -161,7 +166,19 @@ async function fetchPairsFromTopBoosts(): Promise<DexPair[]> {
 }
 
 async function fetchPairsFromSearch(): Promise<DexPair[]> {
-  const queries = ["SOL", "PEPE", "WIF", "BONK", "ETH"];
+  const queries = [
+    "SOL",
+    "ETH",
+    "BASE",
+    "BNB",
+    "PEPE",
+    "WIF",
+    "BONK",
+    "USDT",
+    "USDC",
+    "AI",
+    "meme",
+  ];
   const out: DexPair[] = [];
   await Promise.all(
     queries.map(async (q) => {
@@ -176,6 +193,48 @@ async function fetchPairsFromSearch(): Promise<DexPair[]> {
     }),
   );
   return out;
+}
+
+async function collectExplorerRawPairs(): Promise<DexPair[]> {
+  let pairs: DexPair[] = [];
+  try {
+    pairs = await fetchPairsFromTopBoosts();
+  } catch {
+    /* continue with search */
+  }
+  try {
+    pairs = [...pairs, ...(await fetchPairsFromSearch())];
+  } catch {
+    /* optional */
+  }
+  return pairs;
+}
+
+/**
+ * Broader Dex pair set for /pairs explorer.
+ * Reuses the same price mapping as list pages; does not change Just Launched / Low Caps rules.
+ */
+export async function getDexExplorerPairs(
+  maxRows = DEX_EXPLORER_MAX_ROWS,
+): Promise<DexLivePairRow[]> {
+  const pairs = await collectExplorerRawPairs();
+  const rows = dedupeLiveRows(pairs)
+    .filter((r) => (r.liquidityUsd ?? 0) >= DEX_EXPLORER_MIN_LIQ_USD)
+    .sort((a, b) => {
+      const av = a.volume24h ?? a.liquidityUsd ?? 0;
+      const bv = b.volume24h ?? b.liquidityUsd ?? 0;
+      return bv - av;
+    })
+    .slice(0, Math.min(maxRows, DEX_EXPLORER_MAX_ROWS));
+
+  logDexLivePairSamples(rows, "dex-explorer-pairs");
+  console.info("[dex-explorer-pairs] summary", {
+    raw: pairs.length,
+    mapped: rows.length,
+    withPrice: rows.filter((r) => r.priceUsd != null).length,
+  });
+
+  return rows;
 }
 
 function dedupeLiveRows(pairs: DexPair[]): DexLivePairRow[] {
@@ -245,4 +304,15 @@ export async function getLiveDexPairs(limit = 30): Promise<DexLivePairRow[]> {
   }
 
   return rows;
+}
+
+const loadExplorerCached = unstable_cache(
+  async () => getDexExplorerPairs(DEX_EXPLORER_MAX_ROWS),
+  ["dex-explorer-pairs-v1"],
+  { revalidate: DEX_EXPLORER_REVALIDATE_SECONDS },
+);
+
+/** Cached explorer list for /pairs (2–5 min). */
+export async function getCachedDexExplorerPairs(): Promise<DexLivePairRow[]> {
+  return loadExplorerCached();
 }

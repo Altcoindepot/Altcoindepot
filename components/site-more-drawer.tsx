@@ -9,6 +9,7 @@ import { ResourcesNavAccordion } from "@/components/resources-nav-accordion";
 /** Secondary destinations — Resources stays nested; primary scanner routes live in bottom tabs. */
 const SECONDARY = [
   { href: "/gainers-losers", label: "Gainers & Losers" },
+  { href: "/pairs", label: "Pairs" },
   { href: "/watchlist", label: "Watchlist" },
   { href: "/portfolio", label: "Portfolio" },
   { href: "/alerts", label: "Alerts" },

@@ -12,6 +12,7 @@ import {
   DEFAULT_DEX_LIST_QUERY,
   JUST_LAUNCHED_DEFAULT_QUERY,
   LOW_CAPS_DEFAULT_QUERY,
+  PAIRS_DEFAULT_QUERY,
   type DexListQuery,
 } from "@/lib/dex-list-query";
 
@@ -108,9 +109,9 @@ const DESKTOP_NAV: NavItem[] = [
     icon: <IconTokens />,
   },
   {
-    href: "/new-low-caps",
+    href: "/pairs",
     label: "Pairs",
-    match: (p) => p.startsWith("/new-low-caps"),
+    match: (p) => p.startsWith("/pairs"),
     icon: <IconPairs />,
   },
   {
@@ -141,6 +142,7 @@ const DESKTOP_NAV: NavItem[] = [
 
 function filterDefaults(pathname: string): DexListQuery {
   if (pathname.startsWith("/just-launched")) return JUST_LAUNCHED_DEFAULT_QUERY;
+  if (pathname.startsWith("/pairs")) return PAIRS_DEFAULT_QUERY;
   if (pathname.startsWith("/new-low-caps") || pathname === "/") return LOW_CAPS_DEFAULT_QUERY;
   return DEFAULT_DEX_LIST_QUERY;
 }

@@ -35,7 +35,8 @@ export function DexFilterSummary({
   const show =
     pathname === "/" ||
     pathname?.startsWith("/new-low-caps") ||
-    pathname?.startsWith("/just-launched");
+    pathname?.startsWith("/just-launched") ||
+    pathname?.startsWith("/pairs");
   if (!show) return null;
 
   return (
