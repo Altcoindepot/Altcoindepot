@@ -121,9 +121,9 @@ const DESKTOP_NAV: NavItem[] = [
     icon: <IconMovers />,
   },
   {
-    href: "/just-launched",
+    href: "/dex-scanner",
     label: "DEX Scanner",
-    match: (p) => p.startsWith("/just-launched") || p.startsWith("/token/"),
+    match: (p) => p.startsWith("/dex-scanner"),
     icon: <IconScanner />,
   },
   {

@@ -157,7 +157,7 @@ export function ChainMoversTeaser({ className = "" }: { className?: string }) {
             Solana, Ethereum, Base &amp; BSC — top 5 gainers and losers (1h when available).
           </p>
         </div>
-        <div className="flex flex-col items-start gap-2 sm:items-end">
+          <div className="flex flex-col items-start gap-2 sm:items-end">
           <Link
             href="/gainers-losers"
             className="inline-flex min-h-11 items-center rounded-full bg-teal-500/15 px-4 text-sm font-semibold text-teal-200 transition-colors hover:bg-teal-500/25"
@@ -165,6 +165,12 @@ export function ChainMoversTeaser({ className = "" }: { className?: string }) {
             Top movers →
           </Link>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
+            <Link
+              href="/dex-scanner"
+              className="font-medium text-zinc-500 underline-offset-2 hover:text-teal-200 hover:underline"
+            >
+              Open DEX Scanner →
+            </Link>
             <Link
               href="/just-launched"
               className="font-medium text-zinc-500 underline-offset-2 hover:text-teal-200 hover:underline"
