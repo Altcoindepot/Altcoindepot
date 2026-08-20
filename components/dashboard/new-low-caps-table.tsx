@@ -2,19 +2,19 @@
 
 import type { ReactNode } from "react";
 import { useMemo } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { LowCapRow } from "@/lib/dashboard-data";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
-import { formatChainLabel } from "@/lib/format-chain";
 import { ds } from "@/lib/ui-classes";
 import { useWatchlist } from "@/components/use-watchlist";
 import { WatchlistStarButton } from "@/components/watchlist-star-button";
 import { CopyAddressButton } from "@/components/copy-address-button";
 import { DexProjectLinks } from "@/components/dex-project-links";
 import { DexListControls } from "@/components/dex-list-controls";
+import { ChainIcon } from "@/components/chain-icon";
 import { DexVenueBadge } from "@/components/dex-venue-badge";
+import { TokenAvatar } from "@/components/token-avatar";
 import { DexPulseChips } from "@/components/dex-pulse-chips";
 import { DexListSegment } from "@/components/dex-list-segment";
 import { RecentlyViewedStrip } from "@/components/recently-viewed-strip";
@@ -195,62 +195,44 @@ export function NewLowCapsTable({
             </div>
           ) : null}
           <ul className="divide-y divide-white/5 md:hidden">
-            {visibleRows.map((row) => {
-              const chain = formatChainLabel(row.chain);
-              const useVolume = row.volume != null;
-              const secondary = useVolume ? row.volume : (row.liquidity ?? null);
-              const secondaryLabel = useVolume ? "Vol" : "Liq";
-              return (
-                <li key={`${row.id}-${row.narrativeSlug}-card`}>
-                  <Link
-                    href={tokenHref(row)}
-                    className="flex min-h-11 items-center gap-2 px-3 py-1.5 active:bg-white/[0.04]"
-                  >
-                    {row.image ? (
-                      <Image
-                        src={row.image}
-                        alt=""
-                        width={20}
-                        height={20}
-                        className="size-5 shrink-0 rounded-full"
-                      />
-                    ) : (
-                      <span className="size-5 shrink-0 rounded-full bg-zinc-800" />
-                    )}
-                    <span className="min-w-0 flex-1">
-                      <span className="flex min-w-0 items-center gap-1.5">
-                        <span className="truncate text-[13px] font-medium leading-tight text-zinc-100">
-                          {row.name}
-                        </span>
-                        <span className="shrink-0 font-mono text-[10px] uppercase text-zinc-500">
-                          {row.symbol}
-                        </span>
-                        {row.chain ? (
-                          <span className="shrink-0 rounded bg-zinc-800 px-1 py-px font-mono text-[9px] uppercase tracking-wide text-zinc-400">
-                            {chain}
-                            {row.dexLabel ? ` · ${row.dexLabel}` : ""}
-                          </span>
-                        ) : null}
+            {visibleRows.map((row) => (
+              <li key={`${row.id}-${row.narrativeSlug}-card`}>
+                <Link
+                  href={tokenHref(row)}
+                  className="flex items-center gap-2.5 px-3 py-2 active:bg-white/[0.04]"
+                >
+                  <TokenAvatar symbol={row.symbol} imageUrl={row.image || null} size={28} />
+                  <span className="min-w-0 flex-1">
+                    <span className="flex min-w-0 items-baseline gap-1.5">
+                      <span className="truncate font-mono text-[13px] font-bold uppercase text-zinc-50">
+                        {row.symbol}
                       </span>
-                      <span className="mt-0.5 block font-mono text-[10px] tabular-nums leading-tight text-zinc-500">
-                        <span className="text-zinc-300">{formatPrice(row.priceUsd)}</span>
-                        {" · "}
-                        {secondaryLabel} {formatCompactUsd(secondary)}
-                        {" · "}
-                        {row.addedLabel || "—"}
-                      </span>
+                      <span className="truncate text-[11px] text-zinc-500">{row.name}</span>
+                    </span>
+                    <span className="mt-1 flex items-center gap-1.5">
+                      {row.chain ? <ChainIcon chainId={row.chain} size={16} /> : null}
+                      <DexVenueBadge dexId={row.dexId} dexLabel={row.dexLabel} iconOnly size={16} />
+                    </span>
+                    <span className="mt-0.5 block font-mono text-[10px] tabular-nums text-zinc-500">
+                      {formatCompactUsd(row.volume)} vol · {formatCompactUsd(row.liquidity)} liq ·{" "}
+                      {row.addedLabel || "—"}
+                    </span>
+                  </span>
+                  <span className="flex shrink-0 flex-col items-end gap-0.5">
+                    <span className="font-mono text-[13px] font-semibold tabular-nums text-zinc-100">
+                      {formatPrice(row.priceUsd)}
                     </span>
                     <span
-                      className={`shrink-0 font-mono text-xs font-semibold tabular-nums ${
+                      className={`font-mono text-xs font-semibold tabular-nums ${
                         (row.change7d ?? 0) >= 0 ? "text-emerald-300" : "text-red-300"
                       }`}
                     >
                       {formatPct(row.change7d)}
                     </span>
-                  </Link>
-                </li>
-              );
-            })}
+                  </span>
+                </Link>
+              </li>
+            ))}
           </ul>
 
           <table className="hidden w-full min-w-[70rem] border-collapse text-left md:table">
@@ -273,9 +255,7 @@ export function NewLowCapsTable({
               </tr>
             </thead>
             <tbody>
-              {visibleRows.map((row) => {
-                const chain = formatChainLabel(row.chain);
-                return (
+              {visibleRows.map((row) => (
                   <tr
                     key={`${row.id}-${row.narrativeSlug}`}
                     className="border-b border-white/5 last:border-0 transition-colors hover:bg-slate-800/30"
@@ -291,21 +271,13 @@ export function NewLowCapsTable({
                     <td className="px-2 py-3 sm:px-4">
                       <div className="flex items-start gap-2">
                         <TokenNameLink row={row} className="inline-flex min-w-0 items-center gap-2">
-                          {row.image ? (
-                            <Image
-                              src={row.image}
-                              alt=""
-                              width={24}
-                              height={24}
-                              className="rounded-full"
-                            />
-                          ) : null}
+                          <TokenAvatar symbol={row.symbol} imageUrl={row.image || null} size={24} />
                           <span className="min-w-0">
-                            <span className="block truncate text-sm font-medium text-zinc-100">
-                              {row.name}
-                            </span>
-                            <span className="font-mono text-[11px] uppercase text-zinc-500">
+                            <span className="block truncate font-mono text-[13px] font-semibold uppercase text-zinc-100">
                               {row.symbol}
+                            </span>
+                            <span className="block truncate text-[11px] text-zinc-500">
+                              {row.name}
                             </span>
                           </span>
                         </TokenNameLink>
@@ -322,10 +294,10 @@ export function NewLowCapsTable({
                       {formatPrice(row.priceUsd)}
                     </td>
                     <td className="px-3 py-3">
-                      <span className={`${ds.badgeInfo}`}>{chain}</span>
+                      <ChainIcon chainId={row.chain} size={18} />
                     </td>
                     <td className="px-3 py-3">
-                      <DexVenueBadge dexId={row.dexId} dexLabel={row.dexLabel} />
+                      <DexVenueBadge dexId={row.dexId} dexLabel={row.dexLabel} size={18} />
                     </td>
                     <td className="px-3 py-3 text-xs text-zinc-300">{row.addedLabel}</td>
                     <td
@@ -358,8 +330,7 @@ export function NewLowCapsTable({
                       )}
                     </td>
                   </tr>
-                );
-              })}
+              ))}
             </tbody>
           </table>
         </div>

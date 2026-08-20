@@ -1,15 +1,15 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import type { JustLaunchedRow } from "@/lib/dexscreener-just-launched";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
-import { formatChainLabel } from "@/lib/format-chain";
 import { dexTokenPath } from "@/lib/dex-token-path";
 import { ds } from "@/lib/ui-classes";
 import { CopyAddressButton } from "@/components/copy-address-button";
 import { DexProjectLinks } from "@/components/dex-project-links";
+import { ChainIcon } from "@/components/chain-icon";
 import { DexVenueBadge } from "@/components/dex-venue-badge";
+import { TokenAvatar } from "@/components/token-avatar";
 
 function formatPct(n: number | null) {
   if (n == null || !Number.isFinite(n)) return "—";
@@ -90,57 +90,44 @@ export function JustLaunchedTable({
       ) : (
         <div className="overflow-x-auto">
           <ul className="divide-y divide-white/5 md:hidden">
-            {rows.map((row) => {
-              const chain = formatChainLabel(row.chain);
-              return (
-                <li key={row.id}>
-                  <Link
-                    href={tokenHref(row)}
-                    className="flex min-h-11 items-center gap-2 px-3 py-1.5 active:bg-white/[0.04]"
-                  >
-                    {row.image ? (
-                      <Image
-                        src={row.image}
-                        alt=""
-                        width={20}
-                        height={20}
-                        className="size-5 shrink-0 rounded-full"
-                      />
-                    ) : (
-                      <span className="size-5 shrink-0 rounded-full bg-zinc-800" />
-                    )}
-                    <span className="min-w-0 flex-1">
-                      <span className="flex min-w-0 items-center gap-1.5">
-                        <span className="truncate text-[13px] font-medium leading-tight text-zinc-100">
-                          {row.name}
-                        </span>
-                        <span className="shrink-0 font-mono text-[10px] uppercase text-zinc-500">
-                          {row.symbol}
-                        </span>
-                        <span className="shrink-0 rounded bg-zinc-800 px-1 py-px font-mono text-[9px] uppercase tracking-wide text-zinc-400">
-                          {chain}
-                          {row.dexLabel ? ` · ${row.dexLabel}` : ""}
-                        </span>
+            {rows.map((row) => (
+              <li key={row.id}>
+                <Link
+                  href={tokenHref(row)}
+                  className="flex items-center gap-2.5 px-3 py-2 active:bg-white/[0.04]"
+                >
+                  <TokenAvatar symbol={row.symbol} imageUrl={row.image || null} size={28} />
+                  <span className="min-w-0 flex-1">
+                    <span className="flex min-w-0 items-baseline gap-1.5">
+                      <span className="truncate font-mono text-[13px] font-bold uppercase text-zinc-50">
+                        {row.symbol}
                       </span>
-                      <span className="mt-0.5 block font-mono text-[10px] tabular-nums leading-tight text-zinc-500">
-                        <span className="text-zinc-300">{formatPrice(row.priceUsd)}</span>
-                        {" · "}
-                        {row.ageLabel || "—"} · Liq {formatCompactUsd(row.liquidity)}
-                        {" · "}
-                        Vol {formatCompactUsd(row.volume)}
-                      </span>
+                      <span className="truncate text-[11px] text-zinc-500">{row.name}</span>
+                    </span>
+                    <span className="mt-1 flex items-center gap-1.5">
+                      <ChainIcon chainId={row.chain} size={16} />
+                      <DexVenueBadge dexId={row.dexId} dexLabel={row.dexLabel} iconOnly size={16} />
+                    </span>
+                    <span className="mt-0.5 block font-mono text-[10px] tabular-nums text-zinc-500">
+                      {formatCompactUsd(row.volume)} vol · {formatCompactUsd(row.liquidity)} liq ·{" "}
+                      {row.ageLabel || "—"}
+                    </span>
+                  </span>
+                  <span className="flex shrink-0 flex-col items-end gap-0.5">
+                    <span className="font-mono text-[13px] font-semibold tabular-nums text-zinc-100">
+                      {formatPrice(row.priceUsd)}
                     </span>
                     <span
-                      className={`shrink-0 font-mono text-xs font-semibold tabular-nums ${
+                      className={`font-mono text-xs font-semibold tabular-nums ${
                         (row.change ?? 0) >= 0 ? "text-emerald-300" : "text-red-300"
                       }`}
                     >
                       {formatPct(row.change)}
                     </span>
-                  </Link>
-                </li>
-              );
-            })}
+                  </span>
+                </Link>
+              </li>
+            ))}
           </ul>
 
           <table className="hidden w-full min-w-[52rem] border-collapse text-left md:table">
@@ -158,9 +145,7 @@ export function JustLaunchedTable({
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => {
-                const chain = formatChainLabel(row.chain);
-                return (
+              {rows.map((row) => (
                   <tr
                     key={row.id}
                     className="border-b border-white/5 last:border-0 transition-colors hover:bg-slate-800/30"
@@ -168,23 +153,13 @@ export function JustLaunchedTable({
                 <td className="px-3 py-1.5 sm:px-4">
                       <div className="flex items-start gap-2">
                         <Link href={tokenHref(row)} className="inline-flex min-w-0 items-center gap-2">
-                          {row.image ? (
-                            <Image
-                              src={row.image}
-                              alt=""
-                              width={20}
-                              height={20}
-                              className="rounded-full"
-                            />
-                          ) : (
-                            <span className="size-5 rounded-full bg-zinc-800" />
-                          )}
+                          <TokenAvatar symbol={row.symbol} imageUrl={row.image || null} size={24} />
                           <span className="min-w-0">
-                            <span className="block truncate text-[13px] font-medium text-zinc-100">
-                              {row.name}
-                            </span>
-                            <span className="font-mono text-[10px] uppercase text-zinc-500">
+                            <span className="block truncate font-mono text-[13px] font-semibold uppercase text-zinc-100">
                               {row.symbol}
+                            </span>
+                            <span className="block truncate text-[11px] text-zinc-500">
+                              {row.name}
                             </span>
                           </span>
                         </Link>
@@ -201,10 +176,10 @@ export function JustLaunchedTable({
                       {formatPrice(row.priceUsd)}
                     </td>
                     <td className="px-3 py-1.5">
-                      <span className={`${ds.badgeInfo}`}>{chain}</span>
+                      <ChainIcon chainId={row.chain} size={18} />
                     </td>
                     <td className="px-3 py-1.5">
-                      <DexVenueBadge dexId={row.dexId} dexLabel={row.dexLabel} />
+                      <DexVenueBadge dexId={row.dexId} dexLabel={row.dexLabel} size={18} />
                     </td>
                     <td
                       className={`px-3 py-1.5 font-mono text-xs font-semibold tabular-nums ${
@@ -224,8 +199,7 @@ export function JustLaunchedTable({
                       <CopyAddressButton address={row.contractAddress} />
                     </td>
                   </tr>
-                );
-              })}
+              ))}
             </tbody>
           </table>
         </div>

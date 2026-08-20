@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { dexTokenPath } from "@/lib/dex-token-path";
-import { formatChainLabel } from "@/lib/format-chain";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
 import { formatDexPct, formatDexPriceUsd } from "@/lib/dex-pair-fields";
 import {
@@ -13,6 +12,7 @@ import {
   type RecentlyViewedToken,
   type RecommendableRow,
 } from "@/lib/recently-viewed";
+import { ChainIcon } from "@/components/chain-icon";
 import { DexVenueBadge } from "@/components/dex-venue-badge";
 import { TokenAvatar } from "@/components/token-avatar";
 
@@ -83,26 +83,22 @@ export function BecauseYouViewed<T extends DenseRecommendRow>({
             <li key={row.id}>
               <Link
                 href={href}
-                className="flex min-h-11 items-center gap-2.5 px-3 py-1.5 active:bg-white/[0.04] hover:bg-white/[0.03]"
+                className="flex items-center gap-2.5 px-3 py-2 active:bg-white/[0.04] hover:bg-white/[0.03]"
               >
                 <TokenAvatar symbol={row.symbol} imageUrl={row.image} size={24} />
                 <span className="min-w-0 flex-1">
-                  <span className="flex min-w-0 items-center gap-1.5">
-                    <span className="truncate font-mono text-[12px] font-semibold uppercase text-zinc-100">
+                  <span className="flex min-w-0 items-baseline gap-1.5">
+                    <span className="truncate font-mono text-[12px] font-bold uppercase text-zinc-100">
                       {row.symbol}
                     </span>
                     <span className="truncate text-[11px] text-zinc-500">{row.name}</span>
                   </span>
-                  <span className="mt-0.5 flex flex-wrap items-center gap-1">
-                    {row.chain ? (
-                      <span className="rounded bg-zinc-800 px-1 py-px font-mono text-[9px] uppercase text-zinc-400">
-                        {formatChainLabel(row.chain)}
-                      </span>
-                    ) : null}
-                    <DexVenueBadge dexId={row.dexId} dexLabel={row.dexLabel} compact />
-                    <span className="font-mono text-[10px] tabular-nums text-zinc-500">
-                      {formatDexPriceUsd(row.priceUsd)} · Vol {formatCompactUsd(volumeOf(row))}
-                    </span>
+                  <span className="mt-1 flex items-center gap-1.5">
+                    {row.chain ? <ChainIcon chainId={row.chain} size={14} /> : null}
+                    <DexVenueBadge dexId={row.dexId} dexLabel={row.dexLabel} iconOnly size={14} />
+                  </span>
+                  <span className="mt-0.5 block font-mono text-[10px] tabular-nums text-zinc-500">
+                    {formatDexPriceUsd(row.priceUsd)} · {formatCompactUsd(volumeOf(row))} vol
                   </span>
                 </span>
                 <span

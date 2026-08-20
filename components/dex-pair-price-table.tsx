@@ -2,8 +2,8 @@ import Link from "next/link";
 import type { DexLivePairRow } from "@/lib/dexscreener-live-pairs";
 import { formatDexPct, formatDexPriceUsd } from "@/lib/dex-pair-fields";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
-import { formatChainLabel } from "@/lib/format-chain";
 import { dexTokenPath } from "@/lib/dex-token-path";
+import { ChainIcon } from "@/components/chain-icon";
 import { DexVenueBadge } from "@/components/dex-venue-badge";
 import { TokenAvatar } from "@/components/token-avatar";
 
@@ -44,43 +44,42 @@ export function DexPairPriceTable({
         <p className="text-[10px] tabular-nums text-zinc-500">{rows.length} pairs · DexScreener</p>
       </div>
 
-      {/* Mobile dense rows — mockup: avatar + symbol/name + pills + metrics */}
+      {/* Mobile: avatar + symbol/name · chain/DEX logos · price/% · muted metrics */}
       <ul className="divide-y divide-white/5 md:hidden">
         {rows.map((row) => (
           <li key={row.id}>
             <Link
               href={tokenHref(row)}
-              className="flex min-h-12 items-center gap-2.5 px-3 py-2 active:bg-white/[0.04]"
+              className="flex items-center gap-2.5 px-3 py-2 active:bg-white/[0.04]"
             >
               <TokenAvatar symbol={row.symbol} size={28} />
               <span className="min-w-0 flex-1">
-                <span className="flex min-w-0 items-center gap-1.5">
-                  <span className="truncate font-mono text-[13px] font-semibold uppercase text-zinc-50">
+                <span className="flex min-w-0 items-baseline gap-1.5">
+                  <span className="truncate font-mono text-[13px] font-bold uppercase text-zinc-50">
                     {row.symbol}
                   </span>
                   <span className="truncate text-[11px] text-zinc-500">{row.name}</span>
                 </span>
-                <span className="mt-0.5 flex flex-wrap items-center gap-1">
-                  <span className="rounded bg-zinc-800 px-1 py-px font-mono text-[9px] uppercase text-zinc-400">
-                    {formatChainLabel(row.chain)}
-                  </span>
-                  <DexVenueBadge dexId={row.dex} dexLabel={row.dexLabel} compact />
-                  <span className="font-mono text-[10px] tabular-nums text-zinc-500">
-                    {row.ageLabel}
-                  </span>
+                <span className="mt-1 flex items-center gap-1.5">
+                  <ChainIcon chainId={row.chain} size={16} />
+                  <DexVenueBadge dexId={row.dex} dexLabel={row.dexLabel} iconOnly size={16} />
                 </span>
-                <span className="mt-0.5 flex flex-wrap gap-x-1.5 font-mono text-[10px] tabular-nums text-zinc-500">
-                  <span className="font-medium text-zinc-200">{formatDexPriceUsd(row.priceUsd)}</span>
-                  <span>· Vol {formatCompactUsd(row.volume24h)}</span>
-                  <span>· Liq {formatCompactUsd(row.liquidityUsd)}</span>
+                <span className="mt-0.5 block font-mono text-[10px] tabular-nums text-zinc-500">
+                  {formatCompactUsd(row.volume24h)} vol · {formatCompactUsd(row.liquidityUsd)} liq ·{" "}
+                  {row.ageLabel}
                 </span>
               </span>
-              <span
-                className={`shrink-0 font-mono text-xs font-semibold tabular-nums ${
-                  (row.change24h ?? 0) >= 0 ? "text-emerald-300" : "text-red-300"
-                }`}
-              >
-                {formatDexPct(row.change24h)}
+              <span className="flex shrink-0 flex-col items-end gap-0.5">
+                <span className="font-mono text-[13px] font-semibold tabular-nums text-zinc-100">
+                  {formatDexPriceUsd(row.priceUsd)}
+                </span>
+                <span
+                  className={`font-mono text-xs font-semibold tabular-nums ${
+                    (row.change24h ?? 0) >= 0 ? "text-emerald-300" : "text-red-300"
+                  }`}
+                >
+                  {formatDexPct(row.change24h)}
+                </span>
               </span>
             </Link>
           </li>
@@ -141,12 +140,15 @@ export function DexPairPriceTable({
                 </td>
                 <td className="px-3 py-1.5 text-[12px] text-zinc-400">{row.ageLabel}</td>
                 <td className="px-3 py-1.5">
-                  <span className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] uppercase text-zinc-400">
-                    {formatChainLabel(row.chain)}
-                  </span>
+                  <ChainIcon chainId={row.chain} size={18} />
                 </td>
                 <td className="px-3 py-1.5">
-                  <DexVenueBadge dexId={row.dex} dexLabel={row.dexLabel} compact />
+                  <DexVenueBadge
+                    dexId={row.dex}
+                    dexLabel={row.dexLabel}
+                    size={18}
+                    className="gap-1.5"
+                  />
                 </td>
               </tr>
             ))}
