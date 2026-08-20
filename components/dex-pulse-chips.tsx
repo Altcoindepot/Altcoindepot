@@ -35,10 +35,10 @@ export function DexPulseChips({
             key={pulse}
             type="button"
             onClick={() => setPulse(pulse)}
-            className={`inline-flex min-h-11 shrink-0 items-center rounded-full px-3 text-xs font-semibold ${
+            className={`inline-flex min-h-9 shrink-0 items-center rounded-full border px-2.5 text-[11px] font-semibold sm:min-h-11 sm:px-3 sm:text-xs ${
               active
-                ? "bg-teal-500/15 text-teal-200"
-                : "bg-white/5 text-zinc-400 hover:text-zinc-200"
+                ? "border-teal-400/35 bg-teal-500/15 text-teal-200"
+                : "border-white/10 bg-[#0c0e14] text-zinc-400 hover:text-zinc-200"
             }`}
           >
             {DEX_LIST_PULSE_LABELS[pulse]}

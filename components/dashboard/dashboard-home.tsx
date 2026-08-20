@@ -1,22 +1,41 @@
+"use client";
+
 import type { DashboardSnapshot } from "@/lib/dashboard-data";
 import type { JustLaunchedRow } from "@/lib/dexscreener-just-launched";
 import type { DexLivePairRow } from "@/lib/dexscreener-live-pairs";
 import type { LowCapRow } from "@/lib/dashboard-data";
 import Link from "next/link";
-import { Suspense } from "react";
+import { Suspense, useMemo } from "react";
 import { HomeLaunchPulse } from "@/components/home-launch-pulse";
 import { DexPairPriceTable } from "@/components/dex-pair-price-table";
 import { NewLowCapsTable } from "@/components/dashboard/new-low-caps-table";
 import { RecentlyViewedStrip } from "@/components/recently-viewed-strip";
+import { BecauseYouViewed } from "@/components/because-you-viewed";
+import { DexPulseChips } from "@/components/dex-pulse-chips";
 import { StickyRegimeBar } from "@/components/dashboard/sticky-regime-bar";
 import { NarrativeRotationSection } from "@/components/dashboard/narrative-rotation-section";
 import { MarketSentimentWidget } from "@/components/dashboard/market-sentiment-widget";
 import { DisclaimerNote } from "@/components/disclaimer-note";
+import { LOW_CAPS_DEFAULT_QUERY } from "@/lib/dex-list-query";
+
+function liveToRecommendRows(live: DexLivePairRow[]) {
+  return live.map((r) => ({
+    id: r.id,
+    name: r.name,
+    symbol: r.symbol,
+    chain: r.chain,
+    contractAddress: r.address,
+    dexId: r.dex,
+    dexLabel: r.dexLabel,
+    priceUsd: r.priceUsd,
+    change24h: r.change24h,
+    volume24h: r.volume24h,
+    liquidityUsd: r.liquidityUsd,
+  }));
+}
 
 /**
- * Scanner-first homepage (mockup hierarchy):
- * sticky filters (header) → compact Launch Pulse → recently viewed → dense price rows.
- * Macro widgets are desktop-secondary only.
+ * Scanner homepage — mockup hierarchy without touching Dex data layer.
  */
 export function DashboardHome({
   snapshot,
@@ -35,6 +54,8 @@ export function DashboardHome({
   watchlistOnly?: boolean;
   justLaunchedFailed?: boolean;
 }) {
+  const recommendRows = useMemo(() => liveToRecommendRows(livePairs), [livePairs]);
+
   return (
     <div className="w-full">
       <div className="mx-auto max-w-[90rem] px-3 pb-8 pt-3 sm:px-6 sm:pb-10 sm:pt-4">
@@ -44,10 +65,10 @@ export function DashboardHome({
               DEX Scanner
             </h1>
             <p className="mt-0.5 text-[11px] leading-snug text-zinc-500 sm:text-xs">
-              Live DexScreener pairs · high risk · not financial advice
+              Live DexScreener · high risk · not financial advice
             </p>
           </div>
-          <div className="flex gap-3 text-[11px]">
+          <div className="hidden gap-3 text-[11px] sm:flex">
             <Link href="/just-launched" className="font-medium text-zinc-500 hover:text-teal-200">
               Just Launched
             </Link>
@@ -66,14 +87,17 @@ export function DashboardHome({
           </div>
         ) : null}
 
-        {justLaunchedFailed && justLaunched.length === 0 ? (
-          <p className="mb-3 rounded-lg border border-white/10 bg-[#0c0e14] px-3 py-3 text-xs text-zinc-500">
-            Just-launched pulse unavailable.{" "}
-            <Link href="/just-launched" className="text-teal-300 underline-offset-2 hover:underline">
-              Open Just Launched →
-            </Link>
-          </p>
-        ) : (
+        {/* Compact filter chips (mockup “Filters”) */}
+        <Suspense fallback={null}>
+          <div className="mb-3">
+            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-600">
+              Filters
+            </p>
+            <DexPulseChips defaults={LOW_CAPS_DEFAULT_QUERY} />
+          </div>
+        </Suspense>
+
+        {justLaunchedFailed && justLaunched.length === 0 ? null : (
           <Suspense fallback={null}>
             <div className="mb-3">
               <HomeLaunchPulse rows={justLaunched} />
@@ -83,13 +107,10 @@ export function DashboardHome({
 
         <RecentlyViewedStrip className="mb-3" />
 
-        <DexPairPriceTable
-          rows={livePairs}
-          error={livePairsError}
-          title="Live pairs"
-        />
+        <BecauseYouViewed rows={recommendRows} className="mb-3" limit={5} />
 
-        {/* Secondary dense list on desktop; mobile relies on live pairs table above */}
+        <DexPairPriceTable rows={livePairs} error={livePairsError} title="Just Launched · Live pairs" />
+
         <div className="mt-4 hidden md:block">
           <Suspense fallback={<div className="h-40 rounded-xl border border-white/10 bg-[#0c0e14]" />}>
             <NewLowCapsTable
@@ -115,7 +136,6 @@ export function DashboardHome({
           Pair stats from DexScreener · informational only · not financial advice
         </DisclaimerNote>
 
-        {/* Macro context — desktop/secondary only; not primary mobile scanner */}
         <section
           aria-labelledby="market-context-heading"
           className="mt-10 hidden border-t border-white/10 pt-8 lg:block"
@@ -129,7 +149,6 @@ export function DashboardHome({
           <p className="mt-1 text-sm text-zinc-500">
             Regime and narrative rotation — secondary to the DEX scanner above.
           </p>
-
           <div className="mt-4">
             <StickyRegimeBar
               regimeLabel={snapshot.regimeLabel}
@@ -137,9 +156,7 @@ export function DashboardHome({
               cycleProgressPct={snapshot.cycleProgressPct}
             />
           </div>
-
           <MarketSentimentWidget pulse={snapshot.pulse} className="mt-4" />
-
           <div className="mt-4">
             <NarrativeRotationSection
               narratives={snapshot.narratives}
@@ -149,7 +166,6 @@ export function DashboardHome({
               watchlistOnly={watchlistOnly}
             />
           </div>
-
           {snapshot.usingMock ? (
             <p className="mt-3 text-xs text-amber-200/80">
               CoinGecko snapshot unavailable — Market context uses fallback metrics.
