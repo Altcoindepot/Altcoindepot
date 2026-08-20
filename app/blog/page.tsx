@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = {
@@ -10,7 +11,9 @@ export const metadata: Metadata = {
 export default function BlogPage() {
   return (
     <>
-      <SiteHeader />
+      <Suspense fallback={null}>
+        <SiteHeader />
+      </Suspense>
       <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
         <h1 className="text-brand-altcoindepot text-2xl font-bold tracking-tight">Blog</h1>
         <p className="mt-2 text-zinc-400">

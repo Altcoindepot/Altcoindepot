@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { SiteHeader } from "@/components/site-header";
+import { SiteHeaderClient as SiteHeader } from "@/components/site-header-client";
 import { useWatchlist } from "@/components/use-watchlist";
 import { SuggestedCoinsPanel } from "@/components/suggested-coins-panel";
 import { formatCompactUsd } from "@/lib/format-compact-usd";

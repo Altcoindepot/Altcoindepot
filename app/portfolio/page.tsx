@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { SiteHeader } from "@/components/site-header";
+import { SiteHeaderClient as SiteHeader } from "@/components/site-header-client";
 import { SuggestedCoinsPanel } from "@/components/suggested-coins-panel";
 import { usePortfolio } from "@/components/use-portfolio";
 import { formatCompactUsd } from "@/lib/format-compact-usd";

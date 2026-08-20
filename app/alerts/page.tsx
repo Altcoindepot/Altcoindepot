@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { SiteHeader } from "@/components/site-header";
+import { SiteHeaderClient as SiteHeader } from "@/components/site-header-client";
 import { usePriceAlerts } from "@/components/use-price-alerts";
 import { removeAlert, updateAlert } from "@/lib/alerts-storage";
 

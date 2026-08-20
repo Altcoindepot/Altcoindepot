@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { JustLaunchedSection } from "@/components/just-launched-section";
 import { JustLaunchedDisclaimerModal } from "@/components/just-launched-disclaimer-modal";
@@ -67,7 +68,9 @@ export default async function JustLaunchedPage() {
               Couldn&apos;t load just-launched pairs right now. Try again in a few minutes.
             </p>
           ) : (
-            <JustLaunchedSection rows={rows} />
+            <Suspense fallback={<div className="mt-6 h-48 rounded-2xl border border-white/10 bg-[#0c0e14]" />}>
+              <JustLaunchedSection rows={rows} />
+            </Suspense>
           )}
         </div>
       </main>
