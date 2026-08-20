@@ -26,12 +26,12 @@ export function CoingeckoLogoAttribution({
         aria-label="CoinGecko (opens in a new tab)"
       >
         <img
-          src="/cg-favicon.ico"
-          alt=""
-          width={32}
-          height={32}
+          src="https://static.coingecko.com/s2/coingecko-logo-dark-800x133.webp"
+          alt="CoinGecko"
+          width={96}
+          height={16}
           decoding="async"
-          className={`${logoClassName} object-contain`}
+          className={`${logoClassName} h-4 w-auto max-w-[6rem] object-contain`}
         />
       </a>
       <span className="font-sans text-zinc-600">Not financial advice.</span>

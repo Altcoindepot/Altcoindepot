@@ -32,6 +32,13 @@ function formatPct(n: number | null) {
   return `${n >= 0 ? "+" : ""}${n.toFixed(1)}%`;
 }
 
+function formatPrice(n: number | null | undefined) {
+  if (n == null || !Number.isFinite(n)) return null;
+  if (n >= 1) return `$${n.toFixed(2)}`;
+  if (n >= 0.01) return `$${n.toFixed(4)}`;
+  return `$${n.toPrecision(3)}`;
+}
+
 /** Primary name click stays on-site; never uses DexScreener `row.href`. */
 function tokenHref(row: LowCapRow): string {
   const onSite = dexTokenPath(row.chain, row.contractAddress);
@@ -66,6 +73,8 @@ export function NewLowCapsTable({
   viewAllHref = "/new-low-caps",
   showViewAll = true,
   heading = "New & Low Caps",
+  /** When false, omit segment/chips/controls (home embeds Just Launched chrome above). */
+  showListChrome = true,
 }: {
   rows: LowCapRow[];
   className?: string;
@@ -74,6 +83,7 @@ export function NewLowCapsTable({
   viewAllHref?: string;
   showViewAll?: boolean;
   heading?: string;
+  showListChrome?: boolean;
 }) {
   const { entries, mounted } = useWatchlist();
   const searchParams = useSearchParams();
@@ -136,7 +146,7 @@ export function NewLowCapsTable({
             ) : null}
           </div>
         </div>
-        {rows.length > 0 ? (
+        {rows.length > 0 && showListChrome ? (
           <div className="flex flex-col gap-2">
             <DexListSegment />
             <DexPulseChips defaults={LOW_CAPS_DEFAULT_QUERY} />
@@ -174,11 +184,13 @@ export function NewLowCapsTable({
           ) : null}
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <div className="space-y-3 px-4 pt-3 sm:px-5">
-            <RecentlyViewedStrip />
-            <BecauseYouViewed rows={visibleRows} />
-          </div>
+          <div className="overflow-x-auto">
+          {showListChrome ? (
+            <div className="space-y-3 px-4 pt-3 sm:px-5">
+              <RecentlyViewedStrip />
+              <BecauseYouViewed rows={visibleRows} />
+            </div>
+          ) : null}
           <ul className="divide-y divide-white/5 md:hidden">
             {visibleRows.map((row) => {
               const chain = formatChainLabel(row.chain);
@@ -218,6 +230,7 @@ export function NewLowCapsTable({
                         ) : null}
                       </span>
                       <span className="mt-0.5 block font-mono text-[10px] tabular-nums leading-tight text-zinc-500">
+                        {formatPrice(row.priceUsd) ? `${formatPrice(row.priceUsd)} · ` : ""}
                         {secondaryLabel} {formatCompactUsd(secondary)}
                       </span>
                     </span>
@@ -242,6 +255,7 @@ export function NewLowCapsTable({
                   ★
                 </th>
                 <th className="px-2 py-2.5 font-semibold sm:px-4">Token</th>
+                <th className="px-3 py-2.5 font-semibold">Price</th>
                 <th className="px-3 py-2.5 font-semibold">Chain</th>
                 <th className="px-3 py-2.5 font-semibold">DEX</th>
                 <th className="px-3 py-2.5 font-semibold">Age</th>
@@ -297,6 +311,9 @@ export function NewLowCapsTable({
                           <DexProjectLinks links={row.projectLinks} variant="icons" />
                         </span>
                       </div>
+                    </td>
+                    <td className="px-3 py-3 font-mono text-xs tabular-nums text-zinc-200">
+                      {formatPrice(row.priceUsd) ?? "—"}
                     </td>
                     <td className="px-3 py-3">
                       <span className={`${ds.badgeInfo}`}>{chain}</span>

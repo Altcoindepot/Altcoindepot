@@ -38,6 +38,7 @@ export type JustLaunchedRow = {
   change: number | null;
   liquidity: number | null;
   volume: number | null;
+  priceUsd?: number | null;
   marketCap: number | null;
   ageLabel: string;
   pairCreatedAt: number;
@@ -53,6 +54,7 @@ type DexPair = {
   url?: string;
   pairAddress?: string;
   baseToken?: { address?: string; name?: string; symbol?: string };
+  priceUsd?: string | number | null;
   priceChange?: { h24?: number; h6?: number; h1?: number };
   volume?: { h24?: number };
   liquidity?: { usd?: number };
@@ -134,6 +136,13 @@ function pairToRow(pair: DexPair, iconFallback?: string, profileLinks?: unknown)
   if (liq < MIN_LIQUIDITY_USD) return null;
   const change = pair.priceChange?.h1 ?? pair.priceChange?.h6 ?? pair.priceChange?.h24 ?? null;
   const marketCap = pair.marketCap ?? pair.fdv ?? null;
+  const priceRaw = pair.priceUsd;
+  const priceUsd =
+    typeof priceRaw === "number"
+      ? priceRaw
+      : typeof priceRaw === "string"
+        ? Number(priceRaw)
+        : null;
   const projectLinks = mergeDexProjectLinks(
     parseDexPairInfoLinks(pair.info),
     parseDexProjectLinks({ profileLinks }),
@@ -148,6 +157,7 @@ function pairToRow(pair: DexPair, iconFallback?: string, profileLinks?: unknown)
     change: typeof change === "number" && Number.isFinite(change) ? change : null,
     liquidity: liq,
     volume: pair.volume?.h24 ?? null,
+    priceUsd: typeof priceUsd === "number" && Number.isFinite(priceUsd) ? priceUsd : null,
     marketCap: typeof marketCap === "number" && Number.isFinite(marketCap) ? marketCap : null,
     ageLabel: ageLabel(created),
     pairCreatedAt: created,

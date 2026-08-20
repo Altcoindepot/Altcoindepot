@@ -16,6 +16,13 @@ function formatPct(n: number | null) {
   return `${n >= 0 ? "+" : ""}${n.toFixed(1)}%`;
 }
 
+function formatPrice(n: number | null | undefined) {
+  if (n == null || !Number.isFinite(n)) return null;
+  if (n >= 1) return `$${n.toFixed(2)}`;
+  if (n >= 0.01) return `$${n.toFixed(4)}`;
+  return `$${n.toPrecision(3)}`;
+}
+
 /** Primary name click stays on-site; never uses DexScreener external URL as href. */
 function tokenHref(row: JustLaunchedRow): string {
   return (
@@ -113,6 +120,7 @@ export function JustLaunchedTable({
                         </span>
                       </span>
                       <span className="mt-0.5 block font-mono text-[10px] tabular-nums leading-tight text-zinc-500">
+                        {formatPrice(row.priceUsd) ? `${formatPrice(row.priceUsd)} · ` : ""}
                         {row.ageLabel} · Liq {formatCompactUsd(row.liquidity)}
                       </span>
                     </span>
@@ -133,6 +141,7 @@ export function JustLaunchedTable({
             <thead>
               <tr className="border-b border-white/10 text-[10px] uppercase tracking-wider text-zinc-500">
                 <th className="px-3 py-2.5 font-semibold sm:px-4">Token</th>
+                <th className="px-3 py-2.5 font-semibold">Price</th>
                 <th className="px-3 py-2.5 font-semibold">Chain</th>
                 <th className="px-3 py-2.5 font-semibold">DEX</th>
                 <th className="px-3 py-2.5 font-semibold">Change</th>
@@ -181,6 +190,9 @@ export function JustLaunchedTable({
                           <DexProjectLinks links={row.projectLinks} variant="icons" />
                         </span>
                       </div>
+                    </td>
+                    <td className="px-3 py-3 font-mono text-xs tabular-nums text-zinc-200">
+                      {formatPrice(row.priceUsd) ?? "—"}
                     </td>
                     <td className="px-3 py-3">
                       <span className={`${ds.badgeInfo}`}>{chain}</span>

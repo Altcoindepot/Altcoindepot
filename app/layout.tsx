@@ -31,11 +31,11 @@ export const metadata: Metadata = {
     "Live crypto market dashboard: Market Regime, Market Brief, prices, gainers & losers, and side-by-side coin compare. Free real-time data on AltCoin Depot.",
   icons: {
     icon: [
-      { url: "/favicon.ico" },
-      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
-      { url: "/logo-mark.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico?v=5", type: "image/x-icon" },
+      { url: "/favicon-32.png?v=5", sizes: "32x32", type: "image/png" },
+      { url: "/logo-mark.svg?v=5", type: "image/svg+xml" },
     ],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+    apple: [{ url: "/apple-touch-icon.png?v=5", sizes: "180x180" }],
   },
   openGraph: {
     title: "AltCoin Depot – Market Regime, Live Crypto Prices & Compare",

@@ -1,10 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <rect width="64" height="64" rx="12" fill="#0a0a0a"/>
-  <path
-    fill="#14b8a6"
-    fill-rule="evenodd"
-    d="M32 2.5 61.5 62H49.2L41.4 44.2H22.6L14.8 62H2.5L32 2.5Zm0 16.2 6.6 14.8H25.4L32 18.7Z"
-  />
+  <path fill="#14b8a6" fill-rule="evenodd" d="M32 2.5 61.5 62H49.2L41.4 44.2H22.6L14.8 62H2.5L32 2.5Zm0 16.2 6.6 14.8H25.4L32 18.7Z"/>
   <circle cx="32" cy="50.2" r="8.1" fill="#2dd4bf"/>
   <circle cx="32" cy="50.2" r="8.1" fill="none" stroke="#0a0a0a" stroke-width="1.6"/>
 </svg>

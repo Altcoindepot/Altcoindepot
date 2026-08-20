@@ -57,6 +57,8 @@ export type LowCapRow = {
   dexLabel?: string;
   change7d: number | null;
   volume: number | null;
+  /** USD price from DexScreener when available. */
+  priceUsd?: number | null;
   narrativeSlug: string;
   narrativeTitle: string;
   narrativeColor: string;

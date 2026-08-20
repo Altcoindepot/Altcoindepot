@@ -38,6 +38,7 @@ type DexPair = {
   url?: string;
   pairAddress?: string;
   baseToken?: { address?: string; name?: string; symbol?: string };
+  priceUsd?: string | number | null;
   priceChange?: { h24?: number; h6?: number; h1?: number };
   volume?: { h24?: number };
   liquidity?: { usd?: number };
@@ -122,6 +123,13 @@ function pairToRow(pair: DexPair, metaSlug: string): LowCapRow | null {
   const created = pair.pairCreatedAt ?? null;
   const marketCap = pair.marketCap ?? pair.fdv ?? null;
   const projectLinks = parseDexPairInfoLinks(pair.info);
+  const priceRaw = pair.priceUsd;
+  const priceUsd =
+    typeof priceRaw === "number"
+      ? priceRaw
+      : typeof priceRaw === "string"
+        ? Number(priceRaw)
+        : null;
   return {
     id: `dex-${chain}-${base.address}`,
     name: base.name,
@@ -136,6 +144,7 @@ function pairToRow(pair: DexPair, metaSlug: string): LowCapRow | null {
     dexLabel: dexVenueLabel(typeof pair.dexId === "string" ? pair.dexId : undefined),
     change7d: typeof change === "number" && Number.isFinite(change) ? change : null,
     volume: pair.volume?.h24 ?? null,
+    priceUsd: typeof priceUsd === "number" && Number.isFinite(priceUsd) ? priceUsd : null,
     narrativeSlug: narrative.slug,
     narrativeTitle: displayNarrativeTitle(metaSlug, base.name, base.symbol, created, narrative),
     narrativeColor: narrative.color,

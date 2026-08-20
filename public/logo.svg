@@ -1,14 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 430 64" role="img" aria-label="AltCoin Depot">
   <title>AltCoin Depot</title>
-  <g transform="translate(0,0)">
-    <path
-      fill="#14b8a6"
-      fill-rule="evenodd"
-      d="M32 2.5 61.5 62H49.2L41.4 44.2H22.6L14.8 62H2.5L32 2.5Zm0 16.2 6.6 14.8H25.4L32 18.7Z"
-    />
-    <circle cx="32" cy="50.2" r="8.1" fill="#2dd4bf"/>
-    <circle cx="32" cy="50.2" r="8.1" fill="none" stroke="#0a0a0a" stroke-width="1.6"/>
-  </g>
+  <defs>
+    <linearGradient id="acd-silver" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="28%" stop-color="#d4d4d8"/>
+      <stop offset="52%" stop-color="#a1a1aa"/>
+      <stop offset="78%" stop-color="#e4e4e7"/>
+      <stop offset="100%" stop-color="#fafafa"/>
+    </linearGradient>
+    <linearGradient id="acd-teal-metal" x1="0%" y1="8%" x2="95%" y2="100%">
+      <stop offset="0%" stop-color="#99f6e4"/>
+      <stop offset="32%" stop-color="#2dd4bf"/>
+      <stop offset="62%" stop-color="#0f766e"/>
+      <stop offset="100%" stop-color="#5eead4"/>
+    </linearGradient>
+  </defs>
+  <!-- Geometric capital A + solid coin in the LOWER counter (between the legs). -->
+  <path
+    fill="#14b8a6"
+    fill-rule="evenodd"
+    d="M32 2.5 61.5 62H49.2L41.4 44.2H22.6L14.8 62H2.5L32 2.5Zm0 16.2 6.6 14.8H25.4L32 18.7Z"
+  />
+  <circle cx="32" cy="50.2" r="8.1" fill="#2dd4bf"/>
+  <circle cx="32" cy="50.2" r="8.1" fill="none" stroke="#0a0a0a" stroke-width="1.6"/>
   <text
     x="78"
     y="44"
@@ -17,7 +31,7 @@
     font-weight="800"
     letter-spacing="-0.04em"
   >
-    <tspan fill="#f4f4f5">AltCoin</tspan>
-    <tspan fill="#14b8a6" dx="7">Depot</tspan>
+    <tspan fill="url(#acd-silver)">AltCoin</tspan>
+    <tspan fill="url(#acd-teal-metal)" dx="1">Depot</tspan>
   </text>
 </svg>
