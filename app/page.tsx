@@ -3,15 +3,10 @@ import { SiteHeader } from "@/components/site-header";
 import { DashboardHome } from "@/components/dashboard/dashboard-home";
 import { getDashboardSnapshot, type DashboardSnapshot } from "@/lib/dashboard-snapshot";
 import { getMockDashboardSnapshot } from "@/lib/dashboard-mock";
-import {
-  getChainMovers,
-  peekChainMoversFetchedAt,
-  type ChainMoversBoard,
-} from "@/lib/dex-chain-movers";
 
 const TITLE = "AltCoin Depot – Narrative Rotation & DEX Movers";
 const DESCRIPTION =
-  "Track narrative rotation and top DexScreener gainers and losers by chain. Just Launched and New & Low Caps live on dedicated scanner pages. Informational only — not financial advice.";
+  "Track narrative rotation and open Top Gainers & Losers by chain. Just Launched and New & Low Caps live on dedicated scanner pages. Informational only — not financial advice.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -42,15 +37,6 @@ async function fetchDashboardData(): Promise<DashboardSnapshot> {
   }
 }
 
-async function loadMovers(): Promise<ChainMoversBoard[]> {
-  try {
-    return await getChainMovers();
-  } catch (err) {
-    console.warn("[page] chain movers failed", err);
-    return [];
-  }
-}
-
 export default async function Home({
   searchParams,
 }: {
@@ -58,20 +44,14 @@ export default async function Home({
 }) {
   const params = await searchParams;
   const watchlistOnly = params.watchlist === "1" || params.watchlist === "true";
-
-  const [snapshot, chainMovers] = await Promise.all([fetchDashboardData(), loadMovers()]);
-
-  const fetchedAt = peekChainMoversFetchedAt() ?? Date.parse(snapshot.updatedAt);
+  const snapshot = await fetchDashboardData();
+  const fetchedAt = Date.parse(snapshot.updatedAt);
 
   return (
     <>
       <SiteHeader fetchedAt={Number.isFinite(fetchedAt) ? fetchedAt : Date.now()} />
       <main id="main-content" className="relative">
-        <DashboardHome
-          snapshot={snapshot}
-          chainMovers={chainMovers}
-          watchlistOnly={watchlistOnly}
-        />
+        <DashboardHome snapshot={snapshot} watchlistOnly={watchlistOnly} />
       </main>
     </>
   );

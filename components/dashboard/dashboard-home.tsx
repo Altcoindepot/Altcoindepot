@@ -1,25 +1,22 @@
 "use client";
 
 import type { DashboardSnapshot } from "@/lib/dashboard-data";
-import type { ChainMoversBoard } from "@/lib/dex-chain-movers";
 import Link from "next/link";
 import { StickyRegimeBar } from "@/components/dashboard/sticky-regime-bar";
 import { NarrativeRotationSection } from "@/components/dashboard/narrative-rotation-section";
 import { MarketSentimentWidget } from "@/components/dashboard/market-sentiment-widget";
-import { ChainGainersLosers } from "@/components/dashboard/chain-gainers-losers";
+import { ChainMoversTeaser } from "@/components/dashboard/chain-gainers-losers";
 import { DisclaimerNote } from "@/components/disclaimer-note";
 
 /**
- * Homepage IA: Narrative Rotation primary, then per-chain gainers/losers.
- * Just Launched / New & Low Caps live only on their dedicated pages.
+ * Homepage: Narrative Rotation primary + compact movers teaser.
+ * Full gainers/losers live on /gainers-losers; lists on their own pages.
  */
 export function DashboardHome({
   snapshot,
-  chainMovers,
   watchlistOnly = false,
 }: {
   snapshot: DashboardSnapshot;
-  chainMovers: ChainMoversBoard[];
   watchlistOnly?: boolean;
 }) {
   return (
@@ -53,12 +50,12 @@ export function DashboardHome({
                 Which narratives are leading, fading, or rotating — before the crowd catches up.
               </p>
             </div>
-            <a
-              href="#dex-scanner"
+            <Link
+              href="/gainers-losers"
               className="shrink-0 text-[11px] font-medium text-teal-300/90 underline-offset-2 hover:underline sm:text-xs"
             >
-              Jump to gainers &amp; losers ↓
-            </a>
+              Top movers →
+            </Link>
           </div>
 
           <MarketSentimentWidget pulse={snapshot.pulse} className="mb-4" />
@@ -78,7 +75,7 @@ export function DashboardHome({
           ) : null}
         </section>
 
-        <ChainGainersLosers boards={chainMovers} />
+        <ChainMoversTeaser />
 
         <DisclaimerNote className="mt-6 text-[11px]">
           Pair stats from DexScreener · informational only · not financial advice

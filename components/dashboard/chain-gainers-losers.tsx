@@ -25,7 +25,7 @@ function MoverList({
 }) {
   return (
     <div className="min-w-0 rounded-xl border border-white/10 bg-[#0c0e14]">
-      <div className="flex items-center justify-between border-b border-white/8 px-3 py-2">
+      <div className="flex items-center justify-between border-b border-white/8 px-3 py-2.5">
         <h3
           className={`text-xs font-semibold uppercase tracking-wider ${
             variant === "gainers" ? "text-emerald-300/90" : "text-red-300/90"
@@ -36,31 +36,31 @@ function MoverList({
         <span className="text-[10px] tabular-nums text-zinc-600">{rows.length}</span>
       </div>
       {rows.length === 0 ? (
-        <p className="px-3 py-5 text-center text-xs text-zinc-500">{emptyLabel}</p>
+        <p className="px-3 py-6 text-center text-sm text-zinc-500">{emptyLabel}</p>
       ) : (
         <ul className="divide-y divide-white/5">
           {rows.map((row) => (
             <li key={row.id}>
               <Link
                 href={rowHref(row)}
-                className="flex items-center gap-2.5 px-3 py-2 transition-colors hover:bg-white/[0.03] active:bg-white/[0.04]"
+                className="flex min-h-11 items-center gap-2.5 px-3 py-2.5 transition-colors hover:bg-white/[0.03] active:bg-white/[0.04]"
               >
-                <TokenAvatar symbol={row.symbol} imageUrl={row.imageUrl} size={24} />
+                <TokenAvatar symbol={row.symbol} imageUrl={row.imageUrl} size={28} />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate font-mono text-[12px] font-bold uppercase text-zinc-100">
+                  <span className="block truncate font-mono text-[13px] font-bold uppercase text-zinc-100">
                     {row.symbol}
                   </span>
-                  <span className="block truncate text-[10px] text-zinc-500">{row.name}</span>
+                  <span className="block truncate text-[11px] text-zinc-500">{row.name}</span>
                 </span>
                 <span className="flex shrink-0 flex-col items-end gap-0.5">
                   <span
-                    className={`font-mono text-xs font-semibold tabular-nums ${
+                    className={`font-mono text-sm font-semibold tabular-nums ${
                       row.changePct >= 0 ? "text-emerald-300" : "text-red-300"
                     }`}
                   >
                     {formatDexPct(row.changePct)}
                   </span>
-                  <span className="font-mono text-[10px] tabular-nums text-zinc-500">
+                  <span className="font-mono text-[11px] tabular-nums text-zinc-500">
                     {formatDexPriceUsd(row.priceUsd)}
                   </span>
                 </span>
@@ -82,10 +82,10 @@ function ChainBoard({ board }: { board: ChainMoversBoard }) {
     >
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <ChainIcon chainId={board.chainId} size={20} />
+          <ChainIcon chainId={board.chainId} size={22} />
           <h2
             id={`movers-${board.chainId}-heading`}
-            className="text-sm font-semibold text-zinc-100 sm:text-base"
+            className="text-base font-semibold text-zinc-100 sm:text-lg"
           >
             {board.chainLabel}
           </h2>
@@ -94,7 +94,8 @@ function ChainBoard({ board }: { board: ChainMoversBoard }) {
           Top 5 · {windowLabel} change
         </p>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2">
+      {/* Mobile: stacked Gainers then Losers. Desktop: side by side. */}
+      <div className="flex flex-col gap-3 md:grid md:grid-cols-2">
         <MoverList
           title={`Top gainers (${windowLabel})`}
           rows={board.gainers}
@@ -112,7 +113,7 @@ function ChainBoard({ board }: { board: ChainMoversBoard }) {
   );
 }
 
-/** Homepage: per-chain Top 5 gainers | losers (1h preferred, else labeled 24h). */
+/** Full dedicated page body — one chain section after another. */
 export function ChainGainersLosers({
   boards,
   className = "",
@@ -120,45 +121,64 @@ export function ChainGainersLosers({
   boards: ChainMoversBoard[];
   className?: string;
 }) {
+  if (boards.length === 0) {
+    return (
+      <p className={`rounded-xl border border-white/10 bg-[#0c0e14] px-4 py-8 text-sm text-zinc-500 ${className}`.trim()}>
+        No mover data available right now. Check back shortly.
+      </p>
+    );
+  }
+
+  return (
+    <div className={`flex flex-col gap-4 sm:gap-5 ${className}`.trim()}>
+      {boards.map((board) => (
+        <ChainBoard key={board.chainId} board={board} />
+      ))}
+    </div>
+  );
+}
+
+/** Compact home teaser — links to the full Gainers & Losers page. */
+export function ChainMoversTeaser({ className = "" }: { className?: string }) {
   return (
     <section
-      id="dex-scanner"
-      aria-labelledby="chain-movers-heading"
-      className={`scroll-mt-24 border-t border-white/10 pt-6 sm:pt-8 ${className}`.trim()}
+      aria-labelledby="movers-teaser-heading"
+      className={`border-t border-white/10 pt-6 sm:pt-8 ${className}`.trim()}
     >
-      <header className="mb-4 flex flex-wrap items-end justify-between gap-2">
+      <div className="flex flex-wrap items-end justify-between gap-3 rounded-2xl border border-white/10 bg-[#0c0e14] px-4 py-4 sm:px-5">
         <div>
           <h2
-            id="chain-movers-heading"
+            id="movers-teaser-heading"
             className="text-base font-bold tracking-tight text-zinc-50 sm:text-lg"
           >
-            Top gainers &amp; losers by chain
+            Top movers by chain
           </h2>
-          <p className="mt-0.5 max-w-2xl text-[11px] leading-snug text-zinc-500 sm:text-xs">
-            DexScreener pairs · prefers 1h change when available · min $10k liquidity · not financial
-            advice
+          <p className="mt-1 max-w-xl text-xs leading-relaxed text-zinc-500 sm:text-sm">
+            Solana, Ethereum, Base &amp; BSC — top 5 gainers and losers (1h when available).
           </p>
         </div>
-        <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
+        <div className="flex flex-col items-start gap-2 sm:items-end">
           <Link
-            href="/just-launched"
-            className="font-medium text-teal-300/90 underline-offset-2 hover:underline"
+            href="/gainers-losers"
+            className="inline-flex min-h-11 items-center rounded-full bg-teal-500/15 px-4 text-sm font-semibold text-teal-200 transition-colors hover:bg-teal-500/25"
           >
-            View Just Launched →
+            Top movers →
           </Link>
-          <Link
-            href="/new-low-caps"
-            className="font-medium text-teal-300/90 underline-offset-2 hover:underline"
-          >
-            View New &amp; Low Caps →
-          </Link>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
+            <Link
+              href="/just-launched"
+              className="font-medium text-zinc-500 underline-offset-2 hover:text-teal-200 hover:underline"
+            >
+              Just Launched →
+            </Link>
+            <Link
+              href="/new-low-caps"
+              className="font-medium text-zinc-500 underline-offset-2 hover:text-teal-200 hover:underline"
+            >
+              New &amp; Low Caps →
+            </Link>
+          </div>
         </div>
-      </header>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        {boards.map((board) => (
-          <ChainBoard key={board.chainId} board={board} />
-        ))}
       </div>
     </section>
   );

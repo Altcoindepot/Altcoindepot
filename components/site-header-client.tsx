@@ -81,6 +81,15 @@ function IconPortfolio() {
   );
 }
 
+function IconMovers() {
+  return (
+    <svg className="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+      <path d="M4 16.5 9 11l3.5 3.5L20 7" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M14 7h6v6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 /** Desktop primary nav — real routes only, icon + label. */
 const DESKTOP_NAV: NavItem[] = [
   {
@@ -105,7 +114,13 @@ const DESKTOP_NAV: NavItem[] = [
     icon: <IconPairs />,
   },
   {
-    href: "/#dex-scanner",
+    href: "/gainers-losers",
+    label: "Gainers",
+    match: (p) => p.startsWith("/gainers-losers"),
+    icon: <IconMovers />,
+  },
+  {
+    href: "/just-launched",
     label: "DEX Scanner",
     match: (p) => p.startsWith("/just-launched") || p.startsWith("/token/"),
     icon: <IconScanner />,
