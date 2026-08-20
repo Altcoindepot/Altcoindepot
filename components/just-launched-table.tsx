@@ -9,6 +9,7 @@ import { dexTokenPath } from "@/lib/dex-token-path";
 import { ds } from "@/lib/ui-classes";
 import { CopyAddressButton } from "@/components/copy-address-button";
 import { DexProjectLinks } from "@/components/dex-project-links";
+import { DexVenueBadge } from "@/components/dex-venue-badge";
 
 function formatPct(n: number | null) {
   if (n == null || !Number.isFinite(n)) return "—";
@@ -108,6 +109,7 @@ export function JustLaunchedTable({
                         </span>
                         <span className="shrink-0 rounded bg-zinc-800 px-1 py-px font-mono text-[9px] uppercase tracking-wide text-zinc-400">
                           {chain}
+                          {row.dexLabel ? ` · ${row.dexLabel}` : ""}
                         </span>
                       </span>
                       <span className="mt-0.5 block font-mono text-[10px] tabular-nums leading-tight text-zinc-500">
@@ -132,6 +134,7 @@ export function JustLaunchedTable({
               <tr className="border-b border-white/10 text-[10px] uppercase tracking-wider text-zinc-500">
                 <th className="px-3 py-2.5 font-semibold sm:px-4">Token</th>
                 <th className="px-3 py-2.5 font-semibold">Chain</th>
+                <th className="px-3 py-2.5 font-semibold">DEX</th>
                 <th className="px-3 py-2.5 font-semibold">Change</th>
                 <th className="px-3 py-2.5 font-semibold">Liquidity</th>
                 <th className="px-3 py-2.5 font-semibold">Volume</th>
@@ -181,6 +184,9 @@ export function JustLaunchedTable({
                     </td>
                     <td className="px-3 py-3">
                       <span className={`${ds.badgeInfo}`}>{chain}</span>
+                    </td>
+                    <td className="px-3 py-3">
+                      <DexVenueBadge dexId={row.dexId} dexLabel={row.dexLabel} />
                     </td>
                     <td
                       className={`px-3 py-3 font-mono text-xs font-semibold tabular-nums ${

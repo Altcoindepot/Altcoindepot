@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { KNOWN_DEX_CHAINS } from "@/lib/format-chain";
+import { dexVenueId, dexVenueLabel } from "@/lib/dex-venue";
 import {
   mergeDexProjectLinks,
   parseDexPairInfoLinks,
@@ -41,11 +42,14 @@ export type JustLaunchedRow = {
   ageLabel: string;
   pairCreatedAt: number;
   pairUrl?: string;
+  dexId?: string;
+  dexLabel?: string;
   projectLinks?: DexProjectLink[];
 };
 
 type DexPair = {
   chainId?: string;
+  dexId?: string;
   url?: string;
   pairAddress?: string;
   baseToken?: { address?: string; name?: string; symbol?: string };
@@ -148,6 +152,8 @@ function pairToRow(pair: DexPair, iconFallback?: string, profileLinks?: unknown)
     ageLabel: ageLabel(created),
     pairCreatedAt: created,
     pairUrl: typeof pair.url === "string" && pair.url.startsWith("http") ? pair.url : undefined,
+    dexId: dexVenueId(typeof pair.dexId === "string" ? pair.dexId : undefined),
+    dexLabel: dexVenueLabel(typeof pair.dexId === "string" ? pair.dexId : undefined),
     projectLinks: projectLinks.length > 0 ? projectLinks : undefined,
   };
 }
@@ -230,7 +236,7 @@ async function loadJustLaunchedUncached(): Promise<JustLaunchedRow[]> {
 
 const loadJustLaunchedCached = unstable_cache(
   loadJustLaunchedUncached,
-  ["dexscreener-just-launched-v2"],
+  ["dexscreener-just-launched-v3"],
   { revalidate: JUST_LAUNCHED_REVALIDATE_SECONDS },
 );
 
@@ -247,4 +253,8 @@ export async function getJustLaunchedPairs(): Promise<JustLaunchedRow[]> {
     console.warn("[just-launched] DexScreener fetch failed", err);
     return memory?.rows ?? [];
   }
+}
+
+export function peekJustLaunchedFetchedAt(): number | null {
+  return memory?.at ?? null;
 }

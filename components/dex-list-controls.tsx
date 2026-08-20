@@ -5,6 +5,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { formatChainLabel } from "@/lib/format-chain";
 import {
   DEFAULT_DEX_LIST_QUERY,
+  DEX_LIST_AGES,
+  DEX_LIST_AGE_LABELS,
   DEX_LIST_MIN_LIQ,
   DEX_LIST_MIN_LIQ_LABELS,
   DEX_LIST_SORTS,
@@ -16,6 +18,7 @@ import {
   dexListQuerySummary,
   parseDexListQuery,
   sortUsesDir,
+  type DexListAge,
   type DexListDir,
   type DexListMinLiq,
   type DexListQuery,
@@ -84,6 +87,24 @@ function Fields({
         </div>
       ) : null}
 
+      <div className={`${fieldClass} md:min-w-[8.5rem] md:flex-1`}>
+        <label className={labelClass} htmlFor={`${idPrefix}-age`}>
+          Age
+        </label>
+        <select
+          id={`${idPrefix}-age`}
+          value={query.age}
+          onChange={(e) => onChange({ ...query, age: e.target.value as DexListAge })}
+          className={selectClass}
+        >
+          {DEX_LIST_AGES.map((age) => (
+            <option key={age} value={age}>
+              {DEX_LIST_AGE_LABELS[age]}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div className={`${fieldClass} md:min-w-[10.5rem] md:flex-1`}>
         <label className={labelClass} htmlFor={`${idPrefix}-chain`}>
           Chain
@@ -127,15 +148,17 @@ function Fields({
 export function DexListControls({
   chains,
   className = "",
+  defaults = DEFAULT_DEX_LIST_QUERY,
 }: {
   /** Raw DexScreener chainIds present in the current dataset. */
   chains: string[];
   className?: string;
+  defaults?: DexListQuery;
 }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const query = parseDexListQuery(searchParams);
+  const query = parseDexListQuery(searchParams, defaults);
   const [open, setOpen] = useState(false);
 
   const chainOptions = useMemo(() => {
@@ -166,13 +189,15 @@ export function DexListControls({
 
   const summary = dexListQuerySummary(query, chainLabel);
   const custom =
-    query.sort !== DEFAULT_DEX_LIST_QUERY.sort ||
-    query.dir !== DEFAULT_DEX_LIST_QUERY.dir ||
-    query.chain !== "all" ||
-    query.minLiq !== DEFAULT_DEX_LIST_QUERY.minLiq;
+    query.sort !== defaults.sort ||
+    query.dir !== defaults.dir ||
+    query.chain !== defaults.chain ||
+    query.minLiq !== defaults.minLiq ||
+    query.age !== defaults.age ||
+    query.pulse !== defaults.pulse;
 
   function push(next: DexListQuery) {
-    const href = `${pathname}${dexListQuerySearchParams(next, searchParams)}`;
+    const href = `${pathname}${dexListQuerySearchParams(next, searchParams, defaults)}`;
     router.replace(href, { scroll: false });
   }
 
@@ -221,7 +246,7 @@ export function DexListControls({
               {custom ? (
                 <button
                   type="button"
-                  onClick={() => push(DEFAULT_DEX_LIST_QUERY)}
+                  onClick={() => push(defaults)}
                   className="min-h-11 flex-1 rounded-lg border border-white/12 text-xs font-medium text-zinc-300"
                 >
                   Reset

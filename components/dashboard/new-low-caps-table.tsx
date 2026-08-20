@@ -7,18 +7,25 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { LowCapRow } from "@/lib/dashboard-data";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
-import { statusBadgeClass, rotationSignalLabel } from "@/lib/narratives";
 import { formatChainLabel } from "@/lib/format-chain";
 import { ds } from "@/lib/ui-classes";
 import { useWatchlist } from "@/components/use-watchlist";
 import { WatchlistStarButton } from "@/components/watchlist-star-button";
-import { InfoTooltip } from "@/components/info-tooltip";
-import { PulseSparkline } from "@/components/dashboard/pulse-sparkline";
 import { CopyAddressButton } from "@/components/copy-address-button";
 import { DexProjectLinks } from "@/components/dex-project-links";
 import { DexListControls } from "@/components/dex-list-controls";
+import { DexVenueBadge } from "@/components/dex-venue-badge";
+import { DexPulseChips } from "@/components/dex-pulse-chips";
+import { DexListSegment } from "@/components/dex-list-segment";
+import { RecentlyViewedStrip } from "@/components/recently-viewed-strip";
+import { BecauseYouViewed } from "@/components/because-you-viewed";
 import { dexTokenPath } from "@/lib/dex-token-path";
-import { applyDexListQuery, dexListQuerySearchParams, parseDexListQuery } from "@/lib/dex-list-query";
+import {
+  applyDexListQuery,
+  dexListQuerySearchParams,
+  LOW_CAPS_DEFAULT_QUERY,
+  parseDexListQuery,
+} from "@/lib/dex-list-query";
 
 function formatPct(n: number | null) {
   if (n == null || !Number.isFinite(n)) return "—";
@@ -70,7 +77,7 @@ export function NewLowCapsTable({
 }) {
   const { entries, mounted } = useWatchlist();
   const searchParams = useSearchParams();
-  const listQuery = parseDexListQuery(searchParams);
+  const listQuery = parseDexListQuery(searchParams, LOW_CAPS_DEFAULT_QUERY);
   const watchIds = new Set(entries.map((e) => e.id));
 
   const watchFiltered =
@@ -121,7 +128,7 @@ export function NewLowCapsTable({
               </Link>
             ) : showViewAll ? (
               <Link
-                href={`${viewAllHref}${dexListQuerySearchParams(listQuery)}`}
+                href={`${viewAllHref}${dexListQuerySearchParams(listQuery, null, LOW_CAPS_DEFAULT_QUERY)}`}
                 className="text-xs font-medium text-teal-300/90 underline-offset-2 hover:underline"
               >
                 View all →
@@ -129,7 +136,13 @@ export function NewLowCapsTable({
             ) : null}
           </div>
         </div>
-        {rows.length > 0 ? <DexListControls chains={chainIds} /> : null}
+        {rows.length > 0 ? (
+          <div className="flex flex-col gap-2">
+            <DexListSegment />
+            <DexPulseChips defaults={LOW_CAPS_DEFAULT_QUERY} />
+            <DexListControls chains={chainIds} defaults={LOW_CAPS_DEFAULT_QUERY} />
+          </div>
+        ) : null}
       </div>
 
       {!mounted && watchlistOnly ? (
@@ -162,6 +175,10 @@ export function NewLowCapsTable({
         </div>
       ) : (
         <div className="overflow-x-auto">
+          <div className="space-y-3 px-4 pt-3 sm:px-5">
+            <RecentlyViewedStrip />
+            <BecauseYouViewed rows={visibleRows} />
+          </div>
           <ul className="divide-y divide-white/5 md:hidden">
             {visibleRows.map((row) => {
               const chain = formatChainLabel(row.chain);
@@ -196,6 +213,7 @@ export function NewLowCapsTable({
                         {row.chain ? (
                           <span className="shrink-0 rounded bg-zinc-800 px-1 py-px font-mono text-[9px] uppercase tracking-wide text-zinc-400">
                             {chain}
+                            {row.dexLabel ? ` · ${row.dexLabel}` : ""}
                           </span>
                         ) : null}
                       </span>
@@ -216,7 +234,7 @@ export function NewLowCapsTable({
             })}
           </ul>
 
-          <table className="hidden w-full min-w-[64rem] border-collapse text-left md:table">
+          <table className="hidden w-full min-w-[70rem] border-collapse text-left md:table">
             <thead>
               <tr className="border-b border-white/10 text-[10px] uppercase tracking-wider text-zinc-500">
                 <th className="w-11 px-2 py-2.5 text-center font-semibold sm:px-3">
@@ -224,37 +242,23 @@ export function NewLowCapsTable({
                   ★
                 </th>
                 <th className="px-2 py-2.5 font-semibold sm:px-4">Token</th>
-                <th className="w-[85px] px-3 py-2.5 text-center font-semibold">Narrative</th>
-                <th className="px-3 py-2.5 font-semibold">Market Cap</th>
-                <th className="px-3 py-2.5 font-semibold">24h Change</th>
+                <th className="px-3 py-2.5 font-semibold">Chain</th>
+                <th className="px-3 py-2.5 font-semibold">DEX</th>
+                <th className="px-3 py-2.5 font-semibold">Age</th>
+                <th className="px-3 py-2.5 font-semibold">24h %</th>
+                <th className="px-3 py-2.5 font-semibold">Liquidity</th>
                 <th className="px-3 py-2.5 font-semibold">Volume</th>
+                <th className="w-[85px] px-3 py-2.5 text-center font-semibold">Narrative</th>
                 <th className="px-3 py-2.5 font-semibold">Contract</th>
-                <th className="px-3 py-2.5 font-semibold">
-                  <span className="inline-flex items-center">
-                    <InfoTooltip
-                      label="About Rotation Signal"
-                      text="Calculates real-time volume momentum. GREEN indicates strong capital entering; RED indicates interest is fading."
-                    >
-                      <span>Rotation Signal</span>
-                    </InfoTooltip>
-                  </span>
-                </th>
-                <th className="px-3 py-2.5 font-semibold">Added</th>
               </tr>
             </thead>
             <tbody>
               {visibleRows.map((row) => {
-                const signal = rotationSignalLabel(row.status);
-                const strongInflow = signal === "STRONG INFLOW";
                 const chain = formatChainLabel(row.chain);
                 return (
                   <tr
                     key={`${row.id}-${row.narrativeSlug}`}
-                    className={`border-b border-white/5 last:border-0 transition-all duration-200 hover:bg-slate-800/30 hover:shadow-[0_0_12px_rgba(255,255,255,0.02)] ${
-                      strongInflow
-                        ? "bg-gradient-to-r from-emerald-500/[0.07] to-transparent shadow-[0_0_15px_rgba(16,185,129,0.15)]"
-                        : ""
-                    }`}
+                    className="border-b border-white/5 last:border-0 transition-colors hover:bg-slate-800/30"
                   >
                     <td className="px-2 py-3 text-center sm:px-3">
                       <WatchlistStarButton
@@ -280,20 +284,8 @@ export function NewLowCapsTable({
                             <span className="block truncate text-sm font-medium text-zinc-100">
                               {row.name}
                             </span>
-                            <span className="mt-0.5 flex items-center gap-1.5">
-                              <span
-                                className={`inline-block h-4 w-4 shrink-0 rounded-full ${row.narrativeGlowClass}`}
-                                title={row.narrativeTitle}
-                                aria-label={`${row.narrativeTitle} narrative`}
-                              />
-                              <span className="font-mono text-[11px] uppercase text-zinc-500">
-                                {row.symbol}
-                              </span>
-                              {row.chain ? (
-                                <span className="rounded bg-zinc-800 px-1 py-px font-mono text-[10px] uppercase tracking-wide text-zinc-400">
-                                  {chain}
-                                </span>
-                              ) : null}
+                            <span className="font-mono text-[11px] uppercase text-zinc-500">
+                              {row.symbol}
                             </span>
                           </span>
                         </TokenNameLink>
@@ -306,6 +298,26 @@ export function NewLowCapsTable({
                         </span>
                       </div>
                     </td>
+                    <td className="px-3 py-3">
+                      <span className={`${ds.badgeInfo}`}>{chain}</span>
+                    </td>
+                    <td className="px-3 py-3">
+                      <DexVenueBadge dexId={row.dexId} dexLabel={row.dexLabel} />
+                    </td>
+                    <td className="px-3 py-3 text-xs text-zinc-300">{row.addedLabel}</td>
+                    <td
+                      className={`px-3 py-3 font-mono text-xs font-semibold tabular-nums ${
+                        (row.change7d ?? 0) >= 0 ? "text-emerald-300" : "text-red-300"
+                      }`}
+                    >
+                      {formatPct(row.change7d)}
+                    </td>
+                    <td className="px-3 py-3 font-mono text-xs tabular-nums text-zinc-300">
+                      {formatCompactUsd(row.liquidity)}
+                    </td>
+                    <td className="px-3 py-3 font-mono text-xs tabular-nums text-zinc-400">
+                      {formatCompactUsd(row.volume)}
+                    </td>
                     <td className="w-[85px] px-3 py-3">
                       <Link
                         href={`/narrative/${encodeURIComponent(row.narrativeSlug)}`}
@@ -315,33 +327,6 @@ export function NewLowCapsTable({
                         {row.narrativeTitle}
                       </Link>
                     </td>
-                    <td className="px-3 py-3 font-mono text-xs tabular-nums text-zinc-300">
-                      <span className="block">{formatCompactUsd(row.marketCap)}</span>
-                      {row.liquidity != null ? (
-                        <span className="mt-0.5 block text-[10px] text-zinc-500">
-                          Liq {formatCompactUsd(row.liquidity)}
-                        </span>
-                      ) : null}
-                    </td>
-                    <td className="px-3 py-3">
-                      <div className="flex items-center justify-start gap-2">
-                        <span
-                          className={`font-mono text-xs font-semibold tabular-nums ${
-                            (row.change7d ?? 0) >= 0 ? "text-emerald-300" : "text-red-300"
-                          }`}
-                        >
-                          {formatPct(row.change7d)}
-                        </span>
-                        <PulseSparkline
-                          points={row.sparkline}
-                          positive={(row.change7d ?? 0) >= 0}
-                          className="h-4 w-14 shrink-0"
-                        />
-                      </div>
-                    </td>
-                    <td className="px-3 py-3 font-mono text-xs tabular-nums text-zinc-400">
-                      {formatCompactUsd(row.volume)}
-                    </td>
                     <td className="px-3 py-3">
                       {row.contractAddress ? (
                         <CopyAddressButton address={row.contractAddress} />
@@ -349,20 +334,6 @@ export function NewLowCapsTable({
                         <span className="text-xs text-zinc-600">—</span>
                       )}
                     </td>
-                    <td className="px-3 py-3">
-                      <span
-                        className={`ds-badge relative inline-flex items-center gap-1.5 ${statusBadgeClass(row.status)}`}
-                      >
-                        {strongInflow ? (
-                          <span
-                            className="strong-inflow-dot inline-block size-2 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.85)]"
-                            aria-hidden
-                          />
-                        ) : null}
-                        {signal}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3 text-xs text-zinc-500">{row.addedLabel}</td>
                   </tr>
                 );
               })}

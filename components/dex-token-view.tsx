@@ -6,6 +6,8 @@ import { DisclaimerNote } from "@/components/disclaimer-note";
 import { DexProjectLinks } from "@/components/dex-project-links";
 import { DexRecentTrades } from "@/components/dex-recent-trades";
 import { DexScreenerChart } from "@/components/dex-screener-chart";
+import { DexVenueBadge } from "@/components/dex-venue-badge";
+import { RecordTokenView } from "@/components/record-token-view";
 import type { DexTokenPageData } from "@/lib/dexscreener-token";
 import { geckoTerminalChartEmbedUrl } from "@/lib/dexscreener-token";
 import type { DexTrade } from "@/lib/geckoterminal-trades";
@@ -43,6 +45,13 @@ export function DexTokenView({ token, trades = [] }: { token: DexTokenPageData; 
 
   return (
     <div className="mx-auto max-w-4xl">
+      <RecordTokenView
+        chain={token.chain}
+        address={token.address}
+        symbol={symbol}
+        name={token.name}
+        dex={token.dexLabel}
+      />
       <p className="text-xs uppercase tracking-widest text-zinc-500">
         <Link href="/" className="hover:text-teal-200">
           Home
@@ -68,12 +77,13 @@ export function DexTokenView({ token, trades = [] }: { token: DexTokenPageData; 
           <span className="size-14 rounded-full bg-zinc-800" />
         )}
         <div className="min-w-0 flex-1">
-          <h1 className="text-brand-altcoindepot text-2xl font-bold tracking-tight sm:text-3xl">
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">
             {token.name}
           </h1>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <span className="font-mono text-sm uppercase text-zinc-400">{symbol}</span>
             <span className={`${ds.badgeInfo}`}>{chainLabel}</span>
+            <DexVenueBadge dexId={token.dexId} dexLabel={token.dexLabel} />
           </div>
         </div>
         <div className="text-right">

@@ -13,6 +13,7 @@ import {
 } from "@/lib/dex-project-links";
 import { getDexProfileLinksByToken } from "@/lib/dexscreener-profile-links";
 import { geckoNetworkFromDexChain } from "@/lib/geckoterminal-trades";
+import { dexVenueId, dexVenueLabel } from "@/lib/dex-venue";
 
 const DEX_BASE = "https://api.dexscreener.com";
 /** Short TTL — avoid long-lived empty/miss caches on cold token pages. */
@@ -32,6 +33,8 @@ export type DexTokenPageData = {
   pairAgeLabel: string;
   pairAddress: string | null;
   pairUrl: string | null;
+  dexId?: string;
+  dexLabel?: string;
   /** Website / socials from DexScreener when present. */
   projectLinks?: DexProjectLink[];
   /** True when this token is in the current New & Low Caps set (indexable). */
@@ -40,6 +43,7 @@ export type DexTokenPageData = {
 
 type DexPair = {
   chainId?: string;
+  dexId?: string;
   url?: string;
   pairAddress?: string;
   priceUsd?: string | number;
@@ -234,6 +238,12 @@ export async function getDexScreenerTokenPage(
         : (listed?.addedLabel ?? "New"),
     pairAddress: pair?.pairAddress ?? listed?.pairAddress ?? null,
     pairUrl,
+    dexId:
+      dexVenueId(typeof pair?.dexId === "string" ? pair.dexId : undefined) ??
+      listed?.dexId,
+    dexLabel: dexVenueLabel(
+      (typeof pair?.dexId === "string" ? pair.dexId : undefined) ?? listed?.dexId,
+    ),
     projectLinks: projectLinks.length > 0 ? projectLinks : undefined,
     inLowCapsList: Boolean(listed),
   };

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { JustLaunchedSection } from "@/components/just-launched-section";
 import { JustLaunchedDisclaimerModal } from "@/components/just-launched-disclaimer-modal";
-import { getJustLaunchedPairs, type JustLaunchedRow } from "@/lib/dexscreener-just-launched";
+import { getJustLaunchedPairs, peekJustLaunchedFetchedAt, type JustLaunchedRow } from "@/lib/dexscreener-just-launched";
 
 const TITLE = "Just Launched Crypto Tokens – New DEX Pairs | AltCoin Depot";
 const DESCRIPTION =
@@ -41,9 +41,11 @@ export default async function JustLaunchedPage() {
     failed = true;
   }
 
+  const fetchedAt = peekJustLaunchedFetchedAt();
+
   return (
     <>
-      <SiteHeader />
+      <SiteHeader fetchedAt={fetchedAt} />
       <main id="main-content" className="border-b border-white/10 bg-[#0a0a0a] px-4 py-8 sm:px-6">
         <div className="mx-auto max-w-[90rem]">
           <p className="text-xs uppercase tracking-widest text-zinc-500">
@@ -53,7 +55,7 @@ export default async function JustLaunchedPage() {
             <span className="mx-2 text-zinc-700">/</span>
             Just Launched
           </p>
-          <h1 className="text-brand-altcoindepot mt-3 text-2xl font-bold tracking-tight sm:text-3xl">
+          <h1 className="mt-3 text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">
             Just launched pairs
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-400">

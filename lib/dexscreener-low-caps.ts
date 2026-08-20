@@ -3,6 +3,7 @@ import type { LowCapRow } from "@/lib/dashboard-data";
 import { NARRATIVES, rotationStatusFromChange, type NarrativeDef } from "@/lib/narratives";
 import { parseDexPairInfoLinks } from "@/lib/dex-project-links";
 import { normalizeDexChainId } from "@/lib/dex-token-path";
+import { dexVenueId, dexVenueLabel } from "@/lib/dex-venue";
 
 const DEX_BASE = "https://api.dexscreener.com";
 /** 10 minutes — DexScreener is free but we should not poll on every refresh. */
@@ -33,6 +34,7 @@ const FALLBACK_META_SLUGS = ["ai", "dog", "degen", "cat", "meme", "rwa", "defi",
 
 type DexPair = {
   chainId?: string;
+  dexId?: string;
   url?: string;
   pairAddress?: string;
   baseToken?: { address?: string; name?: string; symbol?: string };
@@ -130,6 +132,8 @@ function pairToRow(pair: DexPair, metaSlug: string): LowCapRow | null {
     chain,
     contractAddress: base.address,
     pairAddress: typeof pair.pairAddress === "string" ? pair.pairAddress : undefined,
+    dexId: dexVenueId(typeof pair.dexId === "string" ? pair.dexId : undefined),
+    dexLabel: dexVenueLabel(typeof pair.dexId === "string" ? pair.dexId : undefined),
     change7d: typeof change === "number" && Number.isFinite(change) ? change : null,
     volume: pair.volume?.h24 ?? null,
     narrativeSlug: narrative.slug,
@@ -210,7 +214,7 @@ async function loadDexLowCapsUncached(): Promise<LowCapRow[]> {
 
 const loadDexLowCapsCached = unstable_cache(
   loadDexLowCapsUncached,
-  ["dexscreener-low-caps-v4"],
+  ["dexscreener-low-caps-v5"],
   { revalidate: DEXSCREENER_REVALIDATE_SECONDS },
 );
 
@@ -230,4 +234,8 @@ export async function getDexScreenerLowCaps(): Promise<LowCapRow[]> {
     console.warn("[dashboard] DexScreener low-caps failed", err);
   }
   return memory?.rows ?? [];
+}
+
+export function peekDexLowCapsFetchedAt(): number | null {
+  return memory?.at ?? null;
 }

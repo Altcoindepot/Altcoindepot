@@ -3,6 +3,7 @@ import { SiteHeader } from "@/components/site-header";
 import { DashboardHome } from "@/components/dashboard/dashboard-home";
 import { getDashboardSnapshot, type DashboardSnapshot } from "@/lib/dashboard-snapshot";
 import { getMockDashboardSnapshot } from "@/lib/dashboard-mock";
+import { peekDexLowCapsFetchedAt } from "@/lib/dexscreener-low-caps";
 
 const TITLE = "AltCoin Depot – Narrative Rotation Dashboard";
 const DESCRIPTION =
@@ -26,21 +27,7 @@ export const metadata: Metadata = {
   },
 };
 
-/**
- * Dynamic so `?watchlist=` works. CoinGecko payloads are cached for 1 hour in
- * `getDashboardSnapshot` / `coinGeckoFetch` (revalidate: 3600).
- */
 export const dynamic = "force-dynamic";
-
-function relativeUpdated(iso: string): string {
-  const t = Date.parse(iso);
-  if (!Number.isFinite(t)) return "recently";
-  const mins = Math.max(0, Math.round((Date.now() - t) / 60_000));
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins} min ago`;
-  const hrs = Math.round(mins / 60);
-  return `${hrs}h ago`;
-}
 
 /**
  * Server-only dashboard fetch (never runs in the browser).
@@ -64,10 +51,11 @@ export default async function Home({
   const params = await searchParams;
   const watchlistOnly = params.watchlist === "1" || params.watchlist === "true";
   const snapshot = await fetchDashboardData();
+  const fetchedAt = peekDexLowCapsFetchedAt() ?? Date.parse(snapshot.updatedAt);
 
   return (
     <>
-      <SiteHeader updatedLabel={relativeUpdated(snapshot.updatedAt)} />
+      <SiteHeader fetchedAt={Number.isFinite(fetchedAt) ? fetchedAt : Date.now()} />
       <main id="main-content" className="relative">
         <DashboardHome snapshot={snapshot} watchlistOnly={watchlistOnly} />
       </main>

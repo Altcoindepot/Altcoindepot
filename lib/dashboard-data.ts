@@ -51,6 +51,10 @@ export type LowCapRow = {
   contractAddress?: string;
   /** DexScreener pair address when known. */
   pairAddress?: string;
+  /** DexScreener dexId (raydium, uniswap, …). */
+  dexId?: string;
+  /** Short venue label for badges. */
+  dexLabel?: string;
   change7d: number | null;
   volume: number | null;
   narrativeSlug: string;

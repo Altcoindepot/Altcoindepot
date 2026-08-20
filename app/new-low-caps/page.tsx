@@ -5,7 +5,7 @@ import { SiteHeader } from "@/components/site-header";
 import { NewLowCapsTable } from "@/components/dashboard/new-low-caps-table";
 import { LowCapsDisclaimerModal } from "@/components/low-caps-disclaimer-modal";
 import { getMockDashboardSnapshot } from "@/lib/dashboard-mock";
-import { getDexScreenerLowCaps } from "@/lib/dexscreener-low-caps";
+import { getDexScreenerLowCaps, peekDexLowCapsFetchedAt } from "@/lib/dexscreener-low-caps";
 import type { LowCapRow } from "@/lib/dashboard-data";
 
 const TITLE = "New & Low Cap Crypto Tokens – Live DEX Pairs | AltCoin Depot";
@@ -45,10 +45,11 @@ async function loadRows(): Promise<LowCapRow[]> {
 
 export default async function NewLowCapsPage() {
   const rows = await loadRows();
+  const fetchedAt = peekDexLowCapsFetchedAt();
 
   return (
     <>
-      <SiteHeader />
+      <SiteHeader fetchedAt={fetchedAt} />
       <main id="main-content" className="border-b border-white/10 bg-[#0a0a0a] px-4 py-8 sm:px-6">
         <div className="mx-auto max-w-[90rem]">
           <p className="text-xs uppercase tracking-widest text-zinc-500">
@@ -58,7 +59,7 @@ export default async function NewLowCapsPage() {
             <span className="mx-2 text-zinc-700">/</span>
             New &amp; Low Caps
           </p>
-          <h1 className="text-brand-altcoindepot mt-3 text-2xl font-bold tracking-tight sm:text-3xl">
+          <h1 className="mt-3 text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">
             New &amp; low cap crypto tokens
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-400">

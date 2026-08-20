@@ -9,11 +9,19 @@ export type DexListDir = (typeof DEX_LIST_DIRS)[number];
 export const DEX_LIST_MIN_LIQ = ["all", "25k", "50k"] as const;
 export type DexListMinLiq = (typeof DEX_LIST_MIN_LIQ)[number];
 
+export const DEX_LIST_AGES = ["5m", "15m", "1h", "6h", "24h", "all"] as const;
+export type DexListAge = (typeof DEX_LIST_AGES)[number];
+
+export const DEX_LIST_PULSES = ["all", "pumping", "dumping", "fresh", "high-liq"] as const;
+export type DexListPulse = (typeof DEX_LIST_PULSES)[number];
+
 export type DexListQuery = {
   sort: DexListSort;
   dir: DexListDir;
   chain: string;
   minLiq: DexListMinLiq;
+  age: DexListAge;
+  pulse: DexListPulse;
 };
 
 export const DEFAULT_DEX_LIST_QUERY: DexListQuery = {
@@ -21,6 +29,28 @@ export const DEFAULT_DEX_LIST_QUERY: DexListQuery = {
   dir: "desc",
   chain: "all",
   minLiq: "all",
+  age: "all",
+  pulse: "all",
+};
+
+/** New & Low Caps: slightly looser than Just Launched. */
+export const LOW_CAPS_DEFAULT_QUERY: DexListQuery = {
+  sort: "newest",
+  dir: "desc",
+  chain: "all",
+  minLiq: "25k",
+  age: "24h",
+  pulse: "all",
+};
+
+/** Just Launched: newest + short age window. */
+export const JUST_LAUNCHED_DEFAULT_QUERY: DexListQuery = {
+  sort: "newest",
+  dir: "desc",
+  chain: "all",
+  minLiq: "all",
+  age: "15m",
+  pulse: "all",
 };
 
 export const DEX_LIST_SORT_LABELS: Record<DexListSort, string> = {
@@ -43,6 +73,32 @@ export const DEX_LIST_MIN_LIQ_LABELS: Record<DexListMinLiq, string> = {
   all: "All liquidity",
   "25k": "$25k+",
   "50k": "$50k+",
+};
+
+export const DEX_LIST_AGE_LABELS: Record<DexListAge, string> = {
+  "5m": "5m",
+  "15m": "15m",
+  "1h": "1h",
+  "6h": "6h",
+  "24h": "24h",
+  all: "All ages",
+};
+
+export const DEX_LIST_PULSE_LABELS: Record<DexListPulse, string> = {
+  all: "All",
+  pumping: "Pumping",
+  dumping: "Dumping",
+  fresh: "Fresh",
+  "high-liq": "High liq",
+};
+
+const AGE_MS: Record<DexListAge, number> = {
+  "5m": 5 * 60_000,
+  "15m": 15 * 60_000,
+  "1h": 60 * 60_000,
+  "6h": 6 * 60 * 60_000,
+  "24h": 24 * 60 * 60_000,
+  all: Number.POSITIVE_INFINITY,
 };
 
 export function sortUsesDir(sort: DexListSort): boolean {
@@ -71,6 +127,7 @@ const MIN_LIQ_USD: Record<DexListMinLiq, number> = {
 };
 
 export type DexListSortable = {
+  id?: string;
   chain?: string;
   liquidity?: number | null;
   volume?: number | null;
@@ -90,19 +147,32 @@ function isMinLiq(value: string | null): value is DexListMinLiq {
   return DEX_LIST_MIN_LIQ.includes(value as DexListMinLiq);
 }
 
-export function parseDexListQuery(sp: {
-  get(name: string): string | null;
-}): DexListQuery {
+function isAge(value: string | null): value is DexListAge {
+  return DEX_LIST_AGES.includes(value as DexListAge);
+}
+
+function isPulse(value: string | null): value is DexListPulse {
+  return DEX_LIST_PULSES.includes(value as DexListPulse);
+}
+
+export function parseDexListQuery(
+  sp: { get(name: string): string | null },
+  defaults: DexListQuery = DEFAULT_DEX_LIST_QUERY,
+): DexListQuery {
   const sortRaw = sp.get("sort");
   const dirRaw = sp.get("dir");
   const chainRaw = sp.get("chain")?.trim().toLowerCase() ?? "";
   const minLiqRaw = sp.get("minLiq");
-  const sort = isSort(sortRaw) ? sortRaw : DEFAULT_DEX_LIST_QUERY.sort;
+  const ageRaw = sp.get("age");
+  const pulseRaw = sp.get("pulse");
+  const sort = isSort(sortRaw) ? sortRaw : defaults.sort;
   return {
     sort,
-    dir: sortUsesDir(sort) && isDir(dirRaw) ? dirRaw : DEFAULT_DEX_LIST_QUERY.dir,
-    chain: chainRaw && chainRaw !== "all" ? chainRaw : "all",
-    minLiq: isMinLiq(minLiqRaw) ? minLiqRaw : DEFAULT_DEX_LIST_QUERY.minLiq,
+    dir: sortUsesDir(sort) && isDir(dirRaw) ? dirRaw : defaults.dir,
+    chain: chainRaw && chainRaw !== "all" ? chainRaw : defaults.chain,
+    minLiq: isMinLiq(minLiqRaw) ? minLiqRaw : defaults.minLiq,
+    age: isAge(ageRaw) ? ageRaw : defaults.age,
+    pulse: isPulse(pulseRaw) ? pulseRaw : defaults.pulse,
   };
 }
 
@@ -115,16 +185,54 @@ export function chainMatches(rowChain: string | undefined, filter: string): bool
   return formatChainLabel(row) === formatChainLabel(want);
 }
 
-export function applyDexListQuery<T extends DexListSortable>(rows: T[], query: DexListQuery): T[] {
+function applyPulse<T extends DexListSortable>(rows: T[], pulse: DexListPulse): T[] {
+  if (pulse === "all" || rows.length === 0) return rows;
+  if (pulse === "pumping") {
+    return [...rows]
+      .filter((r) => (r.change24h ?? 0) > 0)
+      .sort((a, b) => (b.change24h ?? 0) - (a.change24h ?? 0))
+      .slice(0, 8);
+  }
+  if (pulse === "dumping") {
+    return [...rows]
+      .filter((r) => (r.change24h ?? 0) < 0)
+      .sort((a, b) => (a.change24h ?? 0) - (b.change24h ?? 0))
+      .slice(0, 8);
+  }
+  if (pulse === "high-liq") {
+    return [...rows]
+      .filter((r) => (r.liquidity ?? 0) > 0)
+      .sort((a, b) => (b.liquidity ?? 0) - (a.liquidity ?? 0))
+      .slice(0, 8);
+  }
+  return [...rows]
+    .filter((r) => r.pairCreatedAt != null)
+    .sort((a, b) => (b.pairCreatedAt ?? 0) - (a.pairCreatedAt ?? 0))
+    .slice(0, 8);
+}
+
+export function applyDexListQuery<T extends DexListSortable>(
+  rows: T[],
+  query: DexListQuery,
+  now = Date.now(),
+): T[] {
   const minUsd = MIN_LIQ_USD[query.minLiq];
+  const maxAge = AGE_MS[query.age];
   const filtered = rows.filter((row) => {
     if (!chainMatches(row.chain, query.chain)) return false;
     if (minUsd > 0 && (row.liquidity ?? 0) < minUsd) return false;
+    if (maxAge < Number.POSITIVE_INFINITY) {
+      const created = row.pairCreatedAt;
+      if (created == null || !Number.isFinite(created)) return false;
+      if (now - created > maxAge) return false;
+    }
     return true;
   });
 
+  const pulsed = applyPulse(filtered, query.pulse);
+
   const missing = Number.NEGATIVE_INFINITY;
-  const copy = [...filtered];
+  const copy = [...pulsed];
   const dir = sortUsesDir(query.sort) ? query.dir : query.sort === "losers" ? "asc" : "desc";
   copy.sort((a, b) => {
     let cmp = 0;
@@ -152,32 +260,50 @@ export function dexListQuerySummary(query: DexListQuery, chainLabel: string): st
     parts.push("Low→high");
   }
   parts.push(query.chain === "all" ? "All" : chainLabel);
+  if (query.age !== "all") parts.push(DEX_LIST_AGE_LABELS[query.age]);
   if (query.minLiq !== "all") parts.push(DEX_LIST_MIN_LIQ_LABELS[query.minLiq]);
+  if (query.pulse !== "all") parts.push(DEX_LIST_PULSE_LABELS[query.pulse]);
   return parts.join(" · ");
 }
 
 export function dexListQuerySearchParams(
   query: DexListQuery,
   extra?: URLSearchParams | null,
+  defaults: DexListQuery = DEFAULT_DEX_LIST_QUERY,
 ): string {
   const params = extra ? new URLSearchParams(extra.toString()) : new URLSearchParams();
   params.delete("sort");
   params.delete("dir");
   params.delete("chain");
   params.delete("minLiq");
+  params.delete("age");
+  params.delete("pulse");
   const custom =
-    query.sort !== DEFAULT_DEX_LIST_QUERY.sort ||
-    (sortUsesDir(query.sort) && query.dir !== DEFAULT_DEX_LIST_QUERY.dir) ||
-    query.chain !== "all" ||
-    query.minLiq !== DEFAULT_DEX_LIST_QUERY.minLiq;
+    query.sort !== defaults.sort ||
+    (sortUsesDir(query.sort) && query.dir !== defaults.dir) ||
+    query.chain !== defaults.chain ||
+    query.minLiq !== defaults.minLiq ||
+    query.age !== defaults.age ||
+    query.pulse !== defaults.pulse;
   if (custom) {
-    params.set("sort", query.sort);
-    if (sortUsesDir(query.sort) && query.dir !== DEFAULT_DEX_LIST_QUERY.dir) {
-      params.set("dir", query.dir);
-    }
-    if (query.chain !== "all") params.set("chain", query.chain);
-    if (query.minLiq !== DEFAULT_DEX_LIST_QUERY.minLiq) params.set("minLiq", query.minLiq);
+    if (query.sort !== defaults.sort) params.set("sort", query.sort);
+    if (sortUsesDir(query.sort) && query.dir !== defaults.dir) params.set("dir", query.dir);
+    if (query.chain !== "all" && query.chain !== defaults.chain) params.set("chain", query.chain);
+    if (query.minLiq !== defaults.minLiq) params.set("minLiq", query.minLiq);
+    if (query.age !== defaults.age) params.set("age", query.age);
+    if (query.pulse !== defaults.pulse) params.set("pulse", query.pulse);
   }
   const qs = params.toString();
   return qs ? `?${qs}` : "";
+}
+
+export function formatFreshness(fetchedAt: number | null | undefined, now = Date.now()): string {
+  if (fetchedAt == null || !Number.isFinite(fetchedAt)) return "Updated recently";
+  const secs = Math.max(0, Math.round((now - fetchedAt) / 1000));
+  if (secs < 5) return "Updated just now";
+  if (secs < 60) return `Updated ${secs}s ago`;
+  const mins = Math.round(secs / 60);
+  if (mins < 60) return `Updated ${mins}m ago`;
+  const hrs = Math.round(mins / 60);
+  return `Updated ${hrs}h ago`;
 }

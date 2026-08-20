@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 430 64" role="img" aria-label="AltCoin Depot">
+  <title>AltCoin Depot</title>
+  <g transform="translate(0,0)">
+    <path
+      fill="#14b8a6"
+      fill-rule="evenodd"
+      d="M32 2.5 61.5 62H49.2L41.4 44.2H22.6L14.8 62H2.5L32 2.5Zm0 16.2 6.6 14.8H25.4L32 18.7Z"
+    />
+    <circle cx="32" cy="50.2" r="8.1" fill="#2dd4bf"/>
+    <circle cx="32" cy="50.2" r="8.1" fill="none" stroke="#0a0a0a" stroke-width="1.6"/>
+  </g>
+  <text
+    x="78"
+    y="44"
+    font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
+    font-size="32"
+    font-weight="800"
+    letter-spacing="-0.04em"
+  >
+    <tspan fill="#f4f4f5">AltCoin</tspan>
+    <tspan fill="#14b8a6" dx="7">Depot</tspan>
+  </text>
+</svg>

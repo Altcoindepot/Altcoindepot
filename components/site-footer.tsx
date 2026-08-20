@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CoingeckoLogoAttribution } from "@/components/coingecko-logo-attribution";
+import { BrandLogo } from "@/components/brand-logo";
 
 function XIcon({ className }: { className?: string }) {
   return (
@@ -40,9 +41,7 @@ export function SiteFooter() {
       <div className="mx-auto flex max-w-7xl flex-col gap-8 sm:gap-10">
         <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
           <div className="max-w-md text-center sm:text-left">
-            <p className="text-brand-altcoindepot text-lg font-extrabold tracking-tight">
-              AltCoinDepot
-            </p>
+            <BrandLogo variant="lockup" className="h-7" />
             <p className="mt-2 text-sm leading-relaxed text-slate-500">
               Live crypto prices, Market Regime, narrative rotations, and side-by-side Compare.
               Informational only — always do your own research.
@@ -75,8 +74,8 @@ export function SiteFooter() {
               className="group flex min-h-12 items-center gap-3 rounded-xl border border-white/10 bg-[#0c0e14] px-5 py-3 text-metallic opacity-90 transition-[opacity,border-color,box-shadow,transform] duration-200 hover:border-[#d1a173]/35 hover:opacity-100 hover:shadow-[0_0_24px_rgba(185,129,82,0.15)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] active:scale-[0.98]"
             >
               <XIcon className="size-9 shrink-0 text-zinc-100 sm:size-10" />
-              <span className="text-brand-altcoindepot text-sm font-bold tracking-tight">
-                AltCoinDepot on X
+              <span className="text-sm font-bold tracking-tight text-zinc-100">
+                AltCoin Depot on X
               </span>
             </a>
           </div>

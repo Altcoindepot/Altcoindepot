@@ -8,6 +8,7 @@ import { PriceAlertWatcher } from "@/components/price-alert-watcher";
 import { SiteFooter } from "@/components/site-footer";
 import { ToastHost } from "@/components/toast-host";
 import { BackToTop } from "@/components/back-to-top";
+import { MobileTabBar } from "@/components/mobile-tab-bar";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -28,6 +29,14 @@ export const metadata: Metadata = {
   },
   description:
     "Live crypto market dashboard: Market Regime, Market Brief, prices, gainers & losers, and side-by-side coin compare. Free real-time data on AltCoin Depot.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/logo-mark.svg", type: "image/svg+xml" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
   openGraph: {
     title: "AltCoin Depot – Market Regime, Live Crypto Prices & Compare",
     description:
@@ -65,10 +74,11 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col font-sans">
         <ThemeProvider>
-          <div className="flex min-h-full flex-1 flex-col">
+          <div className="flex min-h-full flex-1 flex-col pb-[4.25rem] lg:pb-0">
             <div className="flex-1">{children}</div>
             <SiteFooter />
           </div>
+          <MobileTabBar />
           <PriceAlertWatcher />
           <ToastHost />
           <BackToTop />
