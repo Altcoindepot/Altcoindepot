@@ -36,10 +36,17 @@ export const dynamic = "force-dynamic";
 async function loadRows(): Promise<LowCapRow[]> {
   try {
     const rows = await getDexScreenerLowCaps();
-    if (rows.length > 0) return rows;
+    if (rows.length > 0) {
+      console.info("[new-low-caps] live DexScreener rows", {
+        count: rows.length,
+        withPrice: rows.filter((r) => r.priceUsd != null).length,
+      });
+      return rows;
+    }
   } catch (err) {
     console.warn("[new-low-caps] DexScreener failed; using mock rows", err);
   }
+  console.info("[new-low-caps] using mock fallback (no live Dex rows)");
   return getMockDashboardSnapshot().lowCaps;
 }
 
@@ -63,7 +70,7 @@ export default async function NewLowCapsPage() {
             New &amp; low cap crypto tokens
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-400">
-            Recently active DEX pairs with liquidity, 24h change, volume, and pair age. Data is
+            Recently active DEX pairs with price, liquidity, 24h change, volume, and pair age. Data is
             cached about every 10 minutes from DexScreener. Informational only — not financial
             advice.
           </p>

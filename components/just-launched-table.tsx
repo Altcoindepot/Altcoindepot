@@ -17,10 +17,13 @@ function formatPct(n: number | null) {
 }
 
 function formatPrice(n: number | null | undefined) {
-  if (n == null || !Number.isFinite(n)) return null;
-  if (n >= 1) return `$${n.toFixed(2)}`;
-  if (n >= 0.01) return `$${n.toFixed(4)}`;
-  return `$${n.toPrecision(3)}`;
+  if (n == null || !Number.isFinite(n)) return "—";
+  const abs = Math.abs(n);
+  if (abs >= 1000) return `$${n.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+  if (abs >= 1) return `$${n.toFixed(2)}`;
+  if (abs >= 0.01) return `$${n.toFixed(4)}`;
+  if (abs >= 0.000001) return `$${n.toFixed(8).replace(/0+$/, "").replace(/\.$/, "")}`;
+  return `$${n.toExponential(2)}`;
 }
 
 /** Primary name click stays on-site; never uses DexScreener external URL as href. */
@@ -120,8 +123,11 @@ export function JustLaunchedTable({
                         </span>
                       </span>
                       <span className="mt-0.5 block font-mono text-[10px] tabular-nums leading-tight text-zinc-500">
-                        {formatPrice(row.priceUsd) ? `${formatPrice(row.priceUsd)} · ` : ""}
-                        {row.ageLabel} · Liq {formatCompactUsd(row.liquidity)}
+                        <span className="text-zinc-300">{formatPrice(row.priceUsd)}</span>
+                        {" · "}
+                        {row.ageLabel || "—"} · Liq {formatCompactUsd(row.liquidity)}
+                        {" · "}
+                        Vol {formatCompactUsd(row.volume)}
                       </span>
                     </span>
                     <span
@@ -192,7 +198,7 @@ export function JustLaunchedTable({
                       </div>
                     </td>
                     <td className="px-3 py-3 font-mono text-xs tabular-nums text-zinc-200">
-                      {formatPrice(row.priceUsd) ?? "—"}
+                      {formatPrice(row.priceUsd)}
                     </td>
                     <td className="px-3 py-3">
                       <span className={`${ds.badgeInfo}`}>{chain}</span>

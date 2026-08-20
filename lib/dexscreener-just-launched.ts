@@ -7,6 +7,7 @@ import {
   parseDexProjectLinks,
   type DexProjectLink,
 } from "@/lib/dex-project-links";
+import { logDexSampleRow, parseDexUsdNumber } from "@/lib/dex-pair-fields";
 
 const DEX_BASE = "https://api.dexscreener.com";
 /** 5 minutes — just-launched pairs go stale quickly. */
@@ -132,17 +133,15 @@ function pairToRow(pair: DexPair, iconFallback?: string, profileLinks?: unknown)
   if (!KNOWN_DEX_CHAINS.has(chain)) return null;
   const age = Date.now() - created;
   if (age < -60_000 || age > MAX_AGE_MS) return null;
-  const liq = pair.liquidity?.usd ?? 0;
+  const liq = parseDexUsdNumber(pair.liquidity?.usd) ?? 0;
   if (liq < MIN_LIQUIDITY_USD) return null;
-  const change = pair.priceChange?.h1 ?? pair.priceChange?.h6 ?? pair.priceChange?.h24 ?? null;
+  const change =
+    parseDexUsdNumber(pair.priceChange?.h24) ??
+    parseDexUsdNumber(pair.priceChange?.h6) ??
+    parseDexUsdNumber(pair.priceChange?.h1);
   const marketCap = pair.marketCap ?? pair.fdv ?? null;
-  const priceRaw = pair.priceUsd;
-  const priceUsd =
-    typeof priceRaw === "number"
-      ? priceRaw
-      : typeof priceRaw === "string"
-        ? Number(priceRaw)
-        : null;
+  const priceUsd = parseDexUsdNumber(pair.priceUsd);
+  const volume = parseDexUsdNumber(pair.volume?.h24);
   const projectLinks = mergeDexProjectLinks(
     parseDexPairInfoLinks(pair.info),
     parseDexProjectLinks({ profileLinks }),
@@ -154,10 +153,10 @@ function pairToRow(pair: DexPair, iconFallback?: string, profileLinks?: unknown)
     image: pair.info?.imageUrl ?? iconFallback ?? "",
     chain,
     contractAddress: base.address,
-    change: typeof change === "number" && Number.isFinite(change) ? change : null,
+    change,
     liquidity: liq,
-    volume: pair.volume?.h24 ?? null,
-    priceUsd: typeof priceUsd === "number" && Number.isFinite(priceUsd) ? priceUsd : null,
+    volume,
+    priceUsd,
     marketCap: typeof marketCap === "number" && Number.isFinite(marketCap) ? marketCap : null,
     ageLabel: ageLabel(created),
     pairCreatedAt: created,
@@ -246,7 +245,7 @@ async function loadJustLaunchedUncached(): Promise<JustLaunchedRow[]> {
 
 const loadJustLaunchedCached = unstable_cache(
   loadJustLaunchedUncached,
-  ["dexscreener-just-launched-v3"],
+  ["dexscreener-just-launched-v4-price"],
   { revalidate: JUST_LAUNCHED_REVALIDATE_SECONDS },
 );
 
@@ -257,7 +256,13 @@ export async function getJustLaunchedPairs(): Promise<JustLaunchedRow[]> {
   try {
     const rows = await loadJustLaunchedCached();
     memory = { at: Date.now(), rows };
-    console.info("[just-launched] DexScreener pairs", { count: rows.length });
+    const withPrice = rows.filter((r) => r.priceUsd != null).length;
+    console.info("[just-launched] DexScreener pairs", {
+      count: rows.length,
+      withPrice,
+      live: true,
+    });
+    logDexSampleRow("just-launched", rows[0]);
     return rows;
   } catch (err) {
     console.warn("[just-launched] DexScreener fetch failed", err);

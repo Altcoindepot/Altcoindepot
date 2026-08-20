@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CoingeckoLogoAttribution } from "@/components/coingecko-logo-attribution";
+import { FooterDataAttribution } from "@/components/footer-data-attribution";
 import { BrandLogo } from "@/components/brand-logo";
 
 function XIcon({ className }: { className?: string }) {
@@ -110,7 +110,7 @@ export function SiteFooter() {
         </section>
 
         <div className="flex flex-col items-center justify-between gap-4 border-t border-white/5 pt-6 sm:flex-row">
-          <CoingeckoLogoAttribution className="text-center sm:justify-start sm:text-left" />
+          <FooterDataAttribution className="text-center sm:justify-start sm:text-left" />
           <p className="text-center text-[11px] text-slate-600 sm:text-right">
             © {new Date().getFullYear()} AltCoin Depot
           </p>

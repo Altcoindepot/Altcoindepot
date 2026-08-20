@@ -4,6 +4,7 @@ import { NARRATIVES, rotationStatusFromChange, type NarrativeDef } from "@/lib/n
 import { parseDexPairInfoLinks } from "@/lib/dex-project-links";
 import { normalizeDexChainId } from "@/lib/dex-token-path";
 import { dexVenueId, dexVenueLabel } from "@/lib/dex-venue";
+import { logDexSampleRow, parseDexUsdNumber } from "@/lib/dex-pair-fields";
 
 const DEX_BASE = "https://api.dexscreener.com";
 /** 10 minutes — DexScreener is free but we should not poll on every refresh. */
@@ -118,33 +119,31 @@ function pairToRow(pair: DexPair, metaSlug: string): LowCapRow | null {
   const base = pair.baseToken;
   if (!base?.address || !base.name || !base.symbol) return null;
   const chain = normalizeDexChainId(pair.chainId) ?? pair.chainId?.trim().toLowerCase() ?? "unknown";
-  const change = pair.priceChange?.h24 ?? pair.priceChange?.h6 ?? pair.priceChange?.h1 ?? null;
+  const change = parseDexUsdNumber(pair.priceChange?.h24)
+    ?? parseDexUsdNumber(pair.priceChange?.h6)
+    ?? parseDexUsdNumber(pair.priceChange?.h1);
   const narrative = inferNarrative(metaSlug, base.name, base.symbol);
   const created = pair.pairCreatedAt ?? null;
   const marketCap = pair.marketCap ?? pair.fdv ?? null;
   const projectLinks = parseDexPairInfoLinks(pair.info);
-  const priceRaw = pair.priceUsd;
-  const priceUsd =
-    typeof priceRaw === "number"
-      ? priceRaw
-      : typeof priceRaw === "string"
-        ? Number(priceRaw)
-        : null;
+  const priceUsd = parseDexUsdNumber(pair.priceUsd);
+  const volume = parseDexUsdNumber(pair.volume?.h24);
+  const liquidity = parseDexUsdNumber(pair.liquidity?.usd);
   return {
     id: `dex-${chain}-${base.address}`,
     name: base.name,
     symbol: base.symbol,
     image: pair.info?.imageUrl ?? "",
     marketCap: typeof marketCap === "number" && Number.isFinite(marketCap) ? marketCap : null,
-    liquidity: pair.liquidity?.usd ?? null,
+    liquidity,
     chain,
     contractAddress: base.address,
     pairAddress: typeof pair.pairAddress === "string" ? pair.pairAddress : undefined,
     dexId: dexVenueId(typeof pair.dexId === "string" ? pair.dexId : undefined),
     dexLabel: dexVenueLabel(typeof pair.dexId === "string" ? pair.dexId : undefined),
-    change7d: typeof change === "number" && Number.isFinite(change) ? change : null,
-    volume: pair.volume?.h24 ?? null,
-    priceUsd: typeof priceUsd === "number" && Number.isFinite(priceUsd) ? priceUsd : null,
+    change7d: change,
+    volume,
+    priceUsd,
     narrativeSlug: narrative.slug,
     narrativeTitle: displayNarrativeTitle(metaSlug, base.name, base.symbol, created, narrative),
     narrativeColor: narrative.color,
@@ -223,7 +222,7 @@ async function loadDexLowCapsUncached(): Promise<LowCapRow[]> {
 
 const loadDexLowCapsCached = unstable_cache(
   loadDexLowCapsUncached,
-  ["dexscreener-low-caps-v5"],
+  ["dexscreener-low-caps-v6-price"],
   { revalidate: DEXSCREENER_REVALIDATE_SECONDS },
 );
 
@@ -236,7 +235,13 @@ export async function getDexScreenerLowCaps(): Promise<LowCapRow[]> {
     const rows = await loadDexLowCapsCached();
     if (rows.length > 0) {
       memory = { at: Date.now(), rows };
-      console.info("[dashboard] DexScreener low-caps", { count: rows.length });
+      const withPrice = rows.filter((r) => r.priceUsd != null).length;
+      console.info("[dashboard] DexScreener low-caps", {
+        count: rows.length,
+        withPrice,
+        live: true,
+      });
+      logDexSampleRow("dex-low-caps", rows[0]);
       return rows;
     }
   } catch (err) {
