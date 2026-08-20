@@ -33,17 +33,17 @@ export const DEFAULT_DEX_LIST_QUERY: DexListQuery = {
   pulse: "all",
 };
 
-/** New & Low Caps: slightly looser than Just Launched. */
+/** New & Low Caps: older pairs; min liq enforced in data layer (≥$10k / UI $25k default). */
 export const LOW_CAPS_DEFAULT_QUERY: DexListQuery = {
   sort: "newest",
   dir: "desc",
   chain: "all",
   minLiq: "25k",
-  age: "24h",
+  age: "all",
   pulse: "all",
 };
 
-/** Just Launched: newest + short age window. */
+/** Just Launched: newest within 0–15m (server also hard-filters pairCreatedAt). */
 export const JUST_LAUNCHED_DEFAULT_QUERY: DexListQuery = {
   sort: "newest",
   dir: "desc",

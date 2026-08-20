@@ -6,8 +6,7 @@ import type { DexLivePairRow } from "@/lib/dexscreener-live-pairs";
 import type { LowCapRow } from "@/lib/dashboard-data";
 import Link from "next/link";
 import { Suspense, useMemo } from "react";
-import { HomeLaunchPulse } from "@/components/home-launch-pulse";
-import { DexPairPriceTable } from "@/components/dex-pair-price-table";
+import { JustLaunchedTable } from "@/components/just-launched-table";
 import { NewLowCapsTable } from "@/components/dashboard/new-low-caps-table";
 import { RecentlyViewedStrip } from "@/components/recently-viewed-strip";
 import { BecauseYouViewed } from "@/components/because-you-viewed";
@@ -17,6 +16,7 @@ import { NarrativeRotationSection } from "@/components/dashboard/narrative-rotat
 import { MarketSentimentWidget } from "@/components/dashboard/market-sentiment-widget";
 import { DisclaimerNote } from "@/components/disclaimer-note";
 import { LOW_CAPS_DEFAULT_QUERY } from "@/lib/dex-list-query";
+import { isJustLaunchedAge } from "@/lib/pair-age-split";
 
 function liveToRecommendRows(live: DexLivePairRow[]) {
   return live.map((r) => ({
@@ -36,7 +36,7 @@ function liveToRecommendRows(live: DexLivePairRow[]) {
 
 /**
  * Homepage: Narrative Rotation primary (desktop above the fold);
- * DEX scanner secondary below. Mobile keeps both — narrative first, then scanner.
+ * DEX scanner secondary — Just Launched (0–15m) + New & Low Caps (>15m).
  */
 export function DashboardHome({
   snapshot,
@@ -56,6 +56,10 @@ export function DashboardHome({
   justLaunchedFailed?: boolean;
 }) {
   const recommendRows = useMemo(() => liveToRecommendRows(livePairs), [livePairs]);
+  const freshLaunched = useMemo(
+    () => justLaunched.filter((row) => isJustLaunchedAge(row.pairCreatedAt)).slice(0, 12),
+    [justLaunched],
+  );
 
   return (
     <div className="w-full">
@@ -129,7 +133,7 @@ export function DashboardHome({
                 DEX Scanner
               </h2>
               <p className="mt-0.5 text-[11px] leading-snug text-zinc-500 sm:text-xs">
-                Live DexScreener pairs · high risk · not financial advice
+                Just Launched (0–15m) · New &amp; Low Caps (&gt;15m) · not financial advice
               </p>
             </div>
             <div className="flex gap-3 text-[11px]">
@@ -137,7 +141,7 @@ export function DashboardHome({
                 Just Launched
               </Link>
               <Link href="/new-low-caps" className="font-medium text-zinc-500 hover:text-teal-200">
-                Low Caps
+                New &amp; Low Caps
               </Link>
             </div>
           </header>
@@ -151,20 +155,39 @@ export function DashboardHome({
             </div>
           </Suspense>
 
-          {justLaunchedFailed && justLaunched.length === 0 ? null : (
-            <Suspense fallback={null}>
-              <div className="mb-3">
-                <HomeLaunchPulse rows={justLaunched} />
-              </div>
-            </Suspense>
-          )}
-
           <RecentlyViewedStrip className="mb-3" />
           <BecauseYouViewed rows={recommendRows} className="mb-3" limit={5} />
 
-          <DexPairPriceTable rows={livePairs} error={livePairsError} title="Live pairs" />
+          {livePairsError ? (
+            <p className="mb-3 rounded-lg border border-red-500/30 bg-red-950/20 px-3 py-2 text-xs text-red-300">
+              DexScreener live fetch issue: {livePairsError}
+            </p>
+          ) : null}
 
-          <div className="mt-4 hidden md:block">
+          {/* Just Launched — 0–15m only */}
+          <div className="mb-4">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-600">
+                Just Launched · 0–15m
+              </p>
+              <Link
+                href="/just-launched"
+                className="text-[11px] font-medium text-teal-300/90 underline-offset-2 hover:underline"
+              >
+                View all →
+              </Link>
+            </div>
+            {justLaunchedFailed && freshLaunched.length === 0 ? (
+              <p className="rounded-xl border border-white/10 bg-[#0c0e14] px-4 py-6 text-sm text-zinc-500">
+                No pairs under 15m right now
+              </p>
+            ) : (
+              <JustLaunchedTable rows={freshLaunched} />
+            )}
+          </div>
+
+          {/* New & Low Caps — older than 15m */}
+          <div className="mt-2">
             <Suspense fallback={<div className="h-40 rounded-xl border border-white/10 bg-[#0c0e14]" />}>
               <NewLowCapsTable
                 rows={lowCaps}
@@ -175,15 +198,6 @@ export function DashboardHome({
               />
             </Suspense>
           </div>
-
-          <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-zinc-600 md:hidden">
-            <Link href="/just-launched" className="text-teal-300/90 underline-offset-2 hover:underline">
-              Just Launched →
-            </Link>
-            <Link href="/new-low-caps" className="text-teal-300/90 underline-offset-2 hover:underline">
-              New &amp; Low Caps →
-            </Link>
-          </p>
 
           <DisclaimerNote className="mt-4 text-[11px]">
             Pair stats from DexScreener · informational only · not financial advice

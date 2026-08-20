@@ -60,7 +60,8 @@ export function JustLaunchedTable({
     >
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-white/10 px-4 py-3 sm:px-5">
         <h2 id="just-launched-heading" className="text-sm font-semibold text-zinc-100 sm:text-base">
-          Last 60 minutes
+          Just Launched
+          <span className="ml-2 text-xs font-medium text-zinc-500">· 0–15m</span>
           {filtered ? (
             <span className="ml-2 text-xs font-medium text-teal-300/80">· {filterLabel}</span>
           ) : null}
@@ -85,7 +86,7 @@ export function JustLaunchedTable({
         <p className="px-4 py-8 text-sm text-zinc-500 sm:px-5">
           {filtered
             ? "No pairs in this Launch Pulse bucket right now."
-            : "No pairs launched in the last hour passed the liquidity filter. Check back shortly."}
+            : "No pairs under 15m right now"}
         </p>
       ) : (
         <div className="overflow-x-auto">

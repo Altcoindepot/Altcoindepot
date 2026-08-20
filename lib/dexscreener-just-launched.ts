@@ -8,11 +8,11 @@ import {
   type DexProjectLink,
 } from "@/lib/dex-project-links";
 import { logDexSampleRow, parseDexUsdNumber } from "@/lib/dex-pair-fields";
+import { isJustLaunchedAge } from "@/lib/pair-age-split";
 
 const DEX_BASE = "https://api.dexscreener.com";
 /** 5 minutes — just-launched pairs go stale quickly. */
 export const JUST_LAUNCHED_REVALIDATE_SECONDS = 300;
-const MAX_AGE_MS = 60 * 60 * 1000;
 const MIN_LIQUIDITY_USD = 5_000;
 const LIST_LIMIT = 40;
 
@@ -131,8 +131,7 @@ function pairToRow(pair: DexPair, iconFallback?: string, profileLinks?: unknown)
   const symbol = base.symbol.trim().toLowerCase();
   if (!symbol || SKIP_SYMBOLS.has(symbol)) return null;
   if (!KNOWN_DEX_CHAINS.has(chain)) return null;
-  const age = Date.now() - created;
-  if (age < -60_000 || age > MAX_AGE_MS) return null;
+  if (!isJustLaunchedAge(created)) return null;
   const liq = parseDexUsdNumber(pair.liquidity?.usd) ?? 0;
   if (liq < MIN_LIQUIDITY_USD) return null;
   const change =
@@ -245,7 +244,7 @@ async function loadJustLaunchedUncached(): Promise<JustLaunchedRow[]> {
 
 const loadJustLaunchedCached = unstable_cache(
   loadJustLaunchedUncached,
-  ["dexscreener-just-launched-v4-price"],
+  ["dexscreener-just-launched-v5-15m"],
   { revalidate: JUST_LAUNCHED_REVALIDATE_SECONDS },
 );
 

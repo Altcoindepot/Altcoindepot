@@ -5,6 +5,7 @@ import { parseDexPairInfoLinks } from "@/lib/dex-project-links";
 import { normalizeDexChainId } from "@/lib/dex-token-path";
 import { dexVenueId, dexVenueLabel } from "@/lib/dex-venue";
 import { logDexSampleRow, parseDexUsdNumber } from "@/lib/dex-pair-fields";
+import { isNewLowCapAge } from "@/lib/pair-age-split";
 
 const DEX_BASE = "https://api.dexscreener.com";
 /** 10 minutes — DexScreener is free but we should not poll on every refresh. */
@@ -82,7 +83,7 @@ function displayNarrativeTitle(
   metaSlug: string,
   name: string,
   symbol: string,
-  createdAt: number | null,
+  _createdAt: number | null,
   narrative: NarrativeDef,
 ): string {
   const blob = narrativeBlob(metaSlug, name, symbol);
@@ -91,7 +92,6 @@ function displayNarrativeTitle(
       blob,
     );
   if (mapped) return narrative.title;
-  if (createdAt != null && Date.now() - createdAt < 3 * 86_400_000) return "New";
   return "Low Cap";
 }
 
@@ -110,6 +110,7 @@ function isUsefulPair(pair: DexPair): boolean {
   if (!symbol || SKIP_SYMBOLS.has(symbol)) return false;
   const liq = pair.liquidity?.usd ?? 0;
   if (liq < MIN_LIQUIDITY_USD) return false;
+  if (!isNewLowCapAge(pair.pairCreatedAt ?? null)) return false;
   const cap = pair.marketCap ?? pair.fdv ?? null;
   if (cap != null && Number.isFinite(cap) && cap > LOW_MAX) return false;
   return true;

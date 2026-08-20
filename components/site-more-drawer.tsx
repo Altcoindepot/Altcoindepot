@@ -4,14 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BrandLogo } from "@/components/brand-logo";
 import { ThemeSelector } from "@/components/theme-selector";
+import { ResourcesNavAccordion } from "@/components/resources-nav-accordion";
 
 /** Secondary-only hamburger destinations (scanner routes live in header + bottom tabs). */
 const SECONDARY = [
   { href: "/about", label: "About" },
   { href: "/disclaimer", label: "Disclaimer" },
-  { href: "/ecosystem", label: "Resources · Ecosystem" },
-  { href: "/podcasts", label: "Resources · Podcasts" },
-  { href: "/tools", label: "Resources · Tools" },
   { href: "/watchlist", label: "Watchlist" },
   { href: "/alerts", label: "Alerts" },
   { href: "/sectors", label: "Sectors" },
@@ -38,7 +36,7 @@ export function SiteMoreDrawer({
       />
       <aside
         role="dialog"
-        aria-label="More"
+        aria-label="Menu"
         className="absolute inset-y-0 left-0 flex w-[min(20rem,88vw)] flex-col border-r border-white/10 bg-[#0a0a0a] px-3 py-4 shadow-2xl"
       >
         <div className="mb-4 flex items-center justify-between gap-2 px-1">
@@ -56,9 +54,13 @@ export function SiteMoreDrawer({
         </div>
         <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto">
           <p className="px-3 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
-            Theme &amp; resources
+            Theme
           </p>
           <ThemeSelector />
+          <p className="px-3 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
+            Browse
+          </p>
+          <ResourcesNavAccordion onNavigate={onClose} />
           {SECONDARY.map((item) => {
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (

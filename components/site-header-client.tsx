@@ -7,6 +7,7 @@ import { CoinSearchBar } from "@/components/coin-search-bar";
 import { BrandHomeLink } from "@/components/brand-logo";
 import { SiteMoreDrawer } from "@/components/site-more-drawer";
 import { DexFilterSummary } from "@/components/dex-filter-summary";
+import { ResourcesNavDropdown } from "@/components/resources-nav-dropdown";
 import {
   DEFAULT_DEX_LIST_QUERY,
   JUST_LAUNCHED_DEFAULT_QUERY,
@@ -35,10 +36,10 @@ export function SiteHeaderClient({ fetchedAt }: { fetchedAt?: number | null }) {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0a0a0a]/90 backdrop-blur-xl">
-        <div className="flex min-h-12 items-center gap-2 px-2 py-1.5 sm:px-4 sm:py-2">
+        <div className="flex min-h-12 items-center gap-2 overflow-visible px-2 py-1.5 sm:px-4 sm:py-2">
           <button
             type="button"
-            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-zinc-300 hover:bg-white/5 lg:hidden"
+            className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-zinc-300 hover:bg-white/5 lg:hidden"
             aria-label="Open menu"
             onClick={() => setMenuOpen(true)}
           >
@@ -49,14 +50,17 @@ export function SiteHeaderClient({ fetchedAt }: { fetchedAt?: number | null }) {
 
           <BrandHomeLink className="shrink-0" />
 
-          <nav aria-label="Primary" className="ml-4 hidden items-center gap-1 lg:flex">
+          <nav
+            aria-label="Primary"
+            className="ml-2 hidden min-w-0 items-center gap-0.5 overflow-visible lg:ml-4 lg:flex"
+          >
             {DESKTOP_NAV.map((item) => {
               const active = item.match(pathname);
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium ${
+                  className={`inline-flex min-h-11 shrink-0 items-center rounded-lg px-2.5 text-sm font-medium xl:px-3 ${
                     active ? "bg-teal-500/15 text-teal-200" : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
                   }`}
                 >
@@ -64,15 +68,16 @@ export function SiteHeaderClient({ fetchedAt }: { fetchedAt?: number | null }) {
                 </Link>
               );
             })}
+            <ResourcesNavDropdown />
           </nav>
 
-          <div className="ml-auto flex items-center gap-1">
-            <div className="hidden sm:flex">
+          <div className="ml-auto flex min-w-0 items-center gap-1">
+            <div className="hidden min-w-0 sm:flex">
               <CoinSearchBar inputId="header-coin-search" />
             </div>
             <button
               type="button"
-              className="hidden min-h-11 min-w-11 items-center justify-center rounded-lg text-zinc-300 hover:bg-white/5 lg:inline-flex"
+              className="hidden min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-zinc-300 hover:bg-white/5 lg:inline-flex"
               aria-label="More"
               onClick={() => setMenuOpen(true)}
             >

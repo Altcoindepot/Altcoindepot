@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { SiteHeader } from "@/components/site-header";
-import { DexPairPriceTable } from "@/components/dex-pair-price-table";
 import { NewLowCapsTable } from "@/components/dashboard/new-low-caps-table";
 import { LowCapsDisclaimerModal } from "@/components/low-caps-disclaimer-modal";
 import { peekDexLowCapsFetchedAt } from "@/lib/dexscreener-low-caps";
@@ -77,21 +76,27 @@ export default async function NewLowCapsPage() {
             New &amp; Low Caps
           </p>
           <h1 className="mt-2 text-xl font-bold tracking-tight text-zinc-50 sm:text-2xl">
-            New &amp; low caps
+            New &amp; Low Caps
           </h1>
           <p className="mt-1 max-w-2xl text-xs leading-relaxed text-zinc-500 sm:text-sm">
-            Live price, liq, vol, age · DexScreener · not financial advice
+            Pair age over 15 minutes · min liquidity · DexScreener · not financial advice
           </p>
 
-          <DexPairPriceTable rows={live.rows} error={live.error} title="Live pairs" />
-
           {!live.error && rows.length > 0 ? (
-            <div className="mt-4 hidden md:block">
+            <div className="mt-4">
               <Suspense fallback={<div className="h-40 rounded-xl border border-white/10 bg-[#0c0e14]" />}>
                 <NewLowCapsTable rows={rows} showViewAll={false} />
               </Suspense>
             </div>
-          ) : null}
+          ) : live.error ? (
+            <p className="mt-4 rounded-xl border border-red-500/40 bg-red-950/30 px-4 py-4 text-sm text-red-300">
+              DexScreener fetch failed: {live.error}
+            </p>
+          ) : (
+            <p className="mt-4 rounded-xl border border-white/10 bg-[#0c0e14] px-4 py-6 text-sm text-zinc-500">
+              No New &amp; Low Caps pairs matched the age and liquidity filters right now.
+            </p>
+          )}
         </div>
       </main>
       <LowCapsDisclaimerModal />
