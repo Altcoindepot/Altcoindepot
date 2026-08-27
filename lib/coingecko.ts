@@ -370,6 +370,8 @@ export type CoinGeckoDetail = {
   image?: { large?: string; small?: string };
   description?: { en?: string };
   categories?: string[];
+  /** platform id → contract address */
+  platforms?: Record<string, string | null | undefined>;
   market_cap_rank?: number | null;
   links?: {
     homepage?: string[];

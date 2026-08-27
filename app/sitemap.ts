@@ -41,7 +41,7 @@ const STATIC_PATHS = [
 
 /**
  * Offline / rate-limit fallback IDs (same slug shape as `/coin/[id]`).
- * Live sitemap prefers CoinGecko top-200 by market cap when available.
+ * Live sitemap prefers a CoinGecko markets batch (not all ~7k at once).
  */
 const FALLBACK_TOP_COIN_IDS = [
   "bitcoin",
@@ -106,28 +106,34 @@ const FALLBACK_TOP_COIN_IDS = [
   "pyth-network",
 ] as const;
 
-async function fetchTop200CoinIds(): Promise<string[]> {
+/** First sitemap batch — grow over time; do not dump all ~7k at once. */
+const SITEMAP_COIN_BATCH = 500;
+
+async function fetchSitemapCoinIds(): Promise<string[]> {
   if (isProductionBuild()) return [...FALLBACK_TOP_COIN_IDS];
   try {
-    const res = await coinGeckoFetch(
-      "/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=200&page=1&sparkline=false",
-      { next: { revalidate: 3600 } },
-    );
-    if (!res.ok) return [...FALLBACK_TOP_COIN_IDS];
-    const data: unknown = await res.json();
-    if (!Array.isArray(data)) return [...FALLBACK_TOP_COIN_IDS];
-
     const ids: string[] = [];
     const seen = new Set<string>();
-    for (const row of data) {
-      if (!row || typeof row !== "object") continue;
-      const id = (row as { id?: unknown }).id;
-      if (typeof id !== "string" || !id.trim()) continue;
-      const slug = id.trim().toLowerCase();
-      if (seen.has(slug)) continue;
-      seen.add(slug);
-      ids.push(slug);
-      if (ids.length >= 200) break;
+    const pages = Math.ceil(SITEMAP_COIN_BATCH / 250);
+    for (let page = 1; page <= pages; page++) {
+      const res = await coinGeckoFetch(
+        `/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=${page}&sparkline=false`,
+        { next: { revalidate: 86_400 } },
+      );
+      if (!res.ok) break;
+      const data: unknown = await res.json();
+      if (!Array.isArray(data)) break;
+      for (const row of data) {
+        if (!row || typeof row !== "object") continue;
+        const id = (row as { id?: unknown }).id;
+        if (typeof id !== "string" || !id.trim()) continue;
+        const slug = id.trim().toLowerCase();
+        if (seen.has(slug)) continue;
+        seen.add(slug);
+        ids.push(slug);
+        if (ids.length >= SITEMAP_COIN_BATCH) break;
+      }
+      if (ids.length >= SITEMAP_COIN_BATCH) break;
     }
     return ids.length > 0 ? ids : [...FALLBACK_TOP_COIN_IDS];
   } catch {
@@ -136,12 +142,12 @@ async function fetchTop200CoinIds(): Promise<string[]> {
 }
 
 /**
- * Native Next.js Metadata sitemap — homepage, trending, top-200 coin pages,
+ * Native Next.js Metadata sitemap — homepage, trending, coin batch,
  * plus remaining static / category / narrative routes.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
-  const coinIds = await fetchTop200CoinIds();
+  const coinIds = await fetchSitemapCoinIds();
 
   const homepage: MetadataRoute.Sitemap[number] = {
     url: SITE,

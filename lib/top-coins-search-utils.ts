@@ -1,14 +1,20 @@
+import type { CoinPlatformContract } from "@/lib/gecko-platform-map";
+
+export type { CoinPlatformContract };
+
 export type TopCoinSearchEntry = {
   id: string;
   name: string;
   symbol: string;
   image: string;
   rank: number;
+  /** Not for live UI — Dex overlays price. */
   current_price: number | null;
   price_change_percentage_24h: number | null;
   price_change_percentage_7d?: number | null;
   market_cap?: number | null;
   total_volume?: number | null;
+  platforms?: CoinPlatformContract[];
 };
 
 function rankBonus(rank: number): number {
@@ -23,6 +29,12 @@ function scoreEntry(entry: TopCoinSearchEntry, query: string): number {
   const sym = entry.symbol.toLowerCase();
   const name = entry.name.toLowerCase();
 
+  for (const p of entry.platforms ?? []) {
+    const addr = p.address.toLowerCase();
+    if (addr === q) return 1100 + rankBonus(entry.rank);
+    if (q.length >= 8 && addr.includes(q)) return 500 + rankBonus(entry.rank);
+  }
+
   if (id === q) return 1000 + rankBonus(entry.rank);
   if (sym === q) return 900 + rankBonus(entry.rank);
   if (name === q) return 850 + rankBonus(entry.rank);
@@ -35,7 +47,6 @@ function scoreEntry(entry: TopCoinSearchEntry, query: string): number {
   return -1;
 }
 
-/** Client- and server-safe filter over a preloaded top-N coin index. */
 export function searchTopCoinsIndex(
   entries: TopCoinSearchEntry[],
   query: string,
@@ -72,9 +83,14 @@ export function pickBestTopCoinMatch(
     (h) =>
       h.id.toLowerCase() === q ||
       h.symbol.toLowerCase() === q ||
-      h.name.toLowerCase() === q,
+      h.name.toLowerCase() === q ||
+      (h.platforms ?? []).some((p) => p.address.toLowerCase() === q),
   );
   if (exact) return exact;
   if (hits.length === 1) return hits[0]!;
   return null;
+}
+
+export function primaryPlatform(entry: TopCoinSearchEntry): CoinPlatformContract | null {
+  return entry.platforms?.[0] ?? null;
 }

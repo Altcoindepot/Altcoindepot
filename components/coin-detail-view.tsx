@@ -21,8 +21,14 @@ import { PriceAlertForm } from "@/components/price-alert-form";
 import { RelatedCoins } from "@/components/related-coins";
 import { RecordRecentlyViewed } from "@/components/record-recently-viewed";
 import { DisclaimerNote } from "@/components/disclaimer-note";
+import { DexScreenerChart } from "@/components/dex-screener-chart";
+import { CopyAddressButton } from "@/components/copy-address-button";
 import { inferMoveDriver } from "@/lib/move-driver";
 import { ds } from "@/lib/ui-classes";
+import type { CoinDexLive } from "@/lib/coin-dex-live";
+import { DATA_RESPONSIBILITY_DISCLAIMER } from "@/lib/data-responsibility";
+import { formatChainLabel } from "@/lib/format-chain";
+import { truncateContract } from "@/lib/dex-search";
 
 function tradingViewSymbol(symbol: string | undefined) {
   return (symbol ?? "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
@@ -424,6 +430,8 @@ export function CoinDetailView({
   btcChange24h,
   btcChange7d,
   btcChange30d,
+  dexLive = null,
+  showGeckoFundamentals = true,
 }: {
   coin: CoinGeckoDetail;
   twitterHref?: string;
@@ -441,6 +449,10 @@ export function CoinDetailView({
   btcChange24h?: number | null;
   btcChange7d?: number | null;
   btcChange30d?: number | null;
+  /** DexScreener live price/chart — never use Gecko as live ticker. */
+  dexLive?: CoinDexLive | null;
+  /** Hide Gecko market stats when 429/missing. */
+  showGeckoFundamentals?: boolean;
 }) {
   const md = coin.market_data;
   const img = coin.image?.large ?? coin.image?.small;
@@ -469,7 +481,10 @@ export function CoinDetailView({
   const ch1y = pctNum(md?.price_change_percentage_1y);
   const high24 = usd(md?.high_24h);
   const low24 = usd(md?.low_24h);
-  const current = usd(md?.current_price);
+  // Live ticker = Dex only. Gecko market_data prices are not shown as live.
+  const current = dexLive?.priceUsd ?? null;
+  const liveChange24 = dexLive?.change24h ?? null;
+  const liveVolume = dexLive?.volume24h ?? null;
   const range24Pct =
     high24 != null && low24 != null && low24 > 0 ? ((high24 - low24) / low24) * 100 : null;
   const nearHighPct =
@@ -741,34 +756,77 @@ export function CoinDetailView({
           <div className="mt-4 space-y-4">
             <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               <div className={ds.stat}>
-                <dt className={ds.label}>Price</dt>
+                <dt className={ds.label}>Price (Dex)</dt>
                 <dd className="mt-0.5 font-mono text-sm font-semibold text-zinc-100">
                   {formatUsd(current)}
                 </dd>
               </div>
               <div className={ds.stat}>
-                <dt className={ds.label}>Market cap</dt>
+                <dt className={ds.label}>Liquidity</dt>
                 <dd className="mt-0.5 font-mono text-sm font-semibold text-zinc-100">
-                  {formatCompactUsd(marketCap)}
+                  {formatCompactUsd(dexLive?.liquidityUsd ?? null)}
                 </dd>
               </div>
               <div className={ds.stat}>
                 <dt className={ds.label}>24h volume</dt>
                 <dd className="mt-0.5 font-mono text-sm font-semibold text-zinc-100">
-                  {formatCompactUsd(usd(md?.total_volume))}
+                  {formatCompactUsd(liveVolume)}
                 </dd>
               </div>
               <div className={ds.stat}>
                 <dt className={ds.label}>24h change</dt>
-                <dd className="mt-0.5 font-mono text-sm font-semibold">{pct(ch24)}</dd>
+                <dd className="mt-0.5 font-mono text-sm font-semibold">{pct(liveChange24)}</dd>
               </div>
             </dl>
 
-            <TradingViewChartEmbed
-              symbol={primaryInstrument}
-              coinName={coin.name}
-              alternateSymbols={tvInstruments.slice(1)}
-            />
+            {dexLive?.address ? (
+              <div className={`${ds.panel} !mt-3`}>
+                <p className={ds.label}>
+                  Contract · {formatChainLabel(dexLive.chain)}
+                  {dexLive.tokenHref ? (
+                    <>
+                      {" "}
+                      ·{" "}
+                      <Link
+                        href={dexLive.tokenHref}
+                        className="text-teal-300/90 underline-offset-2 hover:underline"
+                      >
+                        DEX pair page
+                      </Link>
+                    </>
+                  ) : null}
+                </p>
+                <div className="mt-2">
+                  <CopyAddressButton address={dexLive.address} />
+                </div>
+                <p className="mt-2 text-[11px] leading-relaxed text-amber-100/80">
+                  {DATA_RESPONSIBILITY_DISCLAIMER}{" "}
+                  <Link
+                    href="/disclaimer"
+                    className="font-semibold text-amber-50 underline-offset-2 hover:underline"
+                  >
+                    Full disclaimer →
+                  </Link>
+                </p>
+                <p className="mt-1 font-mono text-[10px] text-zinc-600">
+                  {truncateContract(dexLive.address)}
+                </p>
+              </div>
+            ) : null}
+
+            {dexLive?.chartEmbedUrl ? (
+              <DexScreenerChart
+                embedUrl={dexLive.chartEmbedUrl}
+                pairUrl={dexLive.pairUrl}
+                title={`${coin.name} Dex chart`}
+              />
+            ) : (
+              <TradingViewChartEmbed
+                symbol={primaryInstrument}
+                coinName={coin.name}
+                alternateSymbols={tvInstruments.slice(1)}
+              />
+            )}
 
             {(vsBtc7d != null || vsBtc30d != null) && coin.id !== "bitcoin" ? (
               <div className={ds.card}>
@@ -930,20 +988,9 @@ export function CoinDetailView({
           </div>
         </article>
         <dl className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          <Stat label="Price">{formatUsd(usd(md?.current_price))}</Stat>
-          <Stat label="Market cap">{formatCompactUsd(usd(md?.market_cap))}</Stat>
-          <Stat label="24h volume">{formatCompactUsd(usd(md?.total_volume))}</Stat>
-          <Stat label="24h high">{formatUsd(usd(md?.high_24h))}</Stat>
-          <Stat label="24h low">{formatUsd(usd(md?.low_24h))}</Stat>
-          <Stat label="24h change">{pct(md?.price_change_percentage_24h)}</Stat>
-          <Stat label="7d change">
-            {pct(
-              md?.price_change_percentage_7d ??
-                usd(md?.price_change_percentage_7d_in_currency),
-            )}
-          </Stat>
-          <Stat label="30d change">{pct(md?.price_change_percentage_30d)}</Stat>
-          <Stat label="1y change">{pct(md?.price_change_percentage_1y)}</Stat>
+          {showGeckoFundamentals ? (
+            <>
+          <Stat label="Market cap (Gecko)">{formatCompactUsd(usd(md?.market_cap))}</Stat>
           <Stat label="ATH">{formatUsd(usd(md?.ath))}</Stat>
           <Stat label="From ATH">{pct(usd(md?.ath_change_percentage))}</Stat>
           <Stat label="ATL">{formatUsd(usd(md?.atl))}</Stat>
@@ -951,7 +998,27 @@ export function CoinDetailView({
           <Stat label="Circulating supply">{formatNum(md?.circulating_supply)}</Stat>
           <Stat label="Total supply">{formatNum(md?.total_supply)}</Stat>
           <Stat label="Max supply">{formatNum(md?.max_supply)}</Stat>
+          <Stat label="7d change (Gecko)">
+            {pct(
+              md?.price_change_percentage_7d ??
+                usd(md?.price_change_percentage_7d_in_currency),
+            )}
+          </Stat>
+          <Stat label="30d change (Gecko)">{pct(md?.price_change_percentage_30d)}</Stat>
+          <Stat label="1y change (Gecko)">{pct(md?.price_change_percentage_1y)}</Stat>
+            </>
+          ) : (
+            <p className="col-span-full text-sm text-zinc-500">
+              Fundamentals unavailable right now. Dex price and chart above remain live when a pair
+              is found.
+            </p>
+          )}
         </dl>
+        {showGeckoFundamentals ? (
+          <p className="mt-2 text-[10px] text-zinc-500">
+            Fundamentals via CoinGecko · delayed up to 2h
+          </p>
+        ) : null}
           </section>
 
           <RelatedCoins coinId={coin.id} />

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { lookupCoinById } from "@/lib/coingecko";
 import { resolveCoinIdAlias } from "@/lib/coin-id-aliases";
@@ -16,6 +15,10 @@ import { CoinDetailView } from "@/components/coin-detail-view";
 import { getReppoStatsForDisplay } from "@/lib/reppo-stats-live";
 import { buildCoinSeoCopy, getBaselineCoinSeoCopy } from "@/lib/coin-seo";
 import { resolveNarrativeTags } from "@/lib/coin-narratives";
+import { parseGeckoPlatforms } from "@/lib/gecko-platform-map";
+import { getCoinDexLive } from "@/lib/coin-dex-live";
+import { getIndexedCoinById } from "@/lib/top-coins-index";
+import type { CoinGeckoDetail } from "@/lib/coingecko";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -109,24 +112,26 @@ export default async function CoinPage({ params }: Props) {
   const { id: rawId } = await params;
   const id = await resolveCoinParam(rawId);
   const result = await lookupCoinById(id);
+
+  // Gecko 429/unavailable: still try Dex from the universe index — never blank the page.
   if (result.status === "unavailable") {
+    const indexed = await getIndexedCoinById(id);
+    const platforms = indexed?.platforms ?? [];
+    const dexLive = platforms.length > 0 ? await getCoinDexLive(platforms) : null;
+    const stub: CoinGeckoDetail = {
+      id,
+      name: indexed?.name ?? id,
+      symbol: indexed?.symbol ?? id,
+      image: indexed?.image ? { large: indexed.image, small: indexed.image } : undefined,
+      platforms: Object.fromEntries(
+        platforms.map((p) => [p.geckoPlatform ?? p.chain, p.address]),
+      ),
+    };
     return (
       <>
         <SiteHeader />
-        <main className="min-h-[50vh] border-t border-white/5 bg-[#0a0a0a] px-4 py-20 text-center sm:px-6">
-          <h1 className="text-brand-altcoindepot text-xl font-semibold sm:text-2xl">
-            Asset Data Profile Currently Syncing.
-          </h1>
-          <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-zinc-400">
-            We couldn&apos;t load a complete profile for this asset right now. Market data may still
-            be updating — check back shortly or browse from the homepage.
-          </p>
-          <Link
-            href="/"
-            className="mt-8 inline-flex min-h-12 items-center justify-center rounded-lg border border-[#d1a173]/45 bg-[#d1a173]/15 px-6 text-sm font-semibold text-[#d7ad82] transition-[box-shadow,transform] hover:shadow-[0_0_24px_rgba(185,129,82,0.2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] active:scale-[0.98]"
-          >
-            Return Home
-          </Link>
+        <main className="min-h-[60vh] border-t border-white/5 bg-[#0a0a0a]">
+          <CoinDetailView coin={stub} dexLive={dexLive} showGeckoFundamentals={false} />
         </main>
       </>
     );
@@ -140,6 +145,12 @@ export default async function CoinPage({ params }: Props) {
   if (coin.id !== id) {
     permanentRedirect(`/coin/${encodeURIComponent(coin.id)}`);
   }
+
+  const platformsFromDetail = parseGeckoPlatforms(coin.platforms);
+  const indexed = platformsFromDetail.length === 0 ? await getIndexedCoinById(coin.id) : null;
+  const platforms =
+    platformsFromDetail.length > 0 ? platformsFromDetail : (indexed?.platforms ?? []);
+  const dexLive = platforms.length > 0 ? await getCoinDexLive(platforms) : null;
 
   const btcResult =
     coin.id === "bitcoin" ? result : await lookupCoinById("bitcoin");
@@ -230,6 +241,8 @@ export default async function CoinPage({ params }: Props) {
           btcChange24h={btcChange24h}
           btcChange7d={btcChange7d}
           btcChange30d={btcChange30d}
+          dexLive={dexLive}
+          showGeckoFundamentals
         />
       </main>
     </>

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import type { GeckoCoinStats } from "@/lib/gecko-coin-stats";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
 import { ds } from "@/lib/ui-classes";
@@ -65,7 +66,7 @@ export function TokenGeckoStatsPanel({ stats }: { stats: GeckoCoinStats | null }
           Fundamentals
         </h2>
         <p className="text-[10px] text-zinc-500">
-          Supply &amp; ATH via CoinGecko · delayed up to 2h
+          Fundamentals via CoinGecko · delayed up to 2h
         </p>
       </div>
 
@@ -112,6 +113,15 @@ export function TokenGeckoStatsPanel({ stats }: { stats: GeckoCoinStats | null }
         >
           Official site ↗
         </a>
+      ) : null}
+
+      {stats.geckoId ? (
+        <Link
+          href={`/coin/${encodeURIComponent(stats.geckoId)}`}
+          className="mt-3 inline-flex text-[11px] font-medium text-teal-300/90 underline-offset-2 hover:underline"
+        >
+          Open coin page →
+        </Link>
       ) : null}
     </section>
   );

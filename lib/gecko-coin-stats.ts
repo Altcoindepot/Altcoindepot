@@ -13,32 +13,14 @@ import {
   getCoinGeckoLiveSkipReason,
   logCoinGeckoSkip,
 } from "@/lib/coingecko";
-import { normalizeDexChainId } from "@/lib/dex-token-path";
+import {
+  geckoPlatformIdForDexChain,
+} from "@/lib/gecko-platform-map";
+
+export { geckoPlatformIdForDexChain };
 
 /** Success TTL — 2 hours. */
 export const GECKO_STATS_TTL_MS = 2 * 60 * 60 * 1000;
-
-/**
- * DexScreener chainId → CoinGecko asset_platform id for
- * `GET /coins/{platform}/contract/{address}`.
- */
-const DEX_CHAIN_TO_GECKO_PLATFORM: Record<string, string> = {
-  ethereum: "ethereum",
-  solana: "solana",
-  base: "base",
-  bsc: "binance-smart-chain",
-  arbitrum: "arbitrum-one",
-  polygon: "polygon-pos",
-  optimism: "optimistic-ethereum",
-  avalanche: "avalanche",
-  fantom: "fantom",
-  cronos: "cronos",
-  zksync: "zksync",
-  linea: "linea",
-  scroll: "scroll",
-  mantle: "mantle",
-  blast: "blast",
-};
 
 export type GeckoCoinStats = {
   geckoId: string;
@@ -67,12 +49,6 @@ type CacheEntry = {
 const successCache = new Map<string, CacheEntry>();
 /** Survives TTL so a later 429 can still show fundamentals. */
 const lastGoodByKey = new Map<string, GeckoCoinStats>();
-
-export function geckoPlatformIdForDexChain(chain: string | undefined): string | null {
-  const dex = normalizeDexChainId(chain);
-  if (!dex) return null;
-  return DEX_CHAIN_TO_GECKO_PLATFORM[dex] ?? null;
-}
 
 function cacheKey(platform: string, address: string): string {
   const addr = address.startsWith("0x") ? address.toLowerCase() : address;

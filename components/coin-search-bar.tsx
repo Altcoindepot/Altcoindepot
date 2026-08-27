@@ -2,10 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import type { DexSearchHit } from "@/lib/dex-search";
-import { truncateContract } from "@/lib/dex-search";
+import type { UniverseSearchHit } from "@/lib/universe-search-types";
 import { formatDexPriceUsd } from "@/lib/dex-pair-fields";
-import { formatChainLabel } from "@/lib/format-chain";
 import { ChainIcon } from "@/components/chain-icon";
 import { TokenAvatar } from "@/components/token-avatar";
 import { readResponseJsonSafely } from "@/lib/read-response-json";
@@ -17,7 +15,7 @@ type CoinSearchBarProps = {
   showSubmitButton?: boolean;
 };
 
-const searchCache = new Map<string, DexSearchHit[]>();
+const searchCache = new Map<string, UniverseSearchHit[]>();
 const CACHE_LIMIT = 60;
 const DEBOUNCE_MS = 250;
 const SUGGESTION_LIMIT = 10;
@@ -26,7 +24,7 @@ function cacheGet(q: string) {
   return searchCache.get(q.toLowerCase());
 }
 
-function cacheSet(q: string, items: DexSearchHit[]) {
+function cacheSet(q: string, items: UniverseSearchHit[]) {
   const key = q.toLowerCase();
   if (searchCache.size >= CACHE_LIMIT) {
     const first = searchCache.keys().next().value;
@@ -47,7 +45,7 @@ export function CoinSearchBar({
   const router = useRouter();
   const rootRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<DexSearchHit[]>([]);
+  const [results, setResults] = useState<UniverseSearchHit[]>([]);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [searched, setSearched] = useState(false);
@@ -91,14 +89,14 @@ export function CoinSearchBar({
             typeof data === "object" &&
             "items" in data &&
             Array.isArray((data as { items: unknown }).items)
-              ? ((data as { items: DexSearchHit[] }).items ?? [])
+              ? ((data as { items: UniverseSearchHit[] }).items ?? [])
               : [];
           cacheSet(q, items);
           setResults(items);
           setError(null);
         } catch {
           setResults([]);
-          setError("Dex search failed — try again");
+          setError("Search failed — try again");
         } finally {
           setLoading(false);
           setSearched(true);
@@ -113,16 +111,14 @@ export function CoinSearchBar({
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
-      if (!rootRef.current?.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
     }
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
   const goToHit = useCallback(
-    (hit: DexSearchHit) => {
+    (hit: UniverseSearchHit) => {
       setOpen(false);
       setQuery("");
       router.push(hit.href);
@@ -165,7 +161,7 @@ export function CoinSearchBar({
         }}
       >
         <label htmlFor={fieldId} className="sr-only">
-          Search ticker or contract on DexScreener
+          Search ticker or contract
         </label>
         <div className="relative min-w-0 flex-1">
           <input
@@ -208,7 +204,7 @@ export function CoinSearchBar({
               className="absolute right-0 top-full z-[60] mt-1 max-h-80 w-full min-w-[17rem] overflow-y-auto rounded-xl border border-teal-400/20 bg-[#0c0e14]/98 py-1 shadow-[0_12px_36px_rgba(0,0,0,0.5)] backdrop-blur-xl sm:min-w-[22rem]"
             >
               {loading ? (
-                <li className="px-3 py-3 text-sm text-zinc-400">Searching DexScreener…</li>
+                <li className="px-3 py-3 text-sm text-zinc-400">Searching…</li>
               ) : null}
               {error ? <li className="px-3 py-3 text-sm text-amber-200/90">{error}</li> : null}
               {!loading && !error && searched && results.length === 0 ? (
@@ -217,7 +213,7 @@ export function CoinSearchBar({
                 </li>
               ) : null}
               {results.map((hit, idx) => (
-                <li key={hit.id} role="option" aria-selected={idx === activeIndex}>
+                <li key={`${hit.kind}:${hit.id}`} role="option" aria-selected={idx === activeIndex}>
                   <button
                     type="button"
                     className={`flex min-h-12 w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm transition-colors hover:bg-white/[0.06] ${
@@ -232,15 +228,19 @@ export function CoinSearchBar({
                         <span className="truncate font-mono text-[13px] font-bold uppercase text-zinc-100">
                           {hit.symbol}
                         </span>
-                        <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-zinc-500">
-                          <ChainIcon chainId={hit.chain} size={12} />
-                          {formatChainLabel(hit.chain)}
-                        </span>
+                        {hit.chain ? (
+                          <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-zinc-500">
+                            <ChainIcon chainId={hit.chain} size={12} />
+                            {hit.chainLabel}
+                          </span>
+                        ) : null}
                       </span>
                       <span className="block truncate text-[11px] text-zinc-500">{hit.name}</span>
-                      <span className="mt-0.5 block truncate font-mono text-[10px] text-zinc-600">
-                        {truncateContract(hit.address)}
-                      </span>
+                      {hit.truncatedContract ? (
+                        <span className="mt-0.5 block truncate font-mono text-[10px] text-zinc-600">
+                          {hit.truncatedContract}
+                        </span>
+                      ) : null}
                     </span>
                     <span className="shrink-0 text-right font-mono text-xs font-semibold tabular-nums text-zinc-100">
                       {formatDexPriceUsd(hit.priceUsd)}

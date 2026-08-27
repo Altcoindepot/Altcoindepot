@@ -5,15 +5,14 @@ import { CoinSearchBar } from "@/components/coin-search-bar";
 import { SiteHeader } from "@/components/site-header";
 import { ChainIcon } from "@/components/chain-icon";
 import { TokenAvatar } from "@/components/token-avatar";
-import { searchDexPairs, truncateContract, type DexSearchHit } from "@/lib/dex-search";
+import { searchUniverse, type UniverseSearchHit } from "@/lib/universe-search";
 import { formatDexPriceUsd } from "@/lib/dex-pair-fields";
-import { formatChainLabel } from "@/lib/format-chain";
 import { DexRiskFootnote } from "@/components/dex-risk-footnote";
 
 export const metadata: Metadata = {
-  title: "Search DEX tokens",
+  title: "Search coins & DEX tokens",
   description:
-    "Search any DexScreener-listed token by ticker or contract. Live prices from Dex — verify the contract. Informational only, not financial advice.",
+    "Search ~7,000 coins by ticker or contract. Live prices from DexScreener — verify the contract. Informational only, not financial advice.",
 };
 
 export const dynamic = "force-dynamic";
@@ -31,10 +30,12 @@ export default async function CoinSearchPage({
       <>
         <SiteHeader />
         <main className="mx-auto max-w-lg px-4 py-16 text-center sm:px-6 sm:py-20">
-          <h1 className="text-xl font-semibold tracking-tight text-zinc-50">Search DEX tokens</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-zinc-50">
+            Search ticker or contract
+          </h1>
           <p className="mt-2 text-sm text-zinc-400">
-            Paste a ticker or contract address. Live price from DexScreener — always verify the
-            contract before any decision.
+            Covers the cached ~7,000-coin universe plus any DexScreener contract. Live price from Dex
+            — always verify the contract.
           </p>
           <div className="mx-auto mt-8 max-w-md text-left">
             <CoinSearchBar variant="wide" inputId="coin-page-search" />
@@ -58,10 +59,10 @@ export default async function CoinSearchPage({
     );
   }
 
-  let hits: DexSearchHit[] = [];
+  let hits: UniverseSearchHit[] = [];
   let failed = false;
   try {
-    hits = await searchDexPairs(query, 12);
+    hits = await searchUniverse(query, 12);
   } catch {
     hits = [];
     failed = true;
@@ -85,7 +86,7 @@ export default async function CoinSearchPage({
 
         {failed ? (
           <p className="mt-6 rounded-xl border border-red-500/40 bg-red-950/30 px-4 py-3 text-sm text-red-300">
-            DexScreener search failed. Try again shortly.
+            Search failed. Try again shortly.
           </p>
         ) : hits.length === 0 ? (
           <p className="mt-6 rounded-xl border border-white/10 bg-[#0c0e14] px-4 py-6 text-sm text-zinc-500">
@@ -98,7 +99,7 @@ export default async function CoinSearchPage({
         ) : (
           <ul className="mt-6 divide-y divide-white/5 overflow-hidden rounded-xl border border-teal-400/20 bg-white/[0.03]">
             {hits.map((hit) => (
-              <li key={hit.id}>
+              <li key={`${hit.kind}:${hit.id}`}>
                 <Link
                   href={hit.href}
                   className="flex min-h-12 items-center gap-2.5 px-3 py-2.5 hover:bg-white/[0.04] sm:px-4"
@@ -109,15 +110,19 @@ export default async function CoinSearchPage({
                       <span className="truncate font-mono text-[13px] font-bold uppercase text-zinc-50">
                         {hit.symbol}
                       </span>
-                      <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-zinc-500">
-                        <ChainIcon chainId={hit.chain} size={14} />
-                        {formatChainLabel(hit.chain)}
-                      </span>
+                      {hit.chain ? (
+                        <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-zinc-500">
+                          <ChainIcon chainId={hit.chain} size={14} />
+                          {hit.chainLabel}
+                        </span>
+                      ) : null}
                     </span>
                     <span className="block truncate text-[11px] text-zinc-500">{hit.name}</span>
-                    <span className="mt-0.5 block truncate font-mono text-[10px] text-zinc-600">
-                      {truncateContract(hit.address)}
-                    </span>
+                    {hit.truncatedContract ? (
+                      <span className="mt-0.5 block truncate font-mono text-[10px] text-zinc-600">
+                        {hit.truncatedContract}
+                      </span>
+                    ) : null}
                   </span>
                   <span className="shrink-0 text-right font-mono text-sm font-semibold tabular-nums text-zinc-100">
                     {formatDexPriceUsd(hit.priceUsd)}
