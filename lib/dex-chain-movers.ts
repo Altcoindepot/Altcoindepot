@@ -287,3 +287,27 @@ export async function getChainMovers(): Promise<ChainMoversBoard[]> {
 export function peekChainMoversFetchedAt(): number | null {
   return memory?.at ?? null;
 }
+
+/**
+ * Flatten cached boards into the best absolute movers for the homepage fold.
+ * Prefers gainers, then fills with losers; dedupes by chain:address.
+ */
+export function pickHomeTopMovers(
+  boards: ChainMoversBoard[],
+  limit = 5,
+): ChainMoverRow[] {
+  const scored: ChainMoverRow[] = [];
+  for (const board of boards) {
+    scored.push(...board.gainers, ...board.losers);
+  }
+  const seen = new Set<string>();
+  const unique = scored.filter((row) => {
+    const key = `${row.chain}:${row.address.toLowerCase()}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  return unique
+    .sort((a, b) => Math.abs(b.changePct) - Math.abs(a.changePct))
+    .slice(0, limit);
+}

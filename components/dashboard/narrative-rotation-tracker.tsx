@@ -121,17 +121,33 @@ export function NarrativeRotationTracker({
             const angle = (i / nodes.length) * Math.PI * 2 - Math.PI / 2;
             const x = 50 + Math.cos(angle) * 34;
             const y = 50 + Math.sin(angle) * 34;
+            const leading = n.status === "LEADING";
+            const fading = n.status === "FADING";
             return (
               <Link
                 key={n.slug}
                 href={`/narrative/${n.slug}`}
-                className="absolute z-20 flex w-[4.25rem] -translate-x-1/2 -translate-y-1/2 flex-col items-center rounded-2xl border bg-[#0a0a0a]/95 px-1.5 py-1.5 text-center shadow-[0_0_14px_var(--node-glow)] transition-transform duration-200 hover:z-30 hover:scale-105 xl:w-[4.75rem]"
+                className={`absolute z-20 flex w-[4.25rem] -translate-x-1/2 -translate-y-1/2 flex-col items-center rounded-2xl border bg-[#0a0a0a]/95 px-1.5 py-1.5 text-center shadow-[0_0_14px_var(--node-glow)] transition-transform duration-200 hover:z-30 hover:scale-105 xl:w-[4.75rem] ${
+                  leading
+                    ? "ring-1 ring-emerald-400/50"
+                    : fading
+                      ? "opacity-90 ring-1 ring-rose-400/45"
+                      : ""
+                }`}
                 style={
                   {
                     left: `${x}%`,
                     top: `${y}%`,
-                    borderColor: `${n.color}55`,
-                    "--node-glow": `${n.color}28`,
+                    borderColor: leading
+                      ? "rgba(52,211,153,0.55)"
+                      : fading
+                        ? "rgba(251,113,133,0.5)"
+                        : `${n.color}55`,
+                    "--node-glow": leading
+                      ? "rgba(52,211,153,0.35)"
+                      : fading
+                        ? "rgba(251,113,133,0.22)"
+                        : `${n.color}28`,
                   } as CSSProperties
                 }
               >

@@ -15,6 +15,7 @@ const PRIMARY_LINKS = [
   { href: "/gainers-losers", label: "Gainers & Losers" },
   { href: "/new-low-caps", label: "New & Low Caps" },
   { href: "/just-launched", label: "Just Launched" },
+  { href: "/news", label: "News" },
   { href: "/market-overview", label: "Market overview" },
   { href: "/podcasts", label: "Podcasts" },
   { href: "/ecosystem", label: "Ecosystem Research" },

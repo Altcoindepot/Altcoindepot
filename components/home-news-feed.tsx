@@ -1,19 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { CoinNewsItem } from "@/lib/coin-news";
-import { formatNewsTimestampEst } from "@/lib/format-date";
+import Link from "next/link";
+import type { SiteNewsItem } from "@/lib/site-news";
+import { formatTimeAgo } from "@/lib/format-date";
 import { readResponseJsonSafely } from "@/lib/read-response-json";
 import { SectionHeading } from "@/components/section-heading";
 
-/** Poll interval; keep in sync with `NEWS_TTL_MS` in `lib/coin-news.ts`. */
-const POLL_MS = 45_000;
-const MAX_HEADLINES = 5;
-/** Mobile: fewer, shorter cards so the feed doesn’t dominate the viewport. */
-const MAX_HEADLINES_MOBILE = 3;
-
-const FALLBACK_MORE_NEWS =
-  "https://news.google.com/search?q=cryptocurrency&hl=en-US&gl=US&ceid=US:en";
+/** Poll under the ~7m server TTL so home stays near-live. */
+const POLL_MS = 6 * 60_000;
 
 function cleanDisplayText(input: string) {
   return input
@@ -33,31 +28,37 @@ function cleanDisplayText(input: string) {
 export function HomeNewsFeed({
   initialItems,
   initialStale,
-  initialSourceUrl,
+  initialSourcesLabel,
+  maxItems = 10,
+  maxItemsMobile = 3,
 }: {
-  initialItems?: CoinNewsItem[];
+  initialItems?: SiteNewsItem[];
   initialStale?: boolean;
-  initialSourceUrl?: string;
+  initialSourcesLabel?: string;
+  maxItems?: number;
+  maxItemsMobile?: number;
 }) {
-  const [items, setItems] = useState<CoinNewsItem[]>(initialItems ?? []);
+  const [items, setItems] = useState<SiteNewsItem[]>(initialItems ?? []);
   const [stale, setStale] = useState(Boolean(initialStale));
-  const [sourceUrl, setSourceUrl] = useState(initialSourceUrl ?? "");
+  const [sourcesLabel, setSourcesLabel] = useState(
+    initialSourcesLabel ?? "Headlines from major crypto outlets",
+  );
 
   useEffect(() => {
     let mounted = true;
     async function refresh() {
       try {
-        const res = await fetch(`/api/news?_=${Date.now()}`, {
+        const res = await fetch(`/api/news?limit=12&_=${Date.now()}`, {
           cache: "no-store",
         });
         if (!res.ok) return;
         const data = await readResponseJsonSafely(res);
         if (!mounted || !data || typeof data !== "object") return;
         if ("items" in data && Array.isArray((data as { items: unknown }).items)) {
-          setItems((data as { items: CoinNewsItem[] }).items);
+          setItems((data as { items: SiteNewsItem[] }).items);
           setStale(Boolean((data as { stale?: unknown }).stale));
-          const src = (data as { sourceUrl?: unknown }).sourceUrl;
-          if (typeof src === "string") setSourceUrl(src);
+          const label = (data as { sourcesLabel?: unknown }).sourcesLabel;
+          if (typeof label === "string" && label.trim()) setSourcesLabel(label);
         }
       } catch {
         // keep previous snapshot
@@ -73,29 +74,26 @@ export function HomeNewsFeed({
     };
   }, []);
 
-  const headlines = items.slice(0, MAX_HEADLINES);
-  const moreHref = sourceUrl || FALLBACK_MORE_NEWS;
+  const headlines = items.slice(0, maxItems);
 
   return (
     <section
       aria-labelledby="home-news-heading"
-      className="glass-panel rounded-xl p-5 sm:p-5"
+      className="ds-panel p-4 sm:p-5"
     >
       <div className="flex items-center justify-between gap-3">
         <SectionHeading id="home-news-heading" className="text-lg sm:text-xl">
           In the News
         </SectionHeading>
         {stale ? (
-          <span className="rounded border border-amber-400/25 bg-amber-400/10 px-1.5 py-0.5 text-[10px] text-amber-200">
+          <span className="rounded-full border border-amber-400/25 bg-amber-400/10 px-2 py-0.5 text-[10px] text-amber-200">
             Feed delayed
           </span>
         ) : null}
       </div>
-      <p className="mt-1.5 text-[11px] text-zinc-400 sm:pl-4">
-        General market headlines. Listings and major policy live in Catalyst Calendar.
-      </p>
+      <p className="mt-1.5 text-[11px] leading-relaxed text-zinc-400">{sourcesLabel}</p>
 
-      <ul className="mt-5 flex flex-col gap-4 sm:gap-5">
+      <ul className="mt-4 flex flex-col gap-2.5 sm:gap-3">
         {headlines.length > 0 ? (
           headlines.map((item, index) => {
             const source = cleanDisplayText(item.source) || "News";
@@ -103,42 +101,42 @@ export function HomeNewsFeed({
             return (
               <li
                 key={item.id}
-                className={index >= MAX_HEADLINES_MOBILE ? "hidden sm:block" : undefined}
+                className={index >= maxItemsMobile ? "hidden sm:block" : undefined}
               >
                 <a
                   href={item.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block cursor-pointer rounded-xl border border-white/[0.06] bg-[#111111]/70 px-3.5 py-3 transition-colors hover:border-[#d1a173]/35 hover:bg-[#141414] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] active:bg-[#161616] sm:px-4 sm:py-3.5"
+                  className="glass-card block px-3 py-2.5 transition-[border-color,box-shadow] hover:border-teal-400/35 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400/50 active:bg-white/[0.04] sm:px-3.5 sm:py-3"
                 >
-                  <span className="inline-flex max-w-[85%] truncate rounded border border-white/[0.06] bg-white/[0.02] px-1.5 py-px text-[9px] font-medium uppercase tracking-wider text-[#71717a]">
-                    {source}
+                  <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span className="inline-flex max-w-[70%] truncate rounded-full border border-teal-400/20 bg-teal-500/10 px-2 py-px text-[9px] font-semibold uppercase tracking-wider text-teal-200/90">
+                      {source}
+                    </span>
+                    <span className="text-[10px] tabular-nums text-zinc-500">
+                      {formatTimeAgo(item.publishedAt)}
+                    </span>
                   </span>
-                  <span className="mt-2 line-clamp-2 block overflow-hidden break-words text-[14px] font-semibold leading-snug text-zinc-100 sm:mt-2.5 sm:text-sm">
+                  <span className="mt-1.5 line-clamp-2 block overflow-hidden break-words text-[13px] font-semibold leading-snug text-zinc-100 sm:text-sm">
                     {title}
-                  </span>
-                  <span className="mt-1.5 block text-[11px] text-zinc-500 sm:mt-2 sm:text-[11px]">
-                    {formatNewsTimestampEst(item.publishedAt)}
                   </span>
                 </a>
               </li>
             );
           })
         ) : (
-          <li className="rounded-xl border border-white/[0.08] px-4 py-3.5 text-sm text-zinc-500">
-            No crypto headlines available at the moment.
+          <li className="rounded-lg border border-white/[0.08] px-3 py-3 text-sm text-zinc-500">
+            No headlines available right now — try again shortly.
           </li>
         )}
       </ul>
 
-      <a
-        href={moreHref}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-5 inline-flex min-h-11 items-center text-sm font-medium text-[#d7ad82] underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] sm:min-h-10"
+      <Link
+        href="/news"
+        className="mt-4 inline-flex min-h-11 items-center text-sm font-medium text-teal-300/90 underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400/50 sm:min-h-10"
       >
-        View more news →
-      </a>
+        More headlines →
+      </Link>
     </section>
   );
 }

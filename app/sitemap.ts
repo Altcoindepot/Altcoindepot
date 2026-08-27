@@ -19,6 +19,7 @@ const STATIC_PATHS = [
   "/affiliate-disclosure",
   "/coin",
   "/podcasts",
+  "/news",
   "/blog",
   "/directory",
   "/tools",

@@ -333,7 +333,7 @@ export function DexScannerExplorer({
   return (
     <div className="space-y-3 overflow-x-hidden">
       {/* Mobile: sticky summary + chain chips + Filters CTA */}
-      <div className="sticky top-[3.25rem] z-30 -mx-3 space-y-2 border-b border-white/10 bg-[#0a0a0a]/95 px-3 py-2.5 backdrop-blur-xl sm:top-[3.5rem] md:hidden">
+      <div className="sticky top-[4.35rem] z-30 -mx-3 space-y-2 border-b border-teal-400/20 bg-[#0a0a0a]/90 px-3 py-2.5 shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-xl sm:top-[4.85rem] md:hidden">
         <div className="flex items-center gap-2">
           <p className="min-w-0 flex-1 truncate text-[11px] tabular-nums text-zinc-400">
             {summary}

@@ -116,11 +116,11 @@ export function rotationStatusFromChange(
 export function statusBadgeClass(status: NarrativeStatus): string {
   switch (status) {
     case "LEADING":
-      return "border-emerald-400/40 bg-emerald-500/15 text-emerald-200";
+      return "border-emerald-400/55 bg-emerald-500/25 font-bold text-emerald-100";
     case "FADING":
-      return "border-rose-400/40 bg-rose-500/15 text-rose-200";
+      return "border-rose-400/55 bg-rose-500/25 font-bold text-rose-100";
     default:
-      return "border-zinc-500/40 bg-zinc-500/10 text-zinc-300";
+      return "border-zinc-500/35 bg-zinc-500/10 text-zinc-400";
   }
 }
 

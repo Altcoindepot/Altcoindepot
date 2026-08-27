@@ -61,27 +61,6 @@ function IconScanner() {
   );
 }
 
-function IconWatchlist() {
-  return (
-    <svg className="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
-      <path
-        d="m12 4.5 2.1 4.3 4.7.7-3.4 3.3.8 4.7L12 15.2 7.8 17.5l.8-4.7-3.4-3.3 4.7-.7L12 4.5z"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function IconPortfolio() {
-  return (
-    <svg className="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
-      <rect x="3.5" y="7" width="17" height="12.5" rx="2" />
-      <path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7" strokeLinecap="round" />
-      <path d="M3.5 12h17" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 function IconMovers() {
   return (
     <svg className="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
@@ -126,24 +105,12 @@ const DESKTOP_NAV: NavItem[] = [
     match: (p) => p.startsWith("/dex-scanner"),
     icon: <IconScanner />,
   },
-  {
-    href: "/watchlist",
-    label: "Watchlist",
-    match: (p) => p.startsWith("/watchlist"),
-    icon: <IconWatchlist />,
-  },
-  {
-    href: "/portfolio",
-    label: "Portfolio",
-    match: (p) => p.startsWith("/portfolio"),
-    icon: <IconPortfolio />,
-  },
 ];
 
 function filterDefaults(pathname: string): DexListQuery {
   if (pathname.startsWith("/just-launched")) return JUST_LAUNCHED_DEFAULT_QUERY;
   if (pathname.startsWith("/pairs")) return PAIRS_DEFAULT_QUERY;
-  if (pathname.startsWith("/new-low-caps") || pathname === "/") return LOW_CAPS_DEFAULT_QUERY;
+  if (pathname.startsWith("/new-low-caps")) return LOW_CAPS_DEFAULT_QUERY;
   return DEFAULT_DEX_LIST_QUERY;
 }
 
@@ -154,12 +121,12 @@ export function SiteHeaderClient({ fetchedAt }: { fetchedAt?: number | null }) {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0a0a0a]/92 backdrop-blur-xl">
-        <div className="mx-auto flex min-h-14 max-w-[90rem] items-center gap-2 overflow-visible px-2 py-1.5 sm:gap-3 sm:px-4 sm:py-2">
+      <header className="site-header-shell">
+        <div className="site-header-capsule">
           {/* Mobile: hamburger + brand only */}
           <button
             type="button"
-            className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-zinc-300 hover:bg-white/5 lg:hidden"
+            className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full text-zinc-300 hover:bg-white/5 lg:hidden"
             aria-label="Open menu"
             onClick={() => setMenuOpen(true)}
           >
@@ -183,7 +150,7 @@ export function SiteHeaderClient({ fetchedAt }: { fetchedAt?: number | null }) {
                   href={item.href}
                   className={`inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium transition-colors xl:px-3 ${
                     active
-                      ? "bg-teal-500/15 text-teal-200"
+                      ? "bg-teal-500/20 text-teal-200 shadow-[0_0_16px_rgba(45,212,191,0.12)]"
                       : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
                   }`}
                 >
@@ -205,7 +172,7 @@ export function SiteHeaderClient({ fetchedAt }: { fetchedAt?: number | null }) {
             </div>
             <button
               type="button"
-              className="hidden min-h-10 min-w-10 shrink-0 items-center justify-center rounded-lg text-zinc-400 hover:bg-white/5 hover:text-zinc-200 lg:inline-flex"
+              className="hidden min-h-10 min-w-10 shrink-0 items-center justify-center rounded-full text-zinc-400 hover:bg-white/5 hover:text-zinc-200 lg:inline-flex"
               aria-label="More"
               onClick={() => setMenuOpen(true)}
             >

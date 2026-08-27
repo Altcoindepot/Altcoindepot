@@ -33,15 +33,15 @@ export function DexFilterSummary({
   }, [fetchedAt]);
 
   const show =
-    pathname === "/" ||
     pathname?.startsWith("/new-low-caps") ||
     pathname?.startsWith("/just-launched") ||
-    pathname?.startsWith("/pairs");
+    pathname?.startsWith("/pairs") ||
+    pathname?.startsWith("/dex-scanner");
   if (!show) return null;
 
   return (
-    <div className="sticky top-[3.25rem] z-40 border-b border-white/10 bg-[#0a0a0a]/92 backdrop-blur-xl sm:top-[3.5rem]">
-      <div className="flex min-h-11 items-center justify-between gap-2 px-3 py-1.5 sm:px-4">
+    <div className="sticky top-[4.35rem] z-40 px-3 pb-1 pt-1 sm:top-[4.85rem] sm:px-4">
+      <div className="glass-card mx-auto flex min-h-11 max-w-[90rem] items-center justify-between gap-2 px-3 py-1.5 sm:px-4">
         <p className="min-w-0 truncate text-[11px] font-medium text-zinc-400">
           {dexListQuerySummary(query, chainLabel)}
           <span className="text-zinc-600"> · </span>
@@ -50,7 +50,7 @@ export function DexFilterSummary({
         <button
           type="button"
           onClick={() => router.refresh()}
-          className="inline-flex min-h-11 shrink-0 items-center rounded-lg px-2 text-[11px] font-semibold text-teal-300/90 hover:text-teal-200"
+          className="inline-flex min-h-10 shrink-0 items-center rounded-full px-3 text-[11px] font-semibold text-teal-300/90 hover:bg-teal-500/10 hover:text-teal-200"
         >
           Refresh
         </button>

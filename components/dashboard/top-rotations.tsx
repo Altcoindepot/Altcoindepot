@@ -48,19 +48,27 @@ export function TopRotations({
       <ul
         className={
           mobile
-            ? "mt-3 flex max-h-[28rem] min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto overscroll-contain pr-0.5"
+            ? "mt-3 flex max-h-[22rem] min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto overscroll-contain pr-0.5"
             : "mt-3 min-h-0 flex-1 space-y-3 overflow-y-auto"
         }
       >
         {narratives.map((n) => {
           const width = Math.round((Math.abs(n.change ?? 0) / maxAbs) * 100);
+          const leading = n.status === "LEADING";
+          const fading = n.status === "FADING";
           return (
             <li key={n.slug}>
               <Link
                 href={`/narrative/${n.slug}`}
                 className={
                   mobile
-                    ? "flex min-h-[44px] items-center gap-3 rounded-xl border border-white/10 bg-[#0c0e14] px-3 py-3 transition-colors hover:border-white/20 hover:bg-white/[0.04]"
+                    ? `flex min-h-[44px] items-center gap-3 rounded-2xl border px-3 py-3 transition-colors ${
+                        leading
+                          ? "border-emerald-400/35 bg-emerald-500/10 shadow-[0_8px_24px_rgba(0,0,0,0.35)] hover:border-emerald-400/50"
+                          : fading
+                            ? "border-red-400/30 bg-red-500/[0.07] shadow-[0_8px_24px_rgba(0,0,0,0.35)] hover:border-red-400/45"
+                            : "border-teal-400/20 bg-white/[0.04] shadow-[0_8px_24px_rgba(0,0,0,0.32)] hover:border-teal-400/35"
+                      }`
                     : "block rounded-lg p-1 hover:bg-white/[0.03]"
                 }
               >
@@ -85,7 +93,20 @@ export function TopRotations({
                         {formatPct(n.change)}
                       </p>
                     </div>
-                    <p className="truncate text-[10px] text-zinc-500">{n.subtitle}</p>
+                    <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+                      <span
+                        className={`rounded px-1 py-px text-[9px] font-bold uppercase tracking-wider ${
+                          leading
+                            ? "bg-emerald-500/20 text-emerald-200"
+                            : fading
+                              ? "bg-red-500/20 text-red-200"
+                              : "bg-white/5 text-zinc-500"
+                        }`}
+                      >
+                        {n.status}
+                      </span>
+                      <p className="truncate text-[10px] text-zinc-500">{n.subtitle}</p>
+                    </div>
                     <div className="mt-2 h-2 overflow-hidden rounded-full bg-zinc-800">
                       <div
                         className="h-full rounded-full"

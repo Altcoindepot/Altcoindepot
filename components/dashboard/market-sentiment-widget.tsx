@@ -81,16 +81,56 @@ export function MarketSentimentWidget({
   fearAndGreedValue = MARKET_SENTIMENT_SNAPSHOT.fearAndGreedValue,
   altseasonProgress = MARKET_SENTIMENT_SNAPSHOT.altseasonProgress,
   className = "",
+  variant = "cards",
 }: {
   pulse: MarketPulse;
   fearAndGreedValue?: number;
   altseasonProgress?: number;
   className?: string;
+  /** Mobile fold: one tight strip. Desktop may use full cards. */
+  variant?: "cards" | "strip";
 }) {
   const fg = fearGreedBand(fearAndGreedValue);
   const alt = altseasonBand(altseasonProgress);
   const mcapUp = (pulse.marketCapChange24h ?? 0) >= 0;
   const fgValue = clampSentimentScore(fearAndGreedValue);
+
+  if (variant === "strip") {
+    return (
+      <section
+        id="market-pulse"
+        aria-labelledby="market-sentiment-heading"
+        className={className}
+      >
+        <h2 id="market-sentiment-heading" className="sr-only">
+          Market Pulse &amp; Sentiment
+        </h2>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-[1.25rem] border border-teal-400/25 bg-white/[0.05] px-3 py-2.5 text-[11px] shadow-[0_8px_28px_rgba(0,0,0,0.4),0_0_16px_rgba(45,212,191,0.05)] backdrop-blur-xl sm:gap-x-4">
+          <span className="inline-flex items-baseline gap-1.5">
+            <span className="text-zinc-500">Mcap</span>
+            <span className="font-mono font-semibold tabular-nums text-zinc-100">
+              {formatCompactUsd(pulse.totalMarketCapUsd)}
+            </span>
+            <span className={`font-mono tabular-nums ${mcapUp ? "text-emerald-300" : "text-red-300"}`}>
+              {formatPct(pulse.marketCapChange24h)}
+            </span>
+          </span>
+          <span className="hidden h-3 w-px bg-white/10 sm:block" aria-hidden />
+          <span className="inline-flex items-baseline gap-1.5">
+            <span className="text-zinc-500">F&amp;G</span>
+            <span className={`font-semibold ${fg.textClass}`}>
+              {titleCaseBand(fg.label)} ({fgValue})
+            </span>
+          </span>
+          <span className="hidden h-3 w-px bg-white/10 sm:block" aria-hidden />
+          <span className="inline-flex items-baseline gap-1.5">
+            <span className="text-zinc-500">Alt</span>
+            <span className={`font-semibold ${alt.textClass}`}>{alt.label}</span>
+          </span>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section

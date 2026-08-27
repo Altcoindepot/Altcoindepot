@@ -6,14 +6,12 @@ import { BrandLogo } from "@/components/brand-logo";
 import { ThemeSelector } from "@/components/theme-selector";
 import { ResourcesNavAccordion } from "@/components/resources-nav-accordion";
 
-/** Secondary destinations — Resources stays nested; primary scanner routes live in bottom tabs. */
+/** Live secondary destinations — Resources stays nested. */
 const SECONDARY = [
   { href: "/dex-scanner", label: "DEX Scanner" },
   { href: "/gainers-losers", label: "Gainers & Losers" },
   { href: "/pairs", label: "Pairs" },
-  { href: "/watchlist", label: "Watchlist" },
-  { href: "/portfolio", label: "Portfolio" },
-  { href: "/alerts", label: "Alerts" },
+  { href: "/news", label: "News" },
   { href: "/sectors", label: "Sectors" },
   { href: "/just-launched", label: "Just Launched" },
   { href: "/new-low-caps", label: "New & Low Caps" },
@@ -22,6 +20,9 @@ const SECONDARY = [
   { href: "/disclaimer", label: "Disclaimer" },
   { href: "/privacy", label: "Privacy" },
 ] as const;
+
+/** Shown as non-navigating “Soon” so they don’t bounce to empty tools. */
+const COMING_SOON = ["Watchlist", "Portfolio", "Alerts"] as const;
 
 export function SiteMoreDrawer({
   open,
@@ -86,6 +87,21 @@ export function SiteMoreDrawer({
               </Link>
             );
           })}
+          <p className="px-3 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
+            Coming soon
+          </p>
+          {COMING_SOON.map((label) => (
+            <span
+              key={label}
+              className="inline-flex min-h-11 items-center justify-between gap-2 rounded-lg px-3 text-sm text-zinc-600"
+              aria-disabled="true"
+            >
+              <span>{label}</span>
+              <span className="rounded border border-white/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-zinc-500">
+                Soon
+              </span>
+            </span>
+          ))}
         </nav>
       </aside>
     </div>

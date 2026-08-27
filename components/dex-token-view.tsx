@@ -8,8 +8,10 @@ import { DexRecentTrades } from "@/components/dex-recent-trades";
 import { DexScreenerChart } from "@/components/dex-screener-chart";
 import { DexVenueBadge } from "@/components/dex-venue-badge";
 import { RecordTokenView } from "@/components/record-token-view";
+import { TokenGeckoStatsPanel } from "@/components/token-gecko-stats";
 import type { DexTokenPageData } from "@/lib/dexscreener-token";
 import { geckoTerminalChartEmbedUrl } from "@/lib/dexscreener-token";
+import type { GeckoCoinStats } from "@/lib/gecko-coin-stats";
 import type { DexTrade } from "@/lib/geckoterminal-trades";
 import { formatChainLabel } from "@/lib/format-chain";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
@@ -37,7 +39,15 @@ function Stat({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-export function DexTokenView({ token, trades = [] }: { token: DexTokenPageData; trades?: DexTrade[] }) {
+export function DexTokenView({
+  token,
+  trades = [],
+  geckoStats = null,
+}: {
+  token: DexTokenPageData;
+  trades?: DexTrade[];
+  geckoStats?: GeckoCoinStats | null;
+}) {
   const chainLabel = formatChainLabel(token.chain);
   const symbol = token.symbol.toUpperCase();
   const embed = geckoTerminalChartEmbedUrl(token.chain, token.pairAddress);
@@ -119,6 +129,8 @@ export function DexTokenView({ token, trades = [] }: { token: DexTokenPageData; 
           <CopyAddressButton address={token.address} />
         </div>
       </div>
+
+      <TokenGeckoStatsPanel stats={geckoStats} />
 
       <section className={`${ds.panelLg} mt-6 !p-0 overflow-hidden`} aria-labelledby="dex-chart-heading">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 px-4 py-3 sm:px-5">
