@@ -105,7 +105,7 @@ export function MarketSentimentWidget({
         <h2 id="market-sentiment-heading" className="sr-only">
           Market Pulse &amp; Sentiment
         </h2>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-[1.25rem] border border-teal-400/25 bg-white/[0.05] px-3 py-2.5 text-[11px] shadow-[0_8px_28px_rgba(0,0,0,0.4),0_0_16px_rgba(45,212,191,0.05)] backdrop-blur-xl sm:gap-x-4">
+        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 chrome-glass px-2.5 py-2 text-[11px] sm:gap-x-4 sm:px-3 sm:py-2.5">
           <span className="inline-flex items-baseline gap-1.5">
             <span className="text-zinc-500">Mcap</span>
             <span className="font-mono font-semibold tabular-nums text-zinc-100">

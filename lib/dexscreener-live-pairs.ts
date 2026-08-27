@@ -26,6 +26,8 @@ export type DexLivePairRow = {
   dex: string;
   dexLabel: string;
   priceUsd: number | null;
+  /** Prefer for short-window heat when present. */
+  change1h: number | null;
   change24h: number | null;
   volume24h: number | null;
   liquidityUsd: number | null;
@@ -72,6 +74,7 @@ export function mapDexPairToLiveRow(pair: DexPair): DexLivePairRow | null {
   if (!chain) return null;
   const dex = typeof pair.dexId === "string" ? pair.dexId : "";
   const priceUsd = parseDexUsdNumber(pair.priceUsd);
+  const change1h = parseDexUsdNumber(pair.priceChange?.h1);
   const change24h = parseDexUsdNumber(pair.priceChange?.h24);
   const volume24h = parseDexUsdNumber(pair.volume?.h24);
   const liquidityUsd = parseDexUsdNumber(pair.liquidity?.usd);
@@ -89,6 +92,7 @@ export function mapDexPairToLiveRow(pair: DexPair): DexLivePairRow | null {
     dex,
     dexLabel: dexVenueLabel(dex) || dex || "—",
     priceUsd,
+    change1h,
     change24h,
     volume24h,
     liquidityUsd,
@@ -359,7 +363,7 @@ export async function getLiveDexPairs(limit = 30): Promise<DexLivePairRow[]> {
 
 const loadExplorerCached = unstable_cache(
   async () => getDexExplorerPairs(DEX_EXPLORER_MAX_ROWS),
-  ["dex-explorer-pairs-v1"],
+  ["dex-explorer-pairs-v2"],
   { revalidate: DEX_EXPLORER_REVALIDATE_SECONDS },
 );
 

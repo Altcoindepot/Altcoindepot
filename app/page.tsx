@@ -9,10 +9,11 @@ import {
   pickHomeTopMovers,
   type ChainMoverRow,
 } from "@/lib/dex-chain-movers";
+import { getDexNarrativeHeat, type DexHeatSnapshot } from "@/lib/dex-narrative-heat";
 
 const TITLE = "Narrative rotation + live Dex movers | AltCoin Depot";
 const DESCRIPTION =
-  "Narrative rotation and live Dex movers. Open Top Gainers & Losers by chain; Just Launched and New & Low Caps on dedicated scanners. Informational only — not financial advice.";
+  "Live Dex heat by chain plus top movers. Open scanners for pairs and low caps. Informational only — not financial advice.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -83,6 +84,22 @@ async function fetchHomeMoversSoft(): Promise<ChainMoverRow[]> {
   }
 }
 
+async function fetchDexHeatSoft(): Promise<DexHeatSnapshot> {
+  const empty: DexHeatSnapshot = { buckets: [], windowLabel: "24H", updatedAt: Date.now() };
+  try {
+    const heat = await Promise.race([
+      getDexNarrativeHeat(),
+      new Promise<null>((resolve) => {
+        setTimeout(() => resolve(null), 4_500);
+      }),
+    ]);
+    return heat ?? empty;
+  } catch (error) {
+    console.error("[page] Dex heat fetch failed.", error);
+    return empty;
+  }
+}
+
 export default async function Home({
   searchParams,
 }: {
@@ -90,10 +107,11 @@ export default async function Home({
 }) {
   const params = await searchParams;
   const watchlistOnly = params.watchlist === "1" || params.watchlist === "true";
-  const [snapshot, homeNews, topMovers] = await Promise.all([
+  const [snapshot, homeNews, topMovers, dexHeat] = await Promise.all([
     fetchDashboardData(),
     fetchHomeNewsSoft(12),
     fetchHomeMoversSoft(),
+    fetchDexHeatSoft(),
   ]);
   const fetchedAt = Date.parse(snapshot.updatedAt);
 
@@ -108,6 +126,7 @@ export default async function Home({
           initialNewsStale={homeNews.stale}
           initialNewsSourcesLabel={homeNews.sourcesLabel}
           topMovers={topMovers}
+          dexHeat={dexHeat}
         />
       </main>
     </>

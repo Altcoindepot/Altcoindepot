@@ -40,8 +40,8 @@ export function DexFilterSummary({
   if (!show) return null;
 
   return (
-    <div className="sticky top-[4.35rem] z-40 px-3 pb-1 pt-1 sm:top-[4.85rem] sm:px-4">
-      <div className="glass-card mx-auto flex min-h-11 max-w-[90rem] items-center justify-between gap-2 px-3 py-1.5 sm:px-4">
+    <div className="sticky top-[3.65rem] z-40 px-3 pb-1 pt-1 sm:top-[4.85rem] sm:px-4">
+      <div className="chrome-glass mx-auto flex min-h-10 max-w-[90rem] items-center justify-between gap-2 px-3 py-1 sm:min-h-11 sm:px-4 sm:py-1.5">
         <p className="min-w-0 truncate text-[11px] font-medium text-zinc-400">
           {dexListQuerySummary(query, chainLabel)}
           <span className="text-zinc-600"> · </span>

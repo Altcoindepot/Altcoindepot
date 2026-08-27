@@ -3,10 +3,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CoinSearchBar } from "@/components/coin-search-bar";
 import { SiteHeader } from "@/components/site-header";
-import { ChainIcon } from "@/components/chain-icon";
-import { TokenAvatar } from "@/components/token-avatar";
+import { MarketRow } from "@/components/market-row";
 import { searchUniverse, type UniverseSearchHit } from "@/lib/universe-search";
-import { formatDexPriceUsd } from "@/lib/dex-pair-fields";
 import { DexRiskFootnote } from "@/components/dex-risk-footnote";
 
 export const metadata: Metadata = {
@@ -97,39 +95,27 @@ export default async function CoinSearchPage({
             .
           </p>
         ) : (
-          <ul className="mt-6 divide-y divide-white/5 overflow-hidden rounded-xl border border-teal-400/20 bg-white/[0.03]">
-            {hits.map((hit) => (
-              <li key={`${hit.kind}:${hit.id}`}>
-                <Link
-                  href={hit.href}
-                  className="flex min-h-12 items-center gap-2.5 px-3 py-2.5 hover:bg-white/[0.04] sm:px-4"
-                >
-                  <TokenAvatar symbol={hit.symbol} imageUrl={hit.imageUrl} size={28} />
-                  <span className="min-w-0 flex-1">
-                    <span className="flex min-w-0 items-center gap-1.5">
-                      <span className="truncate font-mono text-[13px] font-bold uppercase text-zinc-50">
-                        {hit.pairLabel ?? hit.symbol}
-                      </span>
-                      {hit.chain ? (
-                        <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-zinc-500">
-                          <ChainIcon chainId={hit.chain} size={14} />
-                          {hit.chainLabel}
-                        </span>
-                      ) : null}
-                    </span>
-                    <span className="block truncate text-[11px] text-zinc-500">{hit.name}</span>
-                    {hit.truncatedContract ? (
-                      <span className="mt-0.5 block truncate font-mono text-[10px] text-zinc-600">
-                        {hit.truncatedContract}
-                      </span>
-                    ) : null}
-                  </span>
-                  <span className="shrink-0 text-right font-mono text-sm font-semibold tabular-nums text-zinc-100">
-                    {formatDexPriceUsd(hit.priceUsd)}
-                  </span>
-                </Link>
-              </li>
-            ))}
+          <ul className="ds-list-shell mt-6 divide-y divide-white/[0.06]">
+            {hits.map((hit) => {
+              const major =
+                hit.rankTier === "major_usdt" || hit.rankTier === "major_other";
+              return (
+                <li key={`${hit.kind}:${hit.id}`}>
+                  <MarketRow
+                    href={hit.href}
+                    symbol={hit.symbol}
+                    name={hit.name}
+                    imageUrl={hit.imageUrl}
+                    chain={hit.chain}
+                    contract={hit.address}
+                    priceUsd={hit.priceUsd}
+                    isMajor={major}
+                    pairLabel={hit.pairLabel}
+                    muted={!major && Boolean(hits[0] && (hits[0].rankTier === "major_usdt" || hits[0].rankTier === "major_other"))}
+                  />
+                </li>
+              );
+            })}
           </ul>
         )}
 

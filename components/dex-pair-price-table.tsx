@@ -5,6 +5,7 @@ import { formatCompactUsd } from "@/lib/format-compact-usd";
 import { dexTokenPath } from "@/lib/dex-token-path";
 import { ChainIcon } from "@/components/chain-icon";
 import { DexVenueBadge } from "@/components/dex-venue-badge";
+import { MarketRow } from "@/components/market-row";
 import { TokenAvatar } from "@/components/token-avatar";
 
 function tokenHref(row: DexLivePairRow): string {
@@ -38,50 +39,27 @@ export function DexPairPriceTable({
   if (rows.length === 0) return null;
 
   return (
-    <section className="mt-3 overflow-hidden rounded-xl border border-white/10 bg-[#0c0e14]">
-      <div className="flex items-baseline justify-between gap-2 border-b border-white/10 px-3 py-2 sm:px-4">
+    <section className="ds-list-shell mt-3">
+      <div className="flex items-baseline justify-between gap-2 border-b border-teal-400/15 bg-white/[0.03] px-3 py-2 sm:px-4">
         <h2 className="text-sm font-semibold text-zinc-100">{title}</h2>
         <p className="text-[10px] tabular-nums text-zinc-500">{rows.length} pairs · DexScreener</p>
       </div>
 
-      {/* Mobile: avatar + symbol/name · chain/DEX logos · price/% · muted metrics */}
-      <ul className="divide-y divide-white/5 md:hidden">
+      <ul className="divide-y divide-white/[0.06] md:hidden">
         {rows.map((row) => (
           <li key={row.id}>
-            <Link
+            <MarketRow
               href={tokenHref(row)}
-              className="flex items-center gap-2.5 px-3 py-2 active:bg-white/[0.04]"
-            >
-              <TokenAvatar symbol={row.symbol} size={28} />
-              <span className="min-w-0 flex-1">
-                <span className="flex min-w-0 items-baseline gap-1.5">
-                  <span className="truncate font-mono text-[13px] font-bold uppercase text-zinc-50">
-                    {row.symbol}
-                  </span>
-                  <span className="truncate text-[11px] text-zinc-500">{row.name}</span>
-                </span>
-                <span className="mt-1 flex items-center gap-1.5">
-                  <ChainIcon chainId={row.chain} size={16} />
-                  <DexVenueBadge dexId={row.dex} dexLabel={row.dexLabel} iconOnly size={16} />
-                </span>
-                <span className="mt-0.5 block font-mono text-[10px] tabular-nums text-zinc-500">
-                  {formatCompactUsd(row.volume24h)} vol · {formatCompactUsd(row.liquidityUsd)} liq ·{" "}
-                  {row.ageLabel}
-                </span>
-              </span>
-              <span className="flex shrink-0 flex-col items-end gap-0.5">
-                <span className="font-mono text-[13px] font-semibold tabular-nums text-zinc-100">
-                  {formatDexPriceUsd(row.priceUsd)}
-                </span>
-                <span
-                  className={`font-mono text-xs font-semibold tabular-nums ${
-                    (row.change24h ?? 0) >= 0 ? "text-emerald-300" : "text-red-300"
-                  }`}
-                >
-                  {formatDexPct(row.change24h)}
-                </span>
-              </span>
-            </Link>
+              symbol={row.symbol}
+              name={row.name}
+              chain={row.chain}
+              dexId={row.dex}
+              dexLabel={row.dexLabel}
+              contract={row.address}
+              priceUsd={row.priceUsd}
+              changePct={row.change24h}
+              metaLine={`${formatCompactUsd(row.volume24h)} vol · ${formatCompactUsd(row.liquidityUsd)} liq · ${row.ageLabel}`}
+            />
           </li>
         ))}
       </ul>

@@ -25,6 +25,7 @@ import { formatCompactUsd } from "@/lib/format-compact-usd";
 import { dexTokenPath } from "@/lib/dex-token-path";
 import { ChainIcon } from "@/components/chain-icon";
 import { DexVenueBadge } from "@/components/dex-venue-badge";
+import { MarketRow } from "@/components/market-row";
 import { TokenAvatar } from "@/components/token-avatar";
 
 const SORT_LABELS: Record<ScannerSort, string> = {
@@ -84,39 +85,18 @@ function NumberField({
 
 function ScannerRowMobile({ row }: { row: DexScannerRow }) {
   return (
-    <Link
+    <MarketRow
       href={tokenHref(row)}
-      className="flex min-h-14 items-center gap-2.5 px-3 py-2.5 active:bg-white/[0.04]"
-    >
-      <TokenAvatar symbol={row.symbol} size={32} />
-      <span className="min-w-0 flex-1">
-        <span className="flex min-w-0 items-baseline gap-1.5">
-          <span className="truncate font-mono text-[13px] font-bold uppercase text-zinc-50">
-            {row.symbol}
-          </span>
-          <span className="truncate text-[11px] text-zinc-500">{row.name}</span>
-        </span>
-        <span className="mt-0.5 block font-mono text-[10px] tabular-nums text-zinc-500">
-          {formatCompactUsd(row.volume24h)} vol · {formatCompactUsd(row.liquidityUsd)} liq
-        </span>
-        <span className="mt-1 flex items-center gap-1.5">
-          <ChainIcon chainId={row.chain} size={16} />
-          <DexVenueBadge dexId={row.dex} dexLabel={row.dexLabel} iconOnly size={16} />
-        </span>
-      </span>
-      <span className="flex shrink-0 flex-col items-end gap-0.5">
-        <span className="font-mono text-[13px] font-semibold tabular-nums text-zinc-100">
-          {formatDexPriceUsd(row.priceUsd)}
-        </span>
-        <span
-          className={`font-mono text-xs font-semibold tabular-nums ${
-            (row.change24h ?? 0) >= 0 ? "text-emerald-300" : "text-red-300"
-          }`}
-        >
-          {formatDexPct(row.change24h)}
-        </span>
-      </span>
-    </Link>
+      symbol={row.symbol}
+      name={row.name}
+      chain={row.chain}
+      dexId={row.dex}
+      dexLabel={row.dexLabel}
+      contract={row.address}
+      priceUsd={row.priceUsd}
+      changePct={row.change24h}
+      metaLine={`${formatCompactUsd(row.volume24h)} vol · ${formatCompactUsd(row.liquidityUsd)} liq`}
+    />
   );
 }
 
@@ -431,7 +411,7 @@ export function DexScannerExplorer({
             </p>
           </div>
 
-          <ul className="divide-y divide-white/5 md:hidden">
+          <ul className="divide-y divide-white/[0.06] md:hidden">
             {shown.map((row) => (
               <li key={row.id}>
                 <ScannerRowMobile row={row} />

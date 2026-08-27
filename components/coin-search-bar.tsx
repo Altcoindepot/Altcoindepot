@@ -33,6 +33,10 @@ function cacheSet(q: string, items: UniverseSearchHit[]) {
   searchCache.set(key, items);
 }
 
+function isMajorHit(hit: UniverseSearchHit): boolean {
+  return hit.rankTier === "major_usdt" || hit.rankTier === "major_other";
+}
+
 export function CoinSearchBar({
   variant = "header",
   inputId,
@@ -51,6 +55,27 @@ export function CoinSearchBar({
   const [searched, setSearched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** Keep results above mobile keyboard / tab bar */
+  const [sheetPad, setSheetPad] = useState(72);
+
+  useEffect(() => {
+    function syncPad() {
+      const vv = window.visualViewport;
+      if (!vv) {
+        setSheetPad(72);
+        return;
+      }
+      const obscured = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      setSheetPad(Math.max(72, obscured + 12));
+    }
+    syncPad();
+    window.visualViewport?.addEventListener("resize", syncPad);
+    window.visualViewport?.addEventListener("scroll", syncPad);
+    return () => {
+      window.visualViewport?.removeEventListener("resize", syncPad);
+      window.visualViewport?.removeEventListener("scroll", syncPad);
+    };
+  }, []);
 
   useEffect(() => {
     const q = query.trim();
@@ -145,16 +170,68 @@ export function CoinSearchBar({
   );
 
   const showDropdown = open && (results.length > 0 || error || searched || loading);
+  const wide = variant === "wide";
+
+  const resultsList = (
+    <>
+      {loading ? <li className="px-3 py-3 text-sm text-zinc-400">Searching…</li> : null}
+      {error ? <li className="px-3 py-3 text-sm text-amber-200/90">{error}</li> : null}
+      {!loading && !error && searched && results.length === 0 ? (
+        <li className="px-3 py-3 text-sm text-zinc-400">No pair found — check the contract</li>
+      ) : null}
+      {results.map((hit, idx) => {
+        const major = isMajorHit(hit);
+        return (
+          <li key={`${hit.kind}:${hit.id}`} role="option" aria-selected={idx === activeIndex}>
+            <button
+              type="button"
+              className={`flex w-full items-center gap-2.5 px-3 text-left transition-colors active:bg-white/[0.08] ${
+                major ? "min-h-14 py-2.5" : "min-h-12 py-2 opacity-90"
+              } ${idx === activeIndex ? "bg-white/[0.06]" : ""}`}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => goToHit(hit)}
+            >
+              <TokenAvatar symbol={hit.symbol} imageUrl={hit.imageUrl} size={major ? 36 : 28} />
+              <span className="min-w-0 flex-1">
+                <span className="flex min-w-0 flex-wrap items-center gap-1.5">
+                  <span className="truncate font-mono text-[13px] font-bold uppercase text-zinc-50">
+                    {hit.pairLabel ?? hit.symbol}
+                  </span>
+                  {major ? (
+                    <span className="shrink-0 rounded border border-teal-400/45 bg-teal-500/15 px-1.5 py-px text-[9px] font-bold uppercase tracking-wider text-teal-200">
+                      Major
+                    </span>
+                  ) : null}
+                </span>
+                <span className="mt-0.5 flex min-w-0 items-center gap-1.5">
+                  <span className="truncate text-[11px] text-zinc-500">{hit.name}</span>
+                  {hit.chain ? (
+                    <span className="inline-flex shrink-0 items-center gap-1 text-[10px] text-zinc-600">
+                      <ChainIcon chainId={hit.chain} size={12} />
+                    </span>
+                  ) : null}
+                </span>
+                {hit.truncatedContract ? (
+                  <span className="mt-0.5 block truncate font-mono text-[10px] text-zinc-600">
+                    {hit.truncatedContract}
+                  </span>
+                ) : null}
+              </span>
+              <span className="shrink-0 text-right font-mono text-xs font-semibold tabular-nums text-zinc-100">
+                {formatDexPriceUsd(hit.priceUsd)}
+              </span>
+            </button>
+          </li>
+        );
+      })}
+    </>
+  );
 
   return (
-    <div ref={rootRef} className={variant === "wide" ? "relative w-full" : "relative block"}>
+    <div ref={rootRef} className={wide ? "relative w-full" : "relative block"}>
       <form
         role="search"
-        className={
-          variant === "wide"
-            ? "flex flex-col gap-2 sm:flex-row sm:items-center"
-            : "flex items-center gap-2"
-        }
+        className={wide ? "flex w-full flex-col gap-2" : "flex items-center gap-2"}
         onSubmit={(e) => {
           e.preventDefault();
           submitSearch(query);
@@ -163,7 +240,7 @@ export function CoinSearchBar({
         <label htmlFor={fieldId} className="sr-only">
           Search ticker or contract
         </label>
-        <div className="relative min-w-0 flex-1">
+        <div className="relative min-w-0 w-full flex-1">
           <input
             id={fieldId}
             name="q"
@@ -187,67 +264,26 @@ export function CoinSearchBar({
             }}
             placeholder={placeholder}
             autoComplete="off"
+            enterKeyHint="search"
             role="combobox"
             aria-expanded={showDropdown ? true : false}
             aria-controls={listId}
             aria-autocomplete="list"
             className={
-              variant === "wide"
-                ? "min-h-12 w-full flex-1 rounded-full border border-teal-400/25 bg-white/[0.04] px-3.5 py-2.5 text-base text-white placeholder:text-zinc-500 focus:border-teal-400/50 focus:outline-none focus:ring-2 focus:ring-teal-400/25 sm:text-sm"
-                : "h-10 w-full min-w-0 rounded-full border border-white/12 bg-white/[0.04] px-3.5 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-teal-400/45 focus:outline-none focus:ring-2 focus:ring-teal-400/20 lg:w-56 xl:w-72"
+              wide
+                ? "min-h-12 w-full rounded-2xl border border-teal-400/40 bg-[#0c0e14] px-4 text-base font-medium text-white placeholder:font-normal placeholder:text-zinc-500 focus:border-teal-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/30"
+                : "h-10 w-full min-w-0 rounded-full border border-teal-400/30 bg-[#0c0e14] px-3.5 text-sm font-medium text-zinc-100 placeholder:font-normal placeholder:text-zinc-500 focus:border-teal-400/50 focus:outline-none focus:ring-2 focus:ring-teal-400/25 lg:w-56 xl:w-72"
             }
           />
+
+          {/* Desktop / large: dropdown under input */}
           {showDropdown ? (
             <ul
               id={listId}
               role="listbox"
-              className="absolute right-0 top-full z-[60] mt-1 max-h-80 w-full min-w-[17rem] overflow-y-auto rounded-xl border border-teal-400/20 bg-[#0c0e14]/98 py-1 shadow-[0_12px_36px_rgba(0,0,0,0.5)] backdrop-blur-xl sm:min-w-[22rem]"
+              className="absolute right-0 top-full z-[60] mt-1.5 hidden max-h-96 w-full min-w-[22rem] overflow-y-auto rounded-2xl border border-teal-400/30 bg-[#0a0c12] py-1 shadow-[0_16px_48px_rgba(0,0,0,0.65)] lg:block"
             >
-              {loading ? (
-                <li className="px-3 py-3 text-sm text-zinc-400">Searching…</li>
-              ) : null}
-              {error ? <li className="px-3 py-3 text-sm text-amber-200/90">{error}</li> : null}
-              {!loading && !error && searched && results.length === 0 ? (
-                <li className="px-3 py-3 text-sm text-zinc-400">
-                  No pair found — check the contract
-                </li>
-              ) : null}
-              {results.map((hit, idx) => (
-                <li key={`${hit.kind}:${hit.id}`} role="option" aria-selected={idx === activeIndex}>
-                  <button
-                    type="button"
-                    className={`flex min-h-12 w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm transition-colors hover:bg-white/[0.06] ${
-                      idx === activeIndex ? "bg-white/[0.06]" : ""
-                    }`}
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => goToHit(hit)}
-                  >
-                    <TokenAvatar symbol={hit.symbol} imageUrl={hit.imageUrl} size={24} />
-                    <span className="min-w-0 flex-1">
-                      <span className="flex min-w-0 items-center gap-1.5">
-                        <span className="truncate font-mono text-[13px] font-bold uppercase text-zinc-100">
-                          {hit.pairLabel ?? hit.symbol}
-                        </span>
-                        {hit.chain ? (
-                          <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-zinc-500">
-                            <ChainIcon chainId={hit.chain} size={12} />
-                            {hit.chainLabel}
-                          </span>
-                        ) : null}
-                      </span>
-                      <span className="block truncate text-[11px] text-zinc-500">{hit.name}</span>
-                      {hit.truncatedContract ? (
-                        <span className="mt-0.5 block truncate font-mono text-[10px] text-zinc-600">
-                          {hit.truncatedContract}
-                        </span>
-                      ) : null}
-                    </span>
-                    <span className="shrink-0 text-right font-mono text-xs font-semibold tabular-nums text-zinc-100">
-                      {formatDexPriceUsd(hit.priceUsd)}
-                    </span>
-                  </button>
-                </li>
-              ))}
+              {resultsList}
             </ul>
           ) : null}
         </div>
@@ -255,8 +291,8 @@ export function CoinSearchBar({
           <button
             type="submit"
             className={
-              variant === "wide"
-                ? "min-h-12 shrink-0 rounded-full border border-teal-400/40 bg-teal-500/15 px-5 py-2.5 text-base font-semibold text-teal-100 sm:min-h-11 sm:text-sm"
+              wide
+                ? "min-h-12 w-full rounded-2xl border border-teal-400/45 bg-teal-500/20 px-5 text-base font-semibold text-teal-50 sm:w-auto"
                 : "h-10 shrink-0 rounded-full border border-teal-400/40 bg-teal-500/15 px-3 text-sm font-semibold text-teal-100"
             }
           >
@@ -264,6 +300,22 @@ export function CoinSearchBar({
           </button>
         ) : null}
       </form>
+
+      {/* Phone: results sheet above keyboard + tab bar so first hit stays tappable */}
+      {showDropdown ? (
+        <div
+          className="fixed inset-x-0 z-[70] lg:hidden"
+          style={{ bottom: sheetPad }}
+        >
+          <ul
+            id={`${listId}-mobile`}
+            role="listbox"
+            className="mx-2 max-h-[min(52vh,22rem)] overflow-y-auto rounded-2xl border border-teal-400/35 bg-[#0a0c12] py-1 shadow-[0_-8px_40px_rgba(0,0,0,0.65)]"
+          >
+            {resultsList}
+          </ul>
+        </div>
+      ) : null}
     </div>
   );
 }

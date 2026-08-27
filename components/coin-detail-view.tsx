@@ -12,7 +12,6 @@ import { ReppoStatsSection } from "@/components/reppo-stats-section";
 import { formatShortMonthDay } from "@/lib/format-date";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
 import { CoingeckoLogoAttribution } from "@/components/coingecko-logo-attribution";
-import { WatchlistToggleButton } from "@/components/watchlist-toggle-button";
 import { CoinShareButtons } from "@/components/coin-share-buttons";
 import { NarrativeTags } from "@/components/narrative-tags";
 import { LiquidityBadge } from "@/components/liquidity-badge";
@@ -663,12 +662,16 @@ export function CoinDetailView({
                 Whitepaper
               </a>
             ) : null}
-            <WatchlistToggleButton
-              coinId={coin.id}
-              name={coin.name}
-              symbol={(coin.symbol ?? "").toString()}
-              image={img}
-            />
+            <span
+              className={`${ds.btnSecondary} cursor-not-allowed opacity-60`}
+              aria-disabled="true"
+              title="Coming soon"
+            >
+              Watchlist
+              <span className="ml-1.5 rounded border border-white/15 px-1 py-px text-[9px] font-semibold uppercase tracking-wider text-zinc-500">
+                Soon
+              </span>
+            </span>
             <CoinShareButtons
               coinId={coin.id}
               name={coin.name}
@@ -717,6 +720,13 @@ export function CoinDetailView({
               </div>
             </dl>
 
+            <DexScreenerChart
+              dexEmbedUrl={dexLive?.dexChartEmbedUrl ?? null}
+              geckoTerminalEmbedUrl={dexLive?.geckoTerminalEmbedUrl ?? null}
+              pairUrl={dexLive?.pairUrl ?? null}
+              title={`${coin.name} Dex chart`}
+            />
+
             {dexLive?.address ? (
               <div className={`${ds.panel} !mt-3`}>
                 <p className={ds.label}>
@@ -751,13 +761,6 @@ export function CoinDetailView({
                 </p>
               </div>
             ) : null}
-
-            <DexScreenerChart
-              dexEmbedUrl={dexLive?.dexChartEmbedUrl ?? null}
-              geckoTerminalEmbedUrl={dexLive?.geckoTerminalEmbedUrl ?? null}
-              pairUrl={dexLive?.pairUrl ?? null}
-              title={`${coin.name} Dex chart`}
-            />
 
             {(vsBtc7d != null || vsBtc30d != null) && coin.id !== "bitcoin" ? (
               <div className={ds.card}>

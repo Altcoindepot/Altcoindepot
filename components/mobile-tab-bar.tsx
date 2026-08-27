@@ -19,7 +19,6 @@ function IconHome({ active }: { active: boolean }) {
   );
 }
 
-/** Bar chart — reserved for DEX Scanner only. */
 function IconScanner({ active }: { active: boolean }) {
   return (
     <svg
@@ -35,7 +34,6 @@ function IconScanner({ active }: { active: boolean }) {
   );
 }
 
-/** Coins / low-cap metaphor — not a bar chart. */
 function IconLowCaps({ active }: { active: boolean }) {
   return (
     <svg
@@ -100,13 +98,14 @@ const TABS: Array<{
   },
 ];
 
+/** Mobile IA — icon + label, teal active, safe-area. Content uses layout pb. */
 export function MobileTabBar() {
   const pathname = usePathname() || "/";
 
   return (
     <nav
       aria-label="Primary"
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#0a0a0a]/96 backdrop-blur-xl pb-[env(safe-area-inset-bottom)] lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-teal-400/20 bg-[#0a0a0a]/98 pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
       <ul className="grid grid-cols-4">
         {TABS.map((tab) => {

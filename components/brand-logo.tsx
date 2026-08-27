@@ -23,7 +23,7 @@ function BrandMark({ className = "" }: { className?: string }) {
 function Wordmark({ className = "" }: { className?: string }) {
   return (
     <span
-      className={`flex items-baseline whitespace-nowrap text-[1.2rem] font-extrabold leading-none tracking-[-0.04em] sm:text-[1.35rem] ${className}`.trim()}
+      className={`flex items-baseline whitespace-nowrap text-[1.05rem] font-extrabold leading-none tracking-[-0.04em] sm:text-[1.35rem] ${className}`.trim()}
     >
       <span className="bg-[linear-gradient(118deg,#f8fafc_0%,#d4d4d8_28%,#a1a1aa_52%,#e4e4e7_78%,#fafafa_100%)] bg-clip-text text-transparent">
         AltCoin
@@ -48,7 +48,7 @@ export function BrandLockup({
 }) {
   return (
     <span className={`inline-flex items-center gap-2 ${className}`.trim()}>
-      <BrandMark className="h-8 w-8 shrink-0" />
+      <BrandMark className="h-7 w-7 shrink-0 sm:h-8 sm:w-8" />
       <span className="flex min-w-0 flex-col justify-center">
         <Wordmark />
         {showTagline ? (

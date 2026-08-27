@@ -14,6 +14,7 @@ import { DexProjectLinks } from "@/components/dex-project-links";
 import { DexListControls } from "@/components/dex-list-controls";
 import { ChainIcon } from "@/components/chain-icon";
 import { DexVenueBadge } from "@/components/dex-venue-badge";
+import { MarketRow } from "@/components/market-row";
 import { TokenAvatar } from "@/components/token-avatar";
 import { DexPulseChips } from "@/components/dex-pulse-chips";
 import { DexListSegment } from "@/components/dex-list-segment";
@@ -197,40 +198,19 @@ export function NewLowCapsTable({
           <ul className="divide-y divide-white/5 md:hidden">
             {visibleRows.map((row) => (
               <li key={`${row.id}-${row.narrativeSlug}-card`}>
-                <Link
+                <MarketRow
                   href={tokenHref(row)}
-                  className="flex items-center gap-2.5 px-3 py-2 active:bg-white/[0.04]"
-                >
-                  <TokenAvatar symbol={row.symbol} imageUrl={row.image || null} size={28} />
-                  <span className="min-w-0 flex-1">
-                    <span className="flex min-w-0 items-baseline gap-1.5">
-                      <span className="truncate font-mono text-[13px] font-bold uppercase text-zinc-50">
-                        {row.symbol}
-                      </span>
-                      <span className="truncate text-[11px] text-zinc-500">{row.name}</span>
-                    </span>
-                    <span className="mt-1 flex items-center gap-1.5">
-                      {row.chain ? <ChainIcon chainId={row.chain} size={16} /> : null}
-                      <DexVenueBadge dexId={row.dexId} dexLabel={row.dexLabel} iconOnly size={16} />
-                    </span>
-                    <span className="mt-0.5 block font-mono text-[10px] tabular-nums text-zinc-500">
-                      {formatCompactUsd(row.volume)} vol · {formatCompactUsd(row.liquidity)} liq ·{" "}
-                      {row.addedLabel || "—"}
-                    </span>
-                  </span>
-                  <span className="flex shrink-0 flex-col items-end gap-0.5">
-                    <span className="font-mono text-[13px] font-semibold tabular-nums text-zinc-100">
-                      {formatPrice(row.priceUsd)}
-                    </span>
-                    <span
-                      className={`font-mono text-xs font-semibold tabular-nums ${
-                        (row.change7d ?? 0) >= 0 ? "text-emerald-300" : "text-red-300"
-                      }`}
-                    >
-                      {formatPct(row.change7d)}
-                    </span>
-                  </span>
-                </Link>
+                  symbol={row.symbol}
+                  name={row.name}
+                  imageUrl={row.image || null}
+                  chain={row.chain}
+                  dexId={row.dexId}
+                  dexLabel={row.dexLabel}
+                  contract={row.contractAddress}
+                  priceUsd={row.priceUsd}
+                  changePct={row.change7d}
+                  metaLine={`${formatCompactUsd(row.volume)} vol · ${formatCompactUsd(row.liquidity)} liq · ${row.addedLabel || "—"}`}
+                />
               </li>
             ))}
           </ul>

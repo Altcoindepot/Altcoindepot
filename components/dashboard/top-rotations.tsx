@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { NarrativeView } from "@/lib/dashboard-data";
 import type { RotationWindow } from "@/lib/narratives";
+import { rotationSignalLabel, statusBadgeClass } from "@/lib/narratives";
 import { ds } from "@/lib/ui-classes";
 
 function formatPct(n: number | null) {
@@ -14,7 +15,7 @@ const WINDOW_LABEL: Record<RotationWindow, string> = {
   "30d": "1M",
 };
 
-/** Top Rotations list — also used as the mobile replacement for the circular tracker. */
+/** Mobile: compact chips. Desktop sidebar: denser list. Orbit is never the mobile hero. */
 export function TopRotations({
   narratives,
   variant = "sidebar",
@@ -29,29 +30,77 @@ export function TopRotations({
   const maxAbs = Math.max(...narratives.map((n) => Math.abs(n.change ?? 0)), 1);
   const mobile = variant === "mobile-primary";
 
+  if (mobile) {
+    return (
+      <section
+        aria-labelledby="top-rotations-mobile-heading"
+        className={`${className}`.trim()}
+      >
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <h2
+            id="top-rotations-mobile-heading"
+            className="text-[13px] font-semibold text-zinc-100"
+          >
+            Top Rotations ({WINDOW_LABEL[window]})
+          </h2>
+        </div>
+        <ul className="flex flex-col gap-1.5">
+          {narratives.map((n) => {
+            const leading = n.status === "LEADING";
+            const fading = n.status === "FADING";
+            return (
+              <li key={n.slug}>
+                <Link
+                  href={`/narrative/${n.slug}`}
+                  className={`flex min-h-11 items-center gap-2.5 rounded-xl border px-3 py-2 active:bg-white/[0.04] ${
+                    leading
+                      ? "border-emerald-400/45 bg-emerald-500/10"
+                      : fading
+                        ? "border-rose-400/35 bg-rose-500/[0.07] opacity-90"
+                        : "border-white/10 bg-white/[0.03]"
+                  }`}
+                >
+                  <span
+                    className="size-2.5 shrink-0 rounded-full"
+                    style={{
+                      backgroundColor: n.color,
+                      boxShadow: leading ? `0 0 10px ${n.color}` : undefined,
+                    }}
+                    aria-hidden
+                  />
+                  <span className="min-w-0 flex-1 truncate text-[13px] font-semibold text-zinc-100">
+                    {n.title}
+                  </span>
+                  <span
+                    className={`shrink-0 rounded border px-1.5 py-px text-[9px] font-bold uppercase tracking-wider ${statusBadgeClass(n.status)}`}
+                  >
+                    {rotationSignalLabel(n.status)}
+                  </span>
+                  <span
+                    className={`shrink-0 font-mono text-[12px] font-bold tabular-nums ${
+                      (n.change ?? 0) >= 0 ? "text-emerald-300" : "text-red-300"
+                    }`}
+                  >
+                    {formatPct(n.change)}
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    );
+  }
+
   return (
     <section
-      aria-labelledby={mobile ? "top-rotations-mobile-heading" : "top-rotations-heading"}
+      aria-labelledby="top-rotations-heading"
       className={`${ds.panel} flex min-h-0 flex-col ${className}`.trim()}
     >
-      <h2
-        id={mobile ? "top-rotations-mobile-heading" : "top-rotations-heading"}
-        className="text-sm font-semibold text-zinc-100 sm:text-base"
-      >
+      <h2 id="top-rotations-heading" className="text-sm font-semibold text-zinc-100 sm:text-base">
         Top Rotations ({WINDOW_LABEL[window]})
       </h2>
-      {mobile ? (
-        <p className="mt-1 text-xs text-zinc-500">
-          Narrative leadership for this window — tap a card for the full sector.
-        </p>
-      ) : null}
-      <ul
-        className={
-          mobile
-            ? "mt-3 flex max-h-[22rem] min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto overscroll-contain pr-0.5"
-            : "mt-3 min-h-0 flex-1 space-y-3 overflow-y-auto"
-        }
-      >
+      <ul className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto">
         {narratives.map((n) => {
           const width = Math.round((Math.abs(n.change ?? 0) / maxAbs) * 100);
           const leading = n.status === "LEADING";
@@ -60,25 +109,22 @@ export function TopRotations({
             <li key={n.slug}>
               <Link
                 href={`/narrative/${n.slug}`}
-                className={
-                  mobile
-                    ? `flex min-h-[44px] items-center gap-3 rounded-2xl border px-3 py-3 transition-colors ${
-                        leading
-                          ? "border-emerald-400/35 bg-emerald-500/10 shadow-[0_8px_24px_rgba(0,0,0,0.35)] hover:border-emerald-400/50"
-                          : fading
-                            ? "border-red-400/30 bg-red-500/[0.07] shadow-[0_8px_24px_rgba(0,0,0,0.35)] hover:border-red-400/45"
-                            : "border-teal-400/20 bg-white/[0.04] shadow-[0_8px_24px_rgba(0,0,0,0.32)] hover:border-teal-400/35"
-                      }`
-                    : "block rounded-lg p-1 hover:bg-white/[0.03]"
-                }
+                className={`block rounded-lg border border-transparent p-1.5 transition-colors hover:bg-white/[0.03] ${
+                  leading
+                    ? "border-emerald-400/25 bg-emerald-500/[0.07]"
+                    : fading
+                      ? "border-rose-400/20 bg-rose-500/[0.05] opacity-85"
+                      : ""
+                }`}
               >
                 <div className="flex w-full items-start gap-2.5">
                   <span
-                    className="mt-0.5 h-9 w-9 shrink-0 rounded-xl border"
+                    className={`mt-0.5 h-8 w-8 shrink-0 rounded-lg border ${
+                      leading ? "ring-2 ring-emerald-400/50" : fading ? "grayscale-[0.35]" : ""
+                    }`}
                     style={{
                       backgroundColor: `${n.color}22`,
                       borderColor: `${n.color}55`,
-                      boxShadow: `0 0 14px ${n.color}33`,
                     }}
                     aria-hidden
                   />
@@ -95,25 +141,19 @@ export function TopRotations({
                     </div>
                     <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
                       <span
-                        className={`rounded px-1 py-px text-[9px] font-bold uppercase tracking-wider ${
-                          leading
-                            ? "bg-emerald-500/20 text-emerald-200"
-                            : fading
-                              ? "bg-red-500/20 text-red-200"
-                              : "bg-white/5 text-zinc-500"
-                        }`}
+                        className={`rounded border px-1.5 py-px text-[9px] font-bold uppercase tracking-wider ${statusBadgeClass(n.status)}`}
                       >
-                        {n.status}
+                        {rotationSignalLabel(n.status)}
                       </span>
                       <p className="truncate text-[10px] text-zinc-500">{n.subtitle}</p>
                     </div>
-                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-zinc-800">
+                    <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-zinc-800">
                       <div
                         className="h-full rounded-full"
                         style={{
                           width: `${width}%`,
                           backgroundColor: n.color,
-                          boxShadow: `0 0 8px ${n.color}88`,
+                          opacity: fading ? 0.55 : 1,
                         }}
                       />
                     </div>

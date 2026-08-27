@@ -1,5 +1,5 @@
 import type { CoinPlatformContract } from "@/lib/gecko-platform-map";
-import { resolveMajorAlias } from "@/lib/majors-alias-map";
+import { resolveMajorSync, type MajorCatalogEntry } from "@/lib/majors-catalog";
 
 export type { CoinPlatformContract };
 
@@ -22,17 +22,20 @@ function rankBonus(rank: number): number {
   return Math.max(0, 400 - rank * 0.05);
 }
 
-function scoreEntry(entry: TopCoinSearchEntry, query: string): number {
+function scoreEntry(
+  entry: TopCoinSearchEntry,
+  query: string,
+  major: MajorCatalogEntry | null,
+): number {
   const q = query.trim().toLowerCase();
   if (!q) return -1;
 
   const id = entry.id.toLowerCase();
   const sym = entry.symbol.toLowerCase();
   const name = entry.name.toLowerCase();
-  const major = resolveMajorAlias(query);
 
   // Canonical major always dominates — never lose to name-substring memes.
-  if (major && entry.id === major.id) {
+  if (major?.geckoId && entry.id === major.geckoId) {
     return 50_000 + rankBonus(entry.rank);
   }
 
@@ -44,12 +47,11 @@ function scoreEntry(entry: TopCoinSearchEntry, query: string): number {
 
   if (id === q) return 1000 + rankBonus(entry.rank);
   if (sym === q) {
-    // Exact ticker but NOT the mapped major (copycat / clone) — keep below major
-    if (major && entry.id !== major.id) return 200 + rankBonus(entry.rank);
+    if (major && entry.id !== major.geckoId) return 200 + rankBonus(entry.rank);
     return 900 + rankBonus(entry.rank);
   }
   if (name === q) {
-    if (major && entry.id !== major.id) return 180 + rankBonus(entry.rank);
+    if (major && entry.id !== major.geckoId) return 180 + rankBonus(entry.rank);
     return 850 + rankBonus(entry.rank);
   }
 
@@ -77,12 +79,15 @@ export function searchTopCoinsIndex(
   entries: TopCoinSearchEntry[],
   query: string,
   limit = 12,
+  majorHint?: MajorCatalogEntry | null,
 ): TopCoinSearchEntry[] {
   const q = query.trim();
   if (!q) return [];
 
+  const major = majorHint === undefined ? resolveMajorSync(q) : majorHint;
+
   const scored = entries
-    .map((entry) => ({ entry, score: scoreEntry(entry, q) }))
+    .map((entry) => ({ entry, score: scoreEntry(entry, q, major) }))
     .filter((row) => row.score >= 0)
     .sort((a, b) => b.score - a.score || a.entry.rank - b.entry.rank);
 
@@ -100,14 +105,15 @@ export function searchTopCoinsIndex(
 export function pickBestTopCoinMatch(
   entries: TopCoinSearchEntry[],
   query: string,
+  majorHint?: MajorCatalogEntry | null,
 ): TopCoinSearchEntry | null {
-  const major = resolveMajorAlias(query);
-  if (major) {
-    const hit = entries.find((e) => e.id === major.id);
+  const major = majorHint === undefined ? resolveMajorSync(query) : majorHint;
+  if (major?.geckoId) {
+    const hit = entries.find((e) => e.id === major.geckoId);
     if (hit) return hit;
   }
 
-  const hits = searchTopCoinsIndex(entries, query, 20);
+  const hits = searchTopCoinsIndex(entries, query, 20, major);
   if (hits.length === 0) return null;
 
   const q = query.trim().toLowerCase();

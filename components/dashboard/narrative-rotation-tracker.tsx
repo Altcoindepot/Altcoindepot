@@ -129,9 +129,9 @@ export function NarrativeRotationTracker({
                 href={`/narrative/${n.slug}`}
                 className={`absolute z-20 flex w-[4.25rem] -translate-x-1/2 -translate-y-1/2 flex-col items-center rounded-2xl border bg-[#0a0a0a]/95 px-1.5 py-1.5 text-center shadow-[0_0_14px_var(--node-glow)] transition-transform duration-200 hover:z-30 hover:scale-105 xl:w-[4.75rem] ${
                   leading
-                    ? "ring-1 ring-emerald-400/50"
+                    ? "scale-105 ring-2 ring-emerald-400/60"
                     : fading
-                      ? "opacity-90 ring-1 ring-rose-400/45"
+                      ? "opacity-75 grayscale-[0.25] ring-1 ring-rose-400/50"
                       : ""
                 }`}
                 style={
@@ -139,14 +139,14 @@ export function NarrativeRotationTracker({
                     left: `${x}%`,
                     top: `${y}%`,
                     borderColor: leading
-                      ? "rgba(52,211,153,0.55)"
+                      ? "rgba(52,211,153,0.7)"
                       : fading
-                        ? "rgba(251,113,133,0.5)"
+                        ? "rgba(251,113,133,0.55)"
                         : `${n.color}55`,
                     "--node-glow": leading
-                      ? "rgba(52,211,153,0.35)"
+                      ? "rgba(52,211,153,0.45)"
                       : fading
-                        ? "rgba(251,113,133,0.22)"
+                        ? "rgba(251,113,133,0.18)"
                         : `${n.color}28`,
                   } as CSSProperties
                 }

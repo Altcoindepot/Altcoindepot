@@ -91,7 +91,7 @@ export function DexScreenerChart({
   }
 
   return (
-    <div className="relative h-[28rem] w-full bg-[#0c0e14] sm:h-[32rem]">
+    <div className="relative h-[22rem] w-full bg-[#0c0e14] sm:h-[32rem]">
       {phase === "loading" ? (
         <div
           className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-[#0c0e14]"

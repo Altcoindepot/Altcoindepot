@@ -1,7 +1,7 @@
 import { ds } from "@/lib/ui-classes";
 import { InfoTooltip } from "@/components/info-tooltip";
 
-/** Thin sticky regime line under the floating header capsule. */
+/** One-line sticky regime — phone fold budget, not three widgets. */
 export function StickyRegimeBar({
   regimeLabel,
   cycleDay,
@@ -12,36 +12,29 @@ export function StickyRegimeBar({
   cycleProgressPct: number;
 }) {
   return (
-    <div className="sticky top-[4.35rem] z-40 px-3 pb-1 pt-1 sm:top-[4.85rem] sm:px-4">
-      <div className="glass-card mx-auto flex max-w-[90rem] flex-wrap items-center gap-2 px-3 py-1.5 sm:gap-4 sm:px-4 sm:py-2">
-        <span
-          className={`${ds.badge} inline-flex items-center border-teal-400/45 bg-teal-500/10 text-[10px] font-semibold uppercase tracking-wide text-teal-200 sm:text-[11px]`}
+    <div className="sticky top-[3.65rem] z-40 px-3 pb-0 pt-0.5 sm:top-[4.85rem] sm:px-4 sm:pt-1">
+      <div className="chrome-glass mx-auto flex max-w-[90rem] items-center gap-2 px-2.5 py-1 sm:gap-3 sm:px-4 sm:py-1.5">
+        <InfoTooltip
+          label="About Market Regime"
+          text="Tracks whether capital is flowing heavily into a single sector or rotating rapidly across multiple narratives."
         >
-          <InfoTooltip
-            label="About Market Regime"
-            text="Tracks whether capital is flowing heavily into a single sector or rotating rapidly across multiple narratives."
+          <span
+            className={`${ds.badge} max-w-[42%] shrink truncate border-teal-400/45 bg-teal-500/10 text-[9px] font-semibold uppercase tracking-wide text-teal-200 sm:max-w-none sm:text-[10px]`}
           >
-            <span>Market Regime: {regimeLabel}</span>
-          </InfoTooltip>
-        </span>
-        <div className="flex min-w-0 flex-1 items-center gap-2 sm:max-w-xs sm:gap-3">
-          <span className="inline-flex shrink-0 items-center whitespace-nowrap text-[9px] font-semibold uppercase tracking-wider text-zinc-500 sm:text-[10px]">
-            <InfoTooltip
-              label="About Cycle Progress"
-              text="Measures how far along the current capital deployment phase is before a potential market correction."
-            >
-              <span>
-                Cycle · Day {cycleDay}
-              </span>
-            </InfoTooltip>
+            {regimeLabel}
           </span>
-          <div className="h-1 flex-1 overflow-hidden rounded-full bg-zinc-800/80 sm:h-1.5">
+        </InfoTooltip>
+        <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-2">
+          <span className="sr-only">
+            Cycle day {cycleDay}, {cycleProgressPct}%
+          </span>
+          <div className="h-1 min-w-0 flex-1 overflow-hidden rounded-full bg-zinc-800/90">
             <div
               className="h-full rounded-full bg-gradient-to-r from-teal-500 to-teal-300"
               style={{ width: `${Math.min(100, Math.max(0, cycleProgressPct))}%` }}
             />
           </div>
-          <span className="font-mono text-[10px] tabular-nums text-teal-200/90">
+          <span className="shrink-0 font-mono text-[10px] tabular-nums text-teal-200/90 sm:text-[11px]">
             {cycleProgressPct}%
           </span>
         </div>

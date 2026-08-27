@@ -43,6 +43,10 @@ function Stat({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
+/**
+ * One token-page skeleton for every asset:
+ * Dex price → Chart (Dex→GT) → Contract → Gecko stats or badge.
+ */
 export function DexTokenView({
   token,
   trades = [],
@@ -52,7 +56,6 @@ export function DexTokenView({
   token: DexTokenPageData;
   trades?: DexTrade[];
   geckoStats?: GeckoCoinStats | null;
-  /** Unique SEO H1 — falls back to token name. */
   pageH1?: string;
 }) {
   const chainLabel = formatChainLabel(token.chain);
@@ -83,75 +86,66 @@ export function DexTokenView({
         {symbol}
       </p>
 
-      <div className="mt-4 flex flex-wrap items-start gap-4">
-        {token.image ? (
-          <Image
-            src={token.image}
-            alt=""
-            width={56}
-            height={56}
-            className="rounded-full"
-          />
-        ) : (
-          <span className="size-14 rounded-full bg-zinc-800" />
-        )}
-        <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">
-            {pageH1 ?? token.name}
-          </h1>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <span className="font-mono text-sm uppercase text-zinc-400">{symbol}</span>
-            <span className={`${ds.badgeInfo}`}>{chainLabel}</span>
-            <DexVenueBadge dexId={token.dexId} dexLabel={token.dexLabel} />
-            {notOnGecko ? (
-              <span className={ds.badgeWarn}>Not on CoinGecko yet</span>
-            ) : null}
+      {/* 1) Dex price header — same pair as chart */}
+      <header className="chrome-glass mt-4 p-4 sm:p-5">
+        <div className="flex flex-wrap items-start gap-4">
+          {token.image ? (
+            <Image
+              src={token.image}
+              alt=""
+              width={56}
+              height={56}
+              className="rounded-full ring-1 ring-teal-400/25"
+            />
+          ) : (
+            <span className="flex size-14 items-center justify-center rounded-full bg-zinc-800 font-mono text-lg font-bold text-zinc-300 ring-1 ring-teal-400/20">
+              {symbol.slice(0, 1)}
+            </span>
+          )}
+          <div className="min-w-0 flex-1">
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">
+              {pageH1 ?? token.name}
+            </h1>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <span className="font-mono text-sm uppercase text-zinc-300">{symbol}</span>
+              <span className={ds.badgeInfo}>{chainLabel}</span>
+              <DexVenueBadge dexId={token.dexId} dexLabel={token.dexLabel} />
+              {notOnGecko ? (
+                <span className={ds.badgeWarn}>Not on CoinGecko yet</span>
+              ) : null}
+            </div>
+            <p className="mt-1 text-sm text-zinc-500">{token.name}</p>
           </div>
-          <p className="mt-1 text-sm text-zinc-500">{token.name}</p>
+          <div className="text-right">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+              Dex price
+            </p>
+            <p className="font-mono text-2xl font-semibold tabular-nums text-zinc-50">
+              {formatUsdPrice(token.priceUsd)}
+            </p>
+            <p
+              className={`mt-1 inline-flex items-center rounded-md px-1.5 py-0.5 font-mono text-sm font-semibold tabular-nums ${
+                changePositive
+                  ? "bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400/25"
+                  : "bg-red-500/15 text-red-300 ring-1 ring-red-400/25"
+              }`}
+            >
+              {formatPct(token.change24h)}
+              <span className="ml-1 text-[9px] uppercase text-zinc-500">24h</span>
+            </p>
+          </div>
         </div>
-        <div className="text-right">
-          <p className="font-mono text-2xl font-semibold tabular-nums text-zinc-50">
-            {formatUsdPrice(token.priceUsd)}
-          </p>
-          <p
-            className={`mt-1 font-mono text-sm font-semibold tabular-nums ${
-              changePositive ? "text-emerald-300" : "text-red-300"
-            }`}
-          >
-            {formatPct(token.change24h)} <span className="text-[10px] uppercase text-zinc-500">24h</span>
-          </p>
+
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <Stat label="Volume">{formatCompactUsd(token.volume)}</Stat>
+          <Stat label="Liquidity">{formatCompactUsd(token.liquidity)}</Stat>
+          <Stat label="Market cap">{formatCompactUsd(token.marketCap)}</Stat>
+          <Stat label="Pair age">{token.pairAgeLabel}</Stat>
         </div>
-      </div>
+      </header>
 
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label="Volume">{formatCompactUsd(token.volume)}</Stat>
-        <Stat label="Liquidity">{formatCompactUsd(token.liquidity)}</Stat>
-        <Stat label="Market cap">{formatCompactUsd(token.marketCap)}</Stat>
-        <Stat label="Pair age">{token.pairAgeLabel}</Stat>
-      </div>
-
-      {token.projectLinks && token.projectLinks.length > 0 ? (
-        <div className={`${ds.panel} mt-6`}>
-          <DexProjectLinks links={token.projectLinks} />
-        </div>
-      ) : null}
-
-      <div className={`${ds.panel} mt-6`}>
-        <p className={ds.label}>Contract</p>
-        <div className="mt-2">
-          <CopyAddressButton address={token.address} />
-        </div>
-        <p className="mt-2 text-[11px] leading-relaxed text-amber-100/80">
-          {DATA_RESPONSIBILITY_DISCLAIMER}{" "}
-          <Link href="/disclaimer" className="font-semibold text-amber-50 underline-offset-2 hover:underline">
-            Full disclaimer →
-          </Link>
-        </p>
-      </div>
-
-      <TokenGeckoStatsPanel stats={geckoStats} />
-
-      <section className={`${ds.panelLg} mt-6 !p-0 overflow-hidden`} aria-labelledby="dex-chart-heading">
+      {/* 2) Chart: DexScreener → GeckoTerminal → unavailable */}
+      <section className={`${ds.panelLg} mt-5 !p-0 overflow-hidden`} aria-labelledby="dex-chart-heading">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 px-4 py-3 sm:px-5">
           <h2 id="dex-chart-heading" className="text-sm font-semibold text-zinc-100">
             Chart
@@ -175,30 +169,36 @@ export function DexTokenView({
         />
       </section>
 
+      {/* 3) Contract + disclaimer */}
+      <div className={`${ds.panel} mt-5`}>
+        <p className={ds.label}>Contract</p>
+        <div className="mt-2">
+          <CopyAddressButton address={token.address} />
+        </div>
+        <p className="mt-2 text-[11px] leading-relaxed text-amber-100/80">
+          {DATA_RESPONSIBILITY_DISCLAIMER}{" "}
+          <Link href="/disclaimer" className="font-semibold text-amber-50 underline-offset-2 hover:underline">
+            Full disclaimer →
+          </Link>
+        </p>
+      </div>
+
+      {/* 4) Gecko static stats OR already badged above */}
+      <TokenGeckoStatsPanel stats={geckoStats} />
+
+      {token.projectLinks && token.projectLinks.length > 0 ? (
+        <div className={`${ds.panel} mt-5`}>
+          <DexProjectLinks links={token.projectLinks} />
+        </div>
+      ) : null}
+
       <DexRecentTrades trades={trades} pairUrl={token.pairUrl} />
 
       <p className="mt-6 rounded-xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-sm leading-relaxed text-amber-100/90">
-        High-risk DEX token. New and low-cap pairs can be illiquid or fraudulent. Prices and pair
-        data may be delayed or incorrect. It is your responsibility to verify the contract address
-        before any decision. This page is informational only and is not financial advice.
+        Verify the contract and pair before any decision. DEX data can be wrong. Not financial advice.
       </p>
-      <DisclaimerNote className="mt-2">Informational only · not financial advice</DisclaimerNote>
 
-      <div className="mt-6 flex flex-wrap gap-3">
-        <Link href="/new-low-caps" className={ds.btnPrimary}>
-          ← New &amp; Low Caps
-        </Link>
-        {token.pairUrl ? (
-          <a
-            href={token.pairUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={ds.btnSecondary}
-          >
-            View on DexScreener
-          </a>
-        ) : null}
-      </div>
+      <DisclaimerNote className="mt-4 text-[11px]" />
     </div>
   );
 }

@@ -42,8 +42,8 @@ export function NarrativeRotationSection({
 
   return (
     <div>
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[11px] text-zinc-500">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2 sm:mb-3">
+        <p className="hidden text-[11px] text-zinc-500 sm:block">
           <span className="font-medium text-teal-300/90">{regimeLabel}</span>
           <span className="text-zinc-600"> · </span>
           Day {cycleDay}/28 · pick a window
@@ -51,7 +51,7 @@ export function NarrativeRotationSection({
         <div
           role="tablist"
           aria-label="Narrative rotation timeframe"
-          className="inline-flex rounded-lg border border-white/10 bg-[#0c0e14]/80 p-0.5"
+          className="inline-flex rounded-lg border border-white/10 bg-[#0c0e14] p-0.5"
         >
           {ROTATION_WINDOWS.map((w) => {
             const active = window === w.id;
@@ -92,7 +92,7 @@ export function NarrativeRotationSection({
         <TrendingAssetsToday
           rows={trendingAssets}
           watchlistOnly={watchlistOnly}
-          className="lg:col-start-2 lg:row-span-1 lg:row-start-1 lg:h-full lg:min-h-0"
+          className="hidden md:block lg:col-start-2 lg:row-span-1 lg:row-start-1 lg:h-full lg:min-h-0"
         />
         <TopRotations
           narratives={top}

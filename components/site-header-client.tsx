@@ -135,7 +135,7 @@ export function SiteHeaderClient({ fetchedAt }: { fetchedAt?: number | null }) {
             </svg>
           </button>
 
-          <BrandHomeLink className="shrink-0" showTagline />
+          <BrandHomeLink className="shrink-0" showTagline={false} />
 
           {/* Desktop icon + label nav */}
           <nav

@@ -79,7 +79,7 @@ export function HomeNewsFeed({
   return (
     <section
       aria-labelledby="home-news-heading"
-      className="ds-panel p-4 sm:p-5"
+      className="ds-panel p-3 sm:p-4 sm:p-5"
     >
       <div className="flex items-center justify-between gap-3">
         <SectionHeading id="home-news-heading" className="text-lg sm:text-xl">
@@ -107,7 +107,7 @@ export function HomeNewsFeed({
                   href={item.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="glass-card block px-3 py-2.5 transition-[border-color,box-shadow] hover:border-teal-400/35 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400/50 active:bg-white/[0.04] sm:px-3.5 sm:py-3"
+                  className="block rounded-xl border border-teal-400/20 bg-[#0c0e14] px-3 py-2.5 transition-[border-color] active:bg-white/[0.04] sm:glass-card sm:px-3.5 sm:py-3 hover:border-teal-400/35 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400/50"
                 >
                   <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <span className="inline-flex max-w-[70%] truncate rounded-full border border-teal-400/20 bg-teal-500/10 px-2 py-px text-[9px] font-semibold uppercase tracking-wider text-teal-200/90">

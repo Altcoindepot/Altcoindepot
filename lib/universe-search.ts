@@ -1,6 +1,6 @@
 /**
  * Hybrid universe search: cached ~7k Gecko index + Dex for contracts/prices.
- * Majors alias map forces BTC/ETH/INJ/… to rank first with USDT preferred.
+ * Majors identity = Coinbase+Binance catalog (12h). Forces BTC/ETH/INJ first with USDT Dex.
  * Never calls Gecko per keystroke; never uses Gecko as live ticker.
  */
 
@@ -21,10 +21,12 @@ import { getCoinDexLive, overlayDexPricesForPlatforms, type CoinDexLive } from "
 import { formatChainLabel } from "@/lib/format-chain";
 import type { UniverseSearchHit } from "@/lib/universe-search-types";
 import {
+  getMajorsCatalog,
+  isKnownFamilyContract,
   majorFamilySymbols,
-  resolveMajorAlias,
-  type MajorAlias,
-} from "@/lib/majors-alias-map";
+  resolveMajorSync,
+  type MajorCatalogEntry,
+} from "@/lib/majors-catalog";
 import {
   dexScreenerEmbedUrl,
   geckoTerminalChartEmbedUrl,
@@ -38,6 +40,11 @@ function quoteRank(q: string | null | undefined): number {
   const u = (q ?? "").toUpperCase();
   const i = STABLE_ORDER.indexOf(u);
   return i === -1 ? 99 : i;
+}
+
+/** Pair chip for majors — BTC/USDT (name shown beside Major badge in UI). */
+function majorPairLabel(major: MajorCatalogEntry, quote: string): string {
+  return `${major.symbol}/${quote.toUpperCase()}`;
 }
 
 function entryToHit(
@@ -92,29 +99,50 @@ function dexHitToUniverse(hit: DexSearchHit, tier: UniverseSearchHit["rankTier"]
   };
 }
 
-function synthesizeMajorEntry(major: MajorAlias, indexed: TopCoinSearchEntry | null): TopCoinSearchEntry {
-  if (indexed) return indexed;
+function synthesizeMajorEntry(
+  major: MajorCatalogEntry,
+  indexed: TopCoinSearchEntry | null,
+): TopCoinSearchEntry {
+  if (indexed) {
+    return {
+      ...indexed,
+      name: major.name || indexed.name,
+      symbol: major.symbol,
+    };
+  }
   return {
-    id: major.id,
-    name: major.names[0] ? major.names[0].replace(/\b\w/g, (c) => c.toUpperCase()) : major.symbol,
+    id: major.geckoId ?? major.symbol.toLowerCase(),
+    name: major.name,
     symbol: major.symbol,
     image: "",
     rank: 1,
     current_price: null,
     price_change_percentage_24h: null,
     platforms: major.preferred
-      ? [{ chain: major.preferred.chain, address: major.preferred.address, geckoPlatform: major.preferred.chain }]
+      ? [
+          {
+            chain: major.preferred.chain,
+            address: major.preferred.address,
+            geckoPlatform: major.preferred.chain,
+          },
+        ]
       : [],
   };
 }
 
 async function resolveMajorDexLive(
-  major: MajorAlias,
+  major: MajorCatalogEntry,
   entry: TopCoinSearchEntry,
 ): Promise<CoinDexLive | null> {
   const platforms = [
     ...(major.preferred
-      ? [{ chain: major.preferred.chain, address: major.preferred.address, geckoPlatform: major.preferred.chain }]
+      ? [
+          {
+            chain: major.preferred.chain,
+            address: major.preferred.address,
+            geckoPlatform: major.preferred.chain,
+          },
+        ]
       : []),
     ...(entry.platforms ?? []),
   ];
@@ -123,12 +151,29 @@ async function resolveMajorDexLive(
     if (live) return live;
   }
 
-  // Dex symbol search — keep only exact / family base symbols, prefer USDT
+  // Dex symbol search — family symbols only; known contracts + name affinity beat memes
   const family = majorFamilySymbols(major);
+  const majorName = major.name.toLowerCase();
   const dexHits = await searchDexPairs(major.symbol, 24);
   const exact = dexHits
     .filter((h) => family.has(h.symbol.toUpperCase()))
     .sort((a, b) => {
+      const knownA = isKnownFamilyContract(major, a.address) ? 0 : 1;
+      const knownB = isKnownFamilyContract(major, b.address) ? 0 : 1;
+      if (knownA !== knownB) return knownA - knownB;
+      const nameA = (() => {
+        const n = a.name.toLowerCase();
+        if (n === majorName) return 0;
+        if (n.includes(majorName) || majorName.includes(n)) return 1;
+        return 2;
+      })();
+      const nameB = (() => {
+        const n = b.name.toLowerCase();
+        if (n === majorName) return 0;
+        if (n.includes(majorName) || majorName.includes(n)) return 1;
+        return 2;
+      })();
+      if (nameA !== nameB) return nameA - nameB;
       const qa = quoteRank(a.quoteSymbol);
       const qb = quoteRank(b.quoteSymbol);
       if (qa !== qb) return qa - qb;
@@ -161,8 +206,8 @@ function sortHits(hits: UniverseSearchHit[]): UniverseSearchHit[] {
     const ta = tierOrder[a.rankTier ?? "other"];
     const tb = tierOrder[b.rankTier ?? "other"];
     if (ta !== tb) return ta - tb;
-    const qa = quoteRank(a.pairLabel?.split("/")[1]);
-    const qb = quoteRank(b.pairLabel?.split("/")[1]);
+    const qa = quoteRank(a.pairLabel?.split("/").pop());
+    const qb = quoteRank(b.pairLabel?.split("/").pop());
     if (qa !== qb) return qa - qb;
     return 0;
   });
@@ -173,10 +218,13 @@ export async function searchUniverse(query: string, limit = 10): Promise<Univers
   if (!q) return [];
   const capped = Math.min(12, Math.max(1, Math.floor(limit)));
 
+  // Warm majors catalog once per request (cached 12h — not per keystroke upstream).
+  await getMajorsCatalog();
+
   // Contract → address path (no majors boost)
   if (looksLikeContractQuery(q)) {
     const index = await getTopCoinsSearchIndex();
-    const indexed = pickBestTopCoinMatch(index, q);
+    const indexed = pickBestTopCoinMatch(index, q, null);
     if (indexed && (indexed.platforms ?? []).some((p) => p.address.toLowerCase() === q.toLowerCase())) {
       const prices = await overlayDexPricesForPlatforms([
         { id: indexed.id, platforms: indexed.platforms ?? [] },
@@ -188,15 +236,16 @@ export async function searchUniverse(query: string, limit = 10): Promise<Univers
     return dexHits.map((hit) => dexHitToUniverse(hit, "other"));
   }
 
-  const major = resolveMajorAlias(q);
+  const major = resolveMajorSync(q);
   const index = await getTopCoinsSearchIndex();
 
   if (major) {
-    const indexed = index.find((e) => e.id === major.id) ?? null;
+    const indexed =
+      (major.geckoId ? index.find((e) => e.id === major.geckoId) : null) ?? null;
     const entry = synthesizeMajorEntry(major, indexed);
     const dexLive = await resolveMajorDexLive(major, entry);
     const quote = (dexLive?.quoteSymbol || "USDT").toUpperCase();
-    const pairLabel = `${major.symbol}/${quote}`;
+    const pairLabel = majorPairLabel(major, quote);
     const tier: UniverseSearchHit["rankTier"] =
       quoteRank(quote) <= 2 ? "major_usdt" : "major_other";
 
@@ -208,21 +257,46 @@ export async function searchUniverse(query: string, limit = 10): Promise<Univers
       address: dexLive?.address ?? major.preferred?.address ?? null,
       tier,
     });
+    // Keep href on /coin/[geckoId] when we have one
+    if (major.geckoId) {
+      canonical.id = major.geckoId;
+      canonical.href = `/coin/${encodeURIComponent(major.geckoId)}`;
+    }
 
     const family = majorFamilySymbols(major);
-    const restEntries = searchTopCoinsIndex(index, q, capped + 8).filter((e) => e.id !== major.id);
+    const restEntries = searchTopCoinsIndex(index, q, capped + 8, major).filter(
+      (e) => e.id !== major.geckoId,
+    );
 
-    // Other pairs of the same major family from Dex (WBTC etc.)
+    // Other pairs of the same asset (known wrapped contracts only) — not random "BTC" memes
     let familyDex: UniverseSearchHit[] = [];
     try {
       const dexHits = await searchDexPairs(major.symbol, 16);
       familyDex = dexHits
         .filter((h) => family.has(h.symbol.toUpperCase()))
+        .filter((h) => isKnownFamilyContract(major, h.address))
         .filter((h) => h.address.toLowerCase() !== (canonical.address ?? "").toLowerCase())
         .slice(0, 3)
-        .map((h) => dexHitToUniverse(h, "major_other"));
+        .map((h) => {
+          const hit = dexHitToUniverse(h, "major_other");
+          hit.pairLabel = `${h.symbol.toUpperCase()}/${h.quoteSymbol || "USDT"}`;
+          return hit;
+        });
     } catch {
       familyDex = [];
+    }
+
+    // Dex leftovers / copycats — AFTER major (tier other)
+    let dexLeftovers: UniverseSearchHit[] = [];
+    try {
+      const dexHits = await searchDexPairs(q, 12);
+      dexLeftovers = dexHits
+        .filter((h) => h.address.toLowerCase() !== (canonical.address ?? "").toLowerCase())
+        .filter((h) => !isKnownFamilyContract(major, h.address))
+        .slice(0, 6)
+        .map((h) => dexHitToUniverse(h, "other"));
+    } catch {
+      dexLeftovers = [];
     }
 
     const restPrices = await overlayDexPricesForPlatforms(
@@ -232,7 +306,7 @@ export async function searchUniverse(query: string, limit = 10): Promise<Univers
       entryToHit(e, { priceUsd: restPrices.get(e.id) ?? null, tier: "other" }),
     );
 
-    const merged = sortHits([canonical, ...familyDex, ...restHits]);
+    const merged = sortHits([canonical, ...familyDex, ...restHits, ...dexLeftovers]);
     const seen = new Set<string>();
     const out: UniverseSearchHit[] = [];
     for (const hit of merged) {
@@ -243,12 +317,14 @@ export async function searchUniverse(query: string, limit = 10): Promise<Univers
       if (out.length >= capped) break;
     }
     // Guarantee canonical is first
-    const without = out.filter((h) => !(h.kind === "coin" && h.id === major.id));
+    const without = out.filter(
+      (h) => !(h.kind === "coin" && major.geckoId && h.id === major.geckoId),
+    );
     return [canonical, ...without].slice(0, capped);
   }
 
   // Non-major ticker/name
-  const entries = searchTopCoinsIndex(index, q, capped);
+  const entries = searchTopCoinsIndex(index, q, capped, null);
   if (entries.length === 0) {
     const dexHits = await searchDexPairs(q, capped);
     return dexHits.map((hit) => dexHitToUniverse(hit, "other"));
