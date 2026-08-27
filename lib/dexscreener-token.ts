@@ -329,7 +329,7 @@ export function dexScreenerEmbedUrl(
   return null;
 }
 
-/** GeckoTerminal pool chart embed (preferred over DexScreener for token pages). */
+/** GeckoTerminal pool chart embed — fallback when DexScreener embed fails. */
 export function geckoTerminalChartEmbedUrl(
   chain: string | undefined,
   pairAddress: string | null | undefined,

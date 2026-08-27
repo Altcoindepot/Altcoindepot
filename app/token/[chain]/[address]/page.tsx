@@ -6,6 +6,7 @@ import { formatChainLabel } from "@/lib/format-chain";
 import { getDexScreenerTokenPage } from "@/lib/dexscreener-token";
 import { getGeckoCoinStats } from "@/lib/gecko-coin-stats";
 import { getGeckoTerminalTrades, type DexTrade } from "@/lib/geckoterminal-trades";
+import { buildTokenSeoCopy } from "@/lib/token-seo";
 
 type Props = { params: Promise<{ chain: string; address: string }> };
 
@@ -22,32 +23,40 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         robots: { index: false, follow: true },
       };
     }
-    const symbol = token.symbol.toUpperCase();
-    const chainLabel = formatChainLabel(token.chain);
-    const title = `${token.name} (${symbol}) – Low Cap Token | AltCoin Depot`;
-    const description = `Live DEX pair page for ${token.name} (${symbol}) on ${chainLabel}. Liquidity, volume, and 24h change from DexScreener. Informational only — not financial advice.`;
+
+    const geckoStats = await getGeckoCoinStats({
+      chain: token.chain,
+      address: token.address,
+    }).catch(() => null);
+
+    const seo = buildTokenSeoCopy({
+      name: token.name,
+      symbol: token.symbol,
+      chainLabel: formatChainLabel(token.chain),
+      listedOnGecko: Boolean(geckoStats),
+    });
     const path = `/token/${encodeURIComponent(token.chain)}/${encodeURIComponent(token.address)}`;
     return {
-      title: { absolute: title },
-      description,
+      title: { absolute: seo.title },
+      description: seo.description,
       alternates: { canonical: path },
-      robots: { index: token.inLowCapsList, follow: true },
+      robots: { index: token.inLowCapsList || Boolean(geckoStats), follow: true },
       openGraph: {
-        title,
-        description,
+        title: seo.title,
+        description: seo.description,
         url: `https://altcoindepot.com${path}`,
         siteName: "AltCoin Depot",
         type: "website",
       },
       twitter: {
         card: "summary_large_image",
-        title,
-        description,
+        title: seo.title,
+        description: seo.description,
       },
     };
   } catch {
     return {
-      title: { absolute: "Low cap token | AltCoin Depot" },
+      title: { absolute: "Live Dex token | AltCoin Depot" },
       description: "Live DEX pair page on AltCoin Depot. Informational only — not financial advice.",
       robots: { index: false, follow: true },
     };
@@ -76,11 +85,23 @@ export default async function DexTokenPage({ params }: Props) {
     }),
   ]);
 
+  const seo = buildTokenSeoCopy({
+    name: token.name,
+    symbol: token.symbol,
+    chainLabel: formatChainLabel(token.chain),
+    listedOnGecko: Boolean(geckoStats),
+  });
+
   return (
     <>
       <SiteHeader />
       <main id="main-content" className="border-b border-white/10 bg-[#0a0a0a] px-4 py-8 sm:px-6">
-        <DexTokenView token={token} trades={trades} geckoStats={geckoStats} />
+        <DexTokenView
+          token={token}
+          trades={trades}
+          geckoStats={geckoStats}
+          pageH1={seo.h1}
+        />
       </main>
     </>
   );

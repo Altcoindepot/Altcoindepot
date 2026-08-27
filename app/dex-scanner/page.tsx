@@ -8,10 +8,9 @@ import { DexRiskFootnote } from "@/components/dex-risk-footnote";
 import { DexScreenerFetchError } from "@/lib/dexscreener-live-pairs";
 import { getDexScannerRows, type DexScannerRow } from "@/lib/dex-scanner-data";
 
-const TITLE =
-  "DEX Scanner – Advanced Pair Filters by Chain, Liquidity, Volume, Mcap | AltCoin Depot";
+const TITLE = "Dex scanner – chain, liq, vol, mcap filters | AltCoin Depot";
 const DESCRIPTION =
-  "Advanced DexScreener pair scanner with chain, liquidity, volume, market cap, and search filters. No age gate. High risk — informational only, not financial advice.";
+  "Dex scanner with chain, liquidity, volume, and market-cap filters. No age gate. High risk — informational only, not financial advice.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -67,10 +66,10 @@ export default async function DexScannerPage() {
             DEX Scanner
           </p>
           <h1 className="mt-2 text-xl font-bold tracking-tight text-zinc-50 sm:text-2xl md:text-3xl">
-            DEX Scanner
+            Dex scanner
           </h1>
           <p className="mt-1 max-w-2xl text-xs leading-relaxed text-zinc-500 sm:text-sm">
-            Advanced filters · all chains · no age gate · high risk · browse any mapped pair
+            Chain · liquidity · volume · mcap filters · no age gate · high risk
           </p>
 
           <DexRiskFootnote className="mt-4" />

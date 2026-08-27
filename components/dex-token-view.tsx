@@ -10,7 +10,10 @@ import { DexVenueBadge } from "@/components/dex-venue-badge";
 import { RecordTokenView } from "@/components/record-token-view";
 import { TokenGeckoStatsPanel } from "@/components/token-gecko-stats";
 import type { DexTokenPageData } from "@/lib/dexscreener-token";
-import { geckoTerminalChartEmbedUrl } from "@/lib/dexscreener-token";
+import {
+  dexScreenerEmbedUrl,
+  geckoTerminalChartEmbedUrl,
+} from "@/lib/dexscreener-token";
 import type { GeckoCoinStats } from "@/lib/gecko-coin-stats";
 import type { DexTrade } from "@/lib/geckoterminal-trades";
 import { DATA_RESPONSIBILITY_DISCLAIMER } from "@/lib/data-responsibility";
@@ -44,15 +47,20 @@ export function DexTokenView({
   token,
   trades = [],
   geckoStats = null,
+  pageH1,
 }: {
   token: DexTokenPageData;
   trades?: DexTrade[];
   geckoStats?: GeckoCoinStats | null;
+  /** Unique SEO H1 — falls back to token name. */
+  pageH1?: string;
 }) {
   const chainLabel = formatChainLabel(token.chain);
   const symbol = token.symbol.toUpperCase();
-  const embed = geckoTerminalChartEmbedUrl(token.chain, token.pairAddress);
+  const dexEmbed = dexScreenerEmbedUrl(token.pairUrl, token.chain, token.pairAddress);
+  const gtEmbed = geckoTerminalChartEmbedUrl(token.chain, token.pairAddress);
   const changePositive = (token.change24h ?? 0) >= 0;
+  const notOnGecko = !geckoStats;
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -89,13 +97,17 @@ export function DexTokenView({
         )}
         <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">
-            {token.name}
+            {pageH1 ?? token.name}
           </h1>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <span className="font-mono text-sm uppercase text-zinc-400">{symbol}</span>
             <span className={`${ds.badgeInfo}`}>{chainLabel}</span>
             <DexVenueBadge dexId={token.dexId} dexLabel={token.dexLabel} />
+            {notOnGecko ? (
+              <span className={ds.badgeWarn}>Not on CoinGecko yet</span>
+            ) : null}
           </div>
+          <p className="mt-1 text-sm text-zinc-500">{token.name}</p>
         </div>
         <div className="text-right">
           <p className="font-mono text-2xl font-semibold tabular-nums text-zinc-50">
@@ -156,7 +168,8 @@ export function DexTokenView({
           ) : null}
         </div>
         <DexScreenerChart
-          embedUrl={embed}
+          dexEmbedUrl={dexEmbed}
+          geckoTerminalEmbedUrl={gtEmbed}
           pairUrl={token.pairUrl}
           title={`${token.name} chart`}
         />

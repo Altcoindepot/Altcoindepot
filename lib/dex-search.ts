@@ -59,6 +59,7 @@ export type DexSearchHit = {
   imageUrl: string | null;
   href: string;
   pairUrl: string | null;
+  pairAddress: string | null;
 };
 
 type DexPair = {
@@ -162,6 +163,7 @@ function mapHit(pair: DexPair, preferAddress?: string): DexSearchHit | null {
     imageUrl: typeof pair.info?.imageUrl === "string" ? pair.info.imageUrl : null,
     href,
     pairUrl: typeof pair.url === "string" && pair.url.startsWith("http") ? pair.url : null,
+    pairAddress: typeof pair.pairAddress === "string" ? pair.pairAddress.trim() : null,
   };
 }
 

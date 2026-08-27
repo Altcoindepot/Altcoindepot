@@ -12,9 +12,9 @@ import {
 } from "@/lib/dexscreener-just-launched";
 import { isJustLaunchedAge } from "@/lib/pair-age-split";
 
-const TITLE = "Just Launched Crypto Tokens – New DEX Pairs | AltCoin Depot";
+const TITLE = "New Dex launches (0–15 min) | AltCoin Depot";
 const DESCRIPTION =
-  "See just launched crypto tokens and new DEX pairs under 15 minutes old. Track price, liquidity, volume, age, and contract addresses from live DexScreener data. Extremely high risk — informational only, not financial advice.";
+  "New Dex launches under 15 minutes old. Live price, liquidity, volume, and contracts from DexScreener. Extremely high risk — informational only, not financial advice.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -64,7 +64,7 @@ export default async function JustLaunchedPage() {
             Just Launched
           </p>
           <h1 className="mt-2 text-xl font-bold tracking-tight text-zinc-50 sm:text-2xl">
-            Just Launched
+            New Dex launches (0–15 min)
           </h1>
           <p className="mt-1 max-w-2xl text-xs leading-relaxed text-zinc-500 sm:text-sm">
             Pair age 0–15 minutes · live price, liq, vol · high risk · not financial advice

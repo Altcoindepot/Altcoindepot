@@ -12,4 +12,8 @@ export type UniverseSearchHit = {
   priceUsd: number | null;
   imageUrl: string | null;
   href: string;
+  /** e.g. BTC/USDT when a preferred Dex pair is known */
+  pairLabel?: string | null;
+  /** Ranking bucket for majors-first sort */
+  rankTier?: "major_usdt" | "major_other" | "other";
 };

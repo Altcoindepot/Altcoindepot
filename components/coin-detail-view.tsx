@@ -9,7 +9,6 @@ import { CoinNewsFeed } from "@/components/coin-news-feed";
 import { CoinYoutubeFeed } from "@/components/coin-youtube-feed";
 import { CoinXTimelineEmbed } from "@/components/coin-x-timeline-embed";
 import { ReppoStatsSection } from "@/components/reppo-stats-section";
-import { TradingViewChartEmbed } from "@/components/trading-view-chart-embed";
 import { formatShortMonthDay } from "@/lib/format-date";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
 import { CoingeckoLogoAttribution } from "@/components/coingecko-logo-attribution";
@@ -32,62 +31,6 @@ import { truncateContract } from "@/lib/dex-search";
 
 function tradingViewSymbol(symbol: string | undefined) {
   return (symbol ?? "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
-}
-
-function tradingViewCandidates(coinId: string, symbol: string): string[] {
-  const s = tradingViewSymbol(symbol);
-  const fallback = [
-    `BINANCE:${s}USDT`,
-    `BYBIT:${s}USDT`,
-    `COINBASE:${s}USD`,
-    `KRAKEN:${s}USD`,
-    `KUCOIN:${s}USDT`,
-    `GATEIO:${s}USDT`,
-    `MEXC:${s}USDT`,
-  ];
-  const byId: Record<string, string[]> = {
-    bitcoin: ["BINANCE:BTCUSDT", "COINBASE:BTCUSD"],
-    ethereum: ["BINANCE:ETHUSDT", "COINBASE:ETHUSD"],
-    tether: ["CRYPTOCAP:USDT", "BINANCE:USDTUSD"],
-    "usd-coin": ["CRYPTOCAP:USDC", "COINBASE:USDCUSD"],
-    "wrapped-bitcoin": ["COINBASE:BTCUSD", "BINANCE:BTCUSDT"],
-    "staked-ether": ["COINBASE:ETHUSD", "BINANCE:ETHUSDT"],
-    "leo-token": ["BITFINEX:LEOUSD", "BITFINEX:LEOUSDT"],
-    okb: ["OKX:OKBUSDT", "OKX:OKBUSD"],
-    "the-open-network": ["BINANCE:TONUSDT", "BYBIT:TONUSDT"],
-  };
-  return [...new Set([...(byId[coinId] ?? []), ...fallback])];
-}
-
-function tradingViewFromCoinGeckoTickers(
-  tickers: CoinGeckoDetail["tickers"],
-): string[] {
-  if (!Array.isArray(tickers)) return [];
-  const exchangeToTv: Record<string, string> = {
-    binance: "BINANCE",
-    bybit_spot: "BYBIT",
-    bybit: "BYBIT",
-    coinbase_exchange: "COINBASE",
-    kraken: "KRAKEN",
-    bitfinex: "BITFINEX",
-    okx: "OKX",
-    okex: "OKX",
-    kucoin: "KUCOIN",
-    gate: "GATEIO",
-    mexc: "MEXC",
-  };
-  const allowedTargets = new Set(["USDT", "USD", "USDC", "BTC", "ETH"]);
-  const out: string[] = [];
-  for (const t of tickers.slice(0, 80)) {
-    const ex = t.market?.identifier?.toLowerCase() ?? "";
-    const tvEx = exchangeToTv[ex];
-    if (!tvEx) continue;
-    const base = tradingViewSymbol(t.base ?? "");
-    const target = tradingViewSymbol(t.target ?? "");
-    if (!base || !target || !allowedTargets.has(target)) continue;
-    out.push(`${tvEx}:${base}${target}`);
-  }
-  return [...new Set(out)];
 }
 
 function usd(obj: Record<string, number> | undefined): number | null {
@@ -466,12 +409,6 @@ export function CoinDetailView({
     const short = sentences.slice(0, 3).join(" ");
     return short.length > 420 ? `${short.slice(0, 417)}…` : short;
   })();
-  const tickerDerived = tradingViewFromCoinGeckoTickers(coin.tickers);
-  const tvInstruments = [
-    ...tickerDerived,
-    ...tradingViewCandidates(coin.id, coin.symbol),
-  ].filter((v, i, arr) => arr.indexOf(v) === i);
-  const primaryInstrument = tvInstruments[0] ?? "CRYPTOCAP:TOTAL";
   const buyButtons = exchangeButtons(coin);
   const ch24 = pctNum(md?.price_change_percentage_24h);
   const ch7 = pctNum(
@@ -667,9 +604,10 @@ export function CoinDetailView({
             {coin.market_cap_rank != null ? `Rank #${coin.market_cap_rank}` : "Unranked"}
           </p>
           <h1 className="text-brand-altcoindepot mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
-            {coin.name}
+            {(coin.symbol ?? "TOKEN").toString().toUpperCase()} Dex price, contract, ATH &amp; supply
           </h1>
-          <p className="mt-1 font-mono text-base text-zinc-400">
+          <p className="mt-1 text-base text-zinc-300">{coin.name}</p>
+          <p className="mt-0.5 font-mono text-sm text-zinc-500">
             {(coin.symbol ?? "—").toString().toUpperCase()}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -814,19 +752,12 @@ export function CoinDetailView({
               </div>
             ) : null}
 
-            {dexLive?.chartEmbedUrl ? (
-              <DexScreenerChart
-                embedUrl={dexLive.chartEmbedUrl}
-                pairUrl={dexLive.pairUrl}
-                title={`${coin.name} Dex chart`}
-              />
-            ) : (
-              <TradingViewChartEmbed
-                symbol={primaryInstrument}
-                coinName={coin.name}
-                alternateSymbols={tvInstruments.slice(1)}
-              />
-            )}
+            <DexScreenerChart
+              dexEmbedUrl={dexLive?.dexChartEmbedUrl ?? null}
+              geckoTerminalEmbedUrl={dexLive?.geckoTerminalEmbedUrl ?? null}
+              pairUrl={dexLive?.pairUrl ?? null}
+              title={`${coin.name} Dex chart`}
+            />
 
             {(vsBtc7d != null || vsBtc30d != null) && coin.id !== "bitcoin" ? (
               <div className={ds.card}>

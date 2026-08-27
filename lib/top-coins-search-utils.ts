@@ -1,4 +1,5 @@
 import type { CoinPlatformContract } from "@/lib/gecko-platform-map";
+import { resolveMajorAlias } from "@/lib/majors-alias-map";
 
 export type { CoinPlatformContract };
 
@@ -28,6 +29,12 @@ function scoreEntry(entry: TopCoinSearchEntry, query: string): number {
   const id = entry.id.toLowerCase();
   const sym = entry.symbol.toLowerCase();
   const name = entry.name.toLowerCase();
+  const major = resolveMajorAlias(query);
+
+  // Canonical major always dominates — never lose to name-substring memes.
+  if (major && entry.id === major.id) {
+    return 50_000 + rankBonus(entry.rank);
+  }
 
   for (const p of entry.platforms ?? []) {
     const addr = p.address.toLowerCase();
@@ -36,8 +43,27 @@ function scoreEntry(entry: TopCoinSearchEntry, query: string): number {
   }
 
   if (id === q) return 1000 + rankBonus(entry.rank);
-  if (sym === q) return 900 + rankBonus(entry.rank);
-  if (name === q) return 850 + rankBonus(entry.rank);
+  if (sym === q) {
+    // Exact ticker but NOT the mapped major (copycat / clone) — keep below major
+    if (major && entry.id !== major.id) return 200 + rankBonus(entry.rank);
+    return 900 + rankBonus(entry.rank);
+  }
+  if (name === q) {
+    if (major && entry.id !== major.id) return 180 + rankBonus(entry.rank);
+    return 850 + rankBonus(entry.rank);
+  }
+
+  // When query is a known major ticker/name, demote fuzzy / substring noise hard.
+  if (major) {
+    if (sym.startsWith(q) || name.startsWith(q) || id.startsWith(q)) {
+      return 120 + rankBonus(entry.rank);
+    }
+    if (name.includes(q) || sym.includes(q) || id.includes(q)) {
+      return 40 + rankBonus(entry.rank);
+    }
+    return -1;
+  }
+
   if (sym.startsWith(q)) return 700 + rankBonus(entry.rank);
   if (name.startsWith(q)) return 650 + rankBonus(entry.rank);
   if (id.startsWith(q)) return 600 + rankBonus(entry.rank);
@@ -75,6 +101,12 @@ export function pickBestTopCoinMatch(
   entries: TopCoinSearchEntry[],
   query: string,
 ): TopCoinSearchEntry | null {
+  const major = resolveMajorAlias(query);
+  if (major) {
+    const hit = entries.find((e) => e.id === major.id);
+    if (hit) return hit;
+  }
+
   const hits = searchTopCoinsIndex(entries, query, 20);
   if (hits.length === 0) return null;
 

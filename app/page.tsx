@@ -10,9 +10,9 @@ import {
   type ChainMoverRow,
 } from "@/lib/dex-chain-movers";
 
-const TITLE = "AltCoin Depot – Narrative Rotation & DEX Movers";
+const TITLE = "Narrative rotation + live Dex movers | AltCoin Depot";
 const DESCRIPTION =
-  "Track narrative rotation and open Top Gainers & Losers by chain. Just Launched and New & Low Caps live on dedicated scanner pages. Informational only — not financial advice.";
+  "Narrative rotation and live Dex movers. Open Top Gainers & Losers by chain; Just Launched and New & Low Caps on dedicated scanners. Informational only — not financial advice.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },

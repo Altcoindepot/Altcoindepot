@@ -14,9 +14,9 @@ import {
 import { livePairsToLowCapRows } from "@/lib/live-pairs-to-low-cap";
 import type { LowCapRow } from "@/lib/dashboard-data";
 
-const TITLE = "New & Low Cap Crypto Tokens – Live DEX Pairs | AltCoin Depot";
+const TITLE = "Low cap Dex pairs – liquidity, contract, 24h | AltCoin Depot";
 const DESCRIPTION =
-  "Track new and low-cap crypto tokens from live DEX pairs. See price, liquidity, 24h change, volume, and contract addresses. Data from DexScreener. Informational only — not financial advice.";
+  "Low cap Dex pairs with liquidity, contract, and 24h change from DexScreener. Informational only — not financial advice.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -77,10 +77,10 @@ export default async function NewLowCapsPage() {
             New &amp; Low Caps
           </p>
           <h1 className="mt-2 text-xl font-bold tracking-tight text-zinc-50 sm:text-2xl">
-            New &amp; Low Caps
+            Low cap Dex pairs
           </h1>
           <p className="mt-1 max-w-2xl text-xs leading-relaxed text-zinc-500 sm:text-sm">
-            Pair age over 15 minutes · min liquidity · DexScreener · not financial advice
+            Liquidity · contract · 24h · DexScreener · not financial advice
           </p>
 
           <DexRiskFootnote className="mt-4" />

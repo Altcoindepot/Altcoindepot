@@ -5,9 +5,9 @@ import { getSiteNewsCached } from "@/lib/site-news";
 import { formatTimeAgo } from "@/lib/format-date";
 
 export const metadata: Metadata = {
-  title: { absolute: "Crypto News | AltCoin Depot" },
+  title: { absolute: "Crypto news from CoinDesk, The Block, Decrypt | AltCoin Depot" },
   description:
-    "Recent headlines from CoinDesk, The Block, Decrypt, Blockworks, and The Defiant. Informational only — not financial advice.",
+    "Crypto news from CoinDesk, The Block, Decrypt, Blockworks, and The Defiant. Informational only — not financial advice.",
   alternates: { canonical: "/news" },
 };
 
@@ -35,7 +35,7 @@ export default async function NewsPage() {
             News
           </p>
           <h1 className="mt-3 text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">
-            In the News
+            Crypto news from CoinDesk, The Block, Decrypt
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-zinc-400">{news.sourcesLabel}</p>
           {news.stale ? (

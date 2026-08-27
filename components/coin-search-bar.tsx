@@ -226,7 +226,7 @@ export function CoinSearchBar({
                     <span className="min-w-0 flex-1">
                       <span className="flex min-w-0 items-center gap-1.5">
                         <span className="truncate font-mono text-[13px] font-bold uppercase text-zinc-100">
-                          {hit.symbol}
+                          {hit.pairLabel ?? hit.symbol}
                         </span>
                         {hit.chain ? (
                           <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-zinc-500">

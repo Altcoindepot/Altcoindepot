@@ -1,14 +1,14 @@
 import type { MetadataRoute } from "next";
-import { isProductionBuild } from "@/lib/build-phase";
-import { coinGeckoFetch } from "@/lib/coingecko";
 import { PUBLIC_CATEGORIES } from "@/lib/coin-categories";
 import { NARRATIVES } from "@/lib/narratives";
 import { getDexScreenerLowCaps } from "@/lib/dexscreener-low-caps";
+import { getJustLaunchedPairs } from "@/lib/dexscreener-just-launched";
 import { dexTokenPath } from "@/lib/dex-token-path";
+import { isJustLaunchedAge } from "@/lib/pair-age-split";
 
 const SITE = "https://altcoindepot.com";
 
-/** Core static routes (homepage + trending handled separately for priority/frequency). */
+/** Core static routes — not a 7k coin dump. */
 const STATIC_PATHS = [
   "/about",
   "/contact",
@@ -30,6 +30,7 @@ const STATIC_PATHS = [
   "/pairs",
   "/dex-scanner",
   "/new-low-caps",
+  "/just-launched",
   "/market-overview",
   "/compare",
   "/sectors",
@@ -40,10 +41,10 @@ const STATIC_PATHS = [
 ] as const;
 
 /**
- * Offline / rate-limit fallback IDs (same slug shape as `/coin/[id]`).
- * Live sitemap prefers a CoinGecko markets batch (not all ~7k at once).
+ * Seed majors only — full universe is on-demand ISR, not sitemap-at-deploy.
+ * Live Dex inventory (low caps + just launched) fills token URLs as rendered.
  */
-const FALLBACK_TOP_COIN_IDS = [
+const SEED_COIN_IDS = [
   "bitcoin",
   "ethereum",
   "tether",
@@ -51,103 +52,58 @@ const FALLBACK_TOP_COIN_IDS = [
   "binancecoin",
   "solana",
   "usd-coin",
-  "staked-ether",
   "dogecoin",
   "tron",
   "cardano",
   "chainlink",
-  "hyperliquid",
   "sui",
   "avalanche-2",
-  "stellar",
-  "bitcoin-cash",
-  "hedera-hashgraph",
-  "shiba-inu",
   "litecoin",
   "toncoin",
   "polkadot",
   "uniswap",
-  "bitget-token",
-  "pepe",
-  "mantle",
   "aave",
   "near",
-  "internet-computer",
-  "crypto-com-chain",
-  "ethereum-classic",
-  "render-token",
-  "vechain",
-  "polygon-ecosystem-token",
-  "kaspa",
-  "fetch-ai",
   "filecoin",
   "aptos",
-  "algorand",
   "arbitrum",
   "cosmos",
-  "maker",
   "injective-protocol",
   "optimism",
-  "blockstack",
-  "immutable-x",
-  "the-graph",
-  "theta-token",
-  "bonk",
-  "lido-dao",
-  "monero",
-  "fantom",
-  "sei-network",
-  "worldcoin-wld",
-  "floki",
-  "jupiter-exchange-solana",
-  "ondo-finance",
-  "bittensor",
-  "celestia",
-  "pyth-network",
+  "stellar",
+  "bitcoin-cash",
+  "hedera-hashgraph",
+  "shiba-inu",
+  "pepe",
 ] as const;
 
-/** First sitemap batch — grow over time; do not dump all ~7k at once. */
-const SITEMAP_COIN_BATCH = 500;
-
-async function fetchSitemapCoinIds(): Promise<string[]> {
-  if (isProductionBuild()) return [...FALLBACK_TOP_COIN_IDS];
-  try {
-    const ids: string[] = [];
-    const seen = new Set<string>();
-    const pages = Math.ceil(SITEMAP_COIN_BATCH / 250);
-    for (let page = 1; page <= pages; page++) {
-      const res = await coinGeckoFetch(
-        `/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=${page}&sparkline=false`,
-        { next: { revalidate: 86_400 } },
-      );
-      if (!res.ok) break;
-      const data: unknown = await res.json();
-      if (!Array.isArray(data)) break;
-      for (const row of data) {
-        if (!row || typeof row !== "object") continue;
-        const id = (row as { id?: unknown }).id;
-        if (typeof id !== "string" || !id.trim()) continue;
-        const slug = id.trim().toLowerCase();
-        if (seen.has(slug)) continue;
-        seen.add(slug);
-        ids.push(slug);
-        if (ids.length >= SITEMAP_COIN_BATCH) break;
-      }
-      if (ids.length >= SITEMAP_COIN_BATCH) break;
-    }
-    return ids.length > 0 ? ids : [...FALLBACK_TOP_COIN_IDS];
-  } catch {
-    return [...FALLBACK_TOP_COIN_IDS];
+function tokenSitemapEntries(
+  rows: { chain: string; contractAddress?: string; address?: string }[],
+  now: Date,
+): MetadataRoute.Sitemap {
+  const seen = new Set<string>();
+  const out: MetadataRoute.Sitemap = [];
+  for (const row of rows) {
+    const address = row.contractAddress ?? row.address;
+    const path = dexTokenPath(row.chain, address);
+    if (!path || seen.has(path)) continue;
+    seen.add(path);
+    out.push({
+      url: `${SITE}${path}`,
+      lastModified: now,
+      changeFrequency: "hourly",
+      priority: 0.7,
+    });
   }
+  return out;
 }
 
 /**
- * Native Next.js Metadata sitemap — homepage, trending, coin batch,
- * plus remaining static / category / narrative routes.
+ * Sitemap = static desks + seed majors + live Dex inventory.
+ * Does not dump ~7k Gecko pages at build.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
-  const coinIds = await fetchSitemapCoinIds();
 
   const homepage: MetadataRoute.Sitemap[number] = {
     url: SITE,
@@ -156,21 +112,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 1,
   };
 
-  const trending: MetadataRoute.Sitemap[number] = {
-    url: `${SITE}/top-200-trending`,
-    lastModified: now,
-    changeFrequency: "hourly",
-    priority: 0.9,
-  };
-
-  const justLaunched: MetadataRoute.Sitemap[number] = {
-    url: `${SITE}/just-launched`,
-    lastModified: now,
-    changeFrequency: "hourly",
-    priority: 0.8,
-  };
-
-  const coinEntries: MetadataRoute.Sitemap = coinIds.map((coinId) => ({
+  const coinEntries: MetadataRoute.Sitemap = SEED_COIN_IDS.map((coinId) => ({
     url: `${SITE}/coin/${encodeURIComponent(coinId)}`,
     lastModified: now,
     changeFrequency: "daily",
@@ -200,27 +142,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   let dexTokenEntries: MetadataRoute.Sitemap = [];
   try {
-    const rows = await getDexScreenerLowCaps();
-    dexTokenEntries = rows.flatMap((row) => {
-      const path = dexTokenPath(row.chain, row.contractAddress);
-      if (!path) return [];
-      return [
-        {
-          url: `${SITE}${path}`,
-          lastModified: now,
-          changeFrequency: "hourly" as const,
-          priority: 0.7,
-        },
-      ];
-    });
+    const [lowCaps, justLaunched] = await Promise.all([
+      getDexScreenerLowCaps().catch(() => []),
+      getJustLaunchedPairs().catch(() => []),
+    ]);
+    const jl = justLaunched
+      .filter((r) => isJustLaunchedAge(r.pairCreatedAt) && r.chain && r.contractAddress)
+      .map((r) => ({
+        chain: r.chain as string,
+        contractAddress: r.contractAddress as string,
+      }));
+    const lc = lowCaps.flatMap((r) =>
+      r.chain && r.contractAddress
+        ? [{ chain: r.chain, contractAddress: r.contractAddress }]
+        : [],
+    );
+    dexTokenEntries = tokenSitemapEntries([...lc, ...jl], now);
   } catch {
     dexTokenEntries = [];
   }
 
   return [
     homepage,
-    trending,
-    justLaunched,
     ...coinEntries,
     ...staticEntries,
     ...categoryEntries,

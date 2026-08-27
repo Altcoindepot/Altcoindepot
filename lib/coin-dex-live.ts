@@ -6,7 +6,10 @@
 import { unstable_cache } from "next/cache";
 import { dexTokenPath, sameTokenAddress } from "@/lib/dex-token-path";
 import { parseDexUsdNumber } from "@/lib/dex-pair-fields";
-import { geckoTerminalChartEmbedUrl } from "@/lib/dexscreener-token";
+import {
+  dexScreenerEmbedUrl,
+  geckoTerminalChartEmbedUrl,
+} from "@/lib/dexscreener-token";
 import type { CoinPlatformContract } from "@/lib/gecko-platform-map";
 
 const DEX_BASE = "https://api.dexscreener.com";
@@ -34,6 +37,11 @@ export type CoinDexLive = {
   quoteSymbol: string;
   pairAddress: string | null;
   pairUrl: string | null;
+  /** Primary: DexScreener pair embed for the same pair as price. */
+  dexChartEmbedUrl: string | null;
+  /** Fallback: GeckoTerminal pool embed for the same pair. */
+  geckoTerminalEmbedUrl: string | null;
+  /** @deprecated alias of dexChartEmbedUrl ?? geckoTerminalEmbedUrl */
   chartEmbedUrl: string | null;
   tokenHref: string | null;
 };
@@ -112,6 +120,10 @@ async function resolveOne(platform: CoinPlatformContract): Promise<CoinDexLive |
   const chain = platform.chain;
   const address = platform.address;
   const pairAddress = best.pairAddress?.trim() || null;
+  const pairUrl =
+    typeof best.url === "string" && best.url.startsWith("http") ? best.url : null;
+  const dexChart = dexScreenerEmbedUrl(pairUrl, chain, pairAddress);
+  const gtChart = geckoTerminalChartEmbedUrl(chain, pairAddress);
   return {
     chain,
     address,
@@ -124,8 +136,10 @@ async function resolveOne(platform: CoinPlatformContract): Promise<CoinDexLive |
     liquidityUsd: parseDexUsdNumber(best.liquidity?.usd),
     quoteSymbol: (best.quoteToken?.symbol ?? "").trim().toUpperCase() || "—",
     pairAddress,
-    pairUrl: typeof best.url === "string" && best.url.startsWith("http") ? best.url : null,
-    chartEmbedUrl: geckoTerminalChartEmbedUrl(chain, pairAddress),
+    pairUrl,
+    dexChartEmbedUrl: dexChart,
+    geckoTerminalEmbedUrl: gtChart,
+    chartEmbedUrl: dexChart ?? gtChart,
     tokenHref: dexTokenPath(chain, address),
   };
 }

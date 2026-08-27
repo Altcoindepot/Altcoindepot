@@ -1,37 +1,34 @@
 /**
- * Programmatic SEO for individual coin pages (`/coin/[id]`).
- * Titles use absolute strings so the root layout template does not
- * append a second `| AltCoin Depot` / `· AltCoin Depot` suffix.
+ * Programmatic SEO for `/coin/[id]` — Dex live + Gecko static stats angle.
+ * Absolute titles (no double site suffix).
  */
+
 export type CoinSeoCopy = {
   title: string;
   description: string;
 };
 
 export type CoinSeoExtras = {
-  /** Primary narrative / category label (e.g. AI, DeFi, Layer 1). */
   narrative?: string | null;
-  /** @deprecated Prefer `narrative`; kept for older callers. */
   tags?: string[];
-  /** Unused in the primary CTR template; retained for compatibility. */
   vsBtc7d?: number | null;
+  /** When false, use Dex-only / not-on-CG framing (rare for gecko id routes). */
+  hasDexPair?: boolean;
 };
 
 const BASELINE: CoinSeoCopy = {
-  title: "Live Crypto Data, Volume & Narrative | AltCoin Depot",
+  title: "Narrative rotation + live Dex movers | AltCoin Depot",
   description:
-    "Track real-time volume, capital rotation signals, and market regime data on AltCoin Depot. View live narrative flow maps instantly.",
+    "Track narrative rotation and live Dex movers on AltCoin Depot. Informational only — not financial advice.",
 };
 
 function clampLen(text: string, max: number): string {
   if (text.length <= max) return text;
-  const trimmed = text.slice(0, max - 1).trimEnd();
-  return `${trimmed}…`;
+  return `${text.slice(0, max - 1).trimEnd()}…`;
 }
 
 /**
- * High-CTR metadata for coin sub-pages.
- * Safe defaults when name / ticker / narrative are missing.
+ * Listed majors: Dex price + contract + ATH/supply framing (not CMC clone).
  */
 export function buildCoinSeoCopy(
   name: string,
@@ -42,18 +39,13 @@ export function buildCoinSeoCopy(
   try {
     const coinName = (name ?? "").toString().trim() || "Crypto Asset";
     const ticker = (symbol ?? "").toString().trim().toUpperCase() || "TOKEN";
-    const narrative =
-      (extras?.narrative ?? "").toString().trim() ||
-      (extras?.tags && extras.tags.length > 0 ? extras.tags[0]!.trim() : "") ||
-      "crypto";
 
-    const title = `${coinName} (${ticker}) Live Data, Volume & Narrative | AltCoin Depot`;
-    const description = `Track real-time volume, capital rotation signals, and market regime data for ${coinName} (${ticker}). View the live ${narrative} flow map instantly.`;
+    const title = `${ticker} Dex Price, Contract, ATH & Supply | AltCoin Depot`;
+    const description = `Live Dex price/chart for ${coinName}. Contract, liquidity, volume. CoinGecko ATH/ATL/supply when listed. Informational only — not financial advice.`;
 
     return {
-      // Soft caps only for pathological names — keep the CTR template intact for normal coins.
-      title: title.length > 90 ? clampLen(title, 90) : title,
-      description: description.length > 180 ? clampLen(description, 180) : description,
+      title: title.length > 70 ? clampLen(title, 70) : title,
+      description: description.length > 165 ? clampLen(description, 165) : description,
     };
   } catch {
     return BASELINE;
