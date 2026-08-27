@@ -21,6 +21,8 @@ const CHAIN_LABELS: Record<string, string> = {
   scroll: "SCROLL",
   zksync: "ZK",
   mantle: "MNT",
+  injective: "INJ",
+  inj: "INJ",
 };
 
 export const KNOWN_DEX_CHAINS = new Set(Object.keys(CHAIN_LABELS));

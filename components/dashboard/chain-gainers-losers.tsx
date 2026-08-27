@@ -1,14 +1,26 @@
 import Link from "next/link";
-import type { ChainMoverRow, ChainMoversBoard } from "@/lib/dex-chain-movers";
+import {
+  chainMoverHref,
+  type ChainMoverRow,
+  type ChainMoversBoard,
+  MOVER_CHAINS,
+} from "@/lib/dex-chain-movers";
 import { formatDexPct, formatDexPriceUsd } from "@/lib/dex-pair-fields";
-import { dexTokenPath } from "@/lib/dex-token-path";
 import { ChainIcon } from "@/components/chain-icon";
 import { TokenAvatar } from "@/components/token-avatar";
 
-function rowHref(row: ChainMoverRow): string {
+function VenueBadge({ venue }: { venue: ChainMoverRow["venue"] }) {
+  if (venue === "cex") {
+    return (
+      <span className="shrink-0 rounded border border-amber-400/35 bg-amber-500/10 px-1 py-px text-[9px] font-bold uppercase tracking-wider text-amber-200/90">
+        CEX
+      </span>
+    );
+  }
   return (
-    dexTokenPath(row.chain, row.address) ??
-    `/token/${encodeURIComponent(row.chain)}/${encodeURIComponent(row.address)}`
+    <span className="shrink-0 rounded border border-teal-400/25 bg-teal-500/10 px-1 py-px text-[9px] font-bold uppercase tracking-wider text-teal-200/80">
+      DEX
+    </span>
   );
 }
 
@@ -33,7 +45,7 @@ function MoverList({
         >
           {title}
         </h3>
-        <span className="text-[10px] tabular-nums text-zinc-600">{rows.length}</span>
+        <span className="text-[10px] tabular-nums text-zinc-600">{rows.length}/10</span>
       </div>
       {rows.length === 0 ? (
         <p className="px-3 py-6 text-center text-sm text-zinc-500">{emptyLabel}</p>
@@ -42,15 +54,21 @@ function MoverList({
           {rows.map((row) => (
             <li key={row.id}>
               <Link
-                href={rowHref(row)}
+                href={chainMoverHref(row)}
                 className="flex min-h-11 items-center gap-2.5 px-3 py-2.5 transition-colors hover:bg-white/[0.03] active:bg-white/[0.04]"
               >
                 <TokenAvatar symbol={row.symbol} imageUrl={row.imageUrl} size={28} />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate font-mono text-[13px] font-bold uppercase text-zinc-100">
-                    {row.symbol}
+                  <span className="flex items-center gap-1.5">
+                    <span className="truncate font-mono text-[13px] font-bold uppercase text-zinc-100">
+                      {row.symbol}
+                    </span>
+                    <VenueBadge venue={row.venue} />
                   </span>
-                  <span className="block truncate text-[11px] text-zinc-500">{row.name}</span>
+                  <span className="block truncate text-[11px] text-zinc-500">
+                    {row.name}
+                    {row.venue === "cex" ? " · 24H" : ""}
+                  </span>
                 </span>
                 <span className="flex shrink-0 flex-col items-end gap-0.5">
                   <span
@@ -75,10 +93,9 @@ function MoverList({
 
 function ChainBoard({ board }: { board: ChainMoversBoard }) {
   const windowLabel = board.window === "1h" ? "1H" : "24H";
-  const empty =
-    board.gainers.length === 0 && board.losers.length === 0
-      ? `No liquid ${board.chainLabel} movers right now (min $10k · ${windowLabel})`
-      : null;
+  const cexCount =
+    board.gainers.filter((r) => r.venue === "cex").length +
+    board.losers.filter((r) => r.venue === "cex").length;
 
   return (
     <section
@@ -99,30 +116,25 @@ function ChainBoard({ board }: { board: ChainMoversBoard }) {
           </span>
         </div>
         <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-500">
-          Top 5 gainers &amp; losers · {windowLabel}
+          Top 10 gainers &amp; losers · Dex first
+          {cexCount > 0 ? ` · ${cexCount} CEX pad` : ""} · {windowLabel}
         </p>
       </div>
 
-      {empty ? (
-        <p className="rounded-xl border border-white/10 bg-[#0c0e14] px-3 py-8 text-center text-sm text-zinc-500">
-          {empty}
-        </p>
-      ) : (
-        <div className="flex flex-col gap-3 md:grid md:grid-cols-2">
-          <MoverList
-            title={`Top gainers (${windowLabel})`}
-            rows={board.gainers}
-            emptyLabel={`No ${windowLabel} gainers on ${board.chainLabel} right now`}
-            variant="gainers"
-          />
-          <MoverList
-            title={`Top losers (${windowLabel})`}
-            rows={board.losers}
-            emptyLabel={`No ${windowLabel} losers on ${board.chainLabel} right now`}
-            variant="losers"
-          />
-        </div>
-      )}
+      <div className="flex flex-col gap-3 md:grid md:grid-cols-2">
+        <MoverList
+          title={`Top gainers (${windowLabel})`}
+          rows={board.gainers}
+          emptyLabel={`No ${windowLabel} gainers on ${board.chainLabel} right now`}
+          variant="gainers"
+        />
+        <MoverList
+          title={`Top losers (${windowLabel})`}
+          rows={board.losers}
+          emptyLabel={`No ${windowLabel} losers on ${board.chainLabel} right now`}
+          variant="losers"
+        />
+      </div>
     </section>
   );
 }
@@ -170,26 +182,19 @@ export function ChainMoversTeaser({ className = "" }: { className?: string }) {
             Top movers by chain
           </h2>
           <p className="mt-1 max-w-xl text-xs leading-relaxed text-zinc-500 sm:text-sm">
-            Solana, Ethereum, Base &amp; BSC — top 5 gainers and losers per chain (1H or 24H,
-            never mixed).
+            Ethereum, Solana, Base &amp; Injective — top 10 gainers and losers per board (Dex
+            first, CEX pad).
           </p>
         </div>
         <div className="flex flex-col items-start gap-2 sm:items-end">
           <div className="flex flex-wrap gap-2">
-            {(
-              [
-                { id: "solana", label: "Solana" },
-                { id: "ethereum", label: "Ethereum" },
-                { id: "base", label: "Base" },
-                { id: "bsc", label: "BSC" },
-              ] as const
-            ).map((c) => (
+            {MOVER_CHAINS.map((c) => (
               <Link
                 key={c.id}
                 href={`/gainers-losers?chain=${c.id}`}
                 className="inline-flex min-h-9 items-center rounded-full border border-teal-400/25 bg-white/[0.04] px-3 text-[11px] font-semibold text-zinc-200 hover:border-teal-400/45 hover:text-teal-100"
               >
-                {c.label}
+                {c.id === "injective" ? "INJ" : c.label}
               </Link>
             ))}
           </div>
@@ -197,7 +202,7 @@ export function ChainMoversTeaser({ className = "" }: { className?: string }) {
             href="/gainers-losers"
             className="inline-flex min-h-11 items-center rounded-full bg-teal-500/15 px-4 text-sm font-semibold text-teal-200 transition-colors hover:bg-teal-500/25"
           >
-            All chains →
+            All boards →
           </Link>
         </div>
       </div>

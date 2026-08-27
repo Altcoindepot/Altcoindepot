@@ -41,6 +41,8 @@ const CHAINS: Record<string, ChainMeta> = {
   scroll: { id: "scroll", short: "SCROLL", name: "Scroll", color: "#FFEEDA" },
   zksync: { id: "zksync", short: "ZK", name: "zkSync", color: "#8C8DFC" },
   mantle: { id: "mantle", short: "MNT", name: "Mantle", color: "#000000" },
+  injective: { id: "injective", short: "INJ", name: "Injective", color: "#00F2FE" },
+  inj: { id: "injective", short: "INJ", name: "Injective", color: "#00F2FE" },
 };
 
 export function getChainMeta(chainId: string | undefined | null): ChainMeta {

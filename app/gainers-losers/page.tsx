@@ -13,7 +13,7 @@ import { formatChainLabel } from "@/lib/format-chain";
 
 const TITLE = "Top Crypto Gainers & Losers by Chain | AltCoin Depot";
 const DESCRIPTION =
-  "Top 5 DexScreener gainers and losers on Solana, Ethereum, Base, and BSC. Prefers 1h change when available. Live DEX pairs with price and % — informational only, not financial advice.";
+  "Top 10 DexScreener gainers and losers on Ethereum, Solana, Base, and Injective — Dex first, CEX pad. Prefers 1h when available. Informational only, not financial advice.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -45,7 +45,7 @@ export default async function GainersLosersPage({
   const chainFilter = normalizeDexChainId(params.chain ?? "") ?? "";
   const allBoards = await getChainMovers();
   const boards: ChainMoversBoard[] = chainFilter
-    ? allBoards.filter((b) => sameDexChain(b.chainId, chainFilter))
+    ? allBoards.filter((b) => sameDexChain(b.chainId, chainFilter) || b.chainId === chainFilter)
     : allBoards;
   const fetchedAt = peekChainMoversFetchedAt();
 
@@ -71,14 +71,14 @@ export default async function GainersLosersPage({
               <>
                 Showing <span className="text-zinc-300">{formatChainLabel(chainFilter)}</span> only ·{" "}
                 <Link href="/gainers-losers" className="text-teal-300 underline-offset-2 hover:underline">
-                  All chains
+                  All boards
                 </Link>
                 {" · "}
               </>
             ) : null}
-            Per-chain DexScreener pairs · each board uses <span className="text-zinc-300">1H</span>{" "}
-            when most pairs have it, otherwise <span className="text-zinc-300">24H</span> · min $10k
-            liquidity · natives/stables excluded · not financial advice
+            ETH · SOL · BASE · INJ · <span className="text-zinc-300">10 gainers + 10 losers</span> ·
+            Dex first, CEX pad · board uses <span className="text-zinc-300">1H</span> when enough
+            pairs have it, else <span className="text-zinc-300">24H</span> · not financial advice
           </p>
 
           <div className="mt-5">
@@ -92,7 +92,7 @@ export default async function GainersLosersPage({
             <Link href="/new-low-caps" className="text-teal-300/90 underline-offset-2 hover:underline">
               New &amp; Low Caps →
             </Link>
-            {chainFilter ? (
+            {chainFilter && chainFilter !== "injective" ? (
               <Link
                 href={`/pairs?chain=${encodeURIComponent(chainFilter)}`}
                 className="text-teal-300/90 underline-offset-2 hover:underline"
@@ -103,7 +103,8 @@ export default async function GainersLosersPage({
           </p>
 
           <DisclaimerNote className="mt-4 text-[11px]">
-            Pair stats from DexScreener · informational only · not financial advice
+            Dex prices from DexScreener · CEX pads from Binance USDT / Coinbase · informational only
+            · not financial advice
           </DisclaimerNote>
         </div>
       </main>

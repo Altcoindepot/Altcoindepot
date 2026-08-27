@@ -1,15 +1,7 @@
 import Link from "next/link";
-import type { ChainMoverRow } from "@/lib/dex-chain-movers";
-import { dexTokenPath } from "@/lib/dex-token-path";
+import { chainMoverHref, type ChainMoverRow } from "@/lib/dex-chain-movers";
 import { MarketRow } from "@/components/market-row";
 import { CoinSearchBar } from "@/components/coin-search-bar";
-
-function rowHref(row: ChainMoverRow): string {
-  return (
-    dexTokenPath(row.chain, row.address) ??
-    `/token/${encodeURIComponent(row.chain)}/${encodeURIComponent(row.address)}`
-  );
-}
 
 /** First-fold Dex movers — compact so 5 rows fit a 390px screen with regime + search. */
 export function HomeTopMovers({
@@ -52,9 +44,9 @@ export function HomeTopMovers({
           {rows.map((row) => (
             <li key={row.id}>
               <MarketRow
-                href={rowHref(row)}
+                href={chainMoverHref(row)}
                 symbol={row.symbol}
-                name={row.name}
+                name={row.venue === "cex" ? `${row.name} · CEX` : row.name}
                 imageUrl={row.imageUrl}
                 chain={row.chain}
                 priceUsd={row.priceUsd}

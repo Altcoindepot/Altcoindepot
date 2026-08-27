@@ -37,6 +37,8 @@ const DEX_CHAIN_CANONICAL: Record<string, string> = {
   sui: "sui",
   hyperevm: "hyperevm",
   hyperliquid: "hyperliquid",
+  injective: "injective",
+  inj: "injective",
 };
 
 /** Aliases to try when a chain-specific DexScreener call returns empty. */
