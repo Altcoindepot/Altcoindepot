@@ -1,5 +1,7 @@
 /** Shareable URL query for /dex-scanner advanced filters. */
 
+import { normalizeDexChainId } from "@/lib/dex-token-path";
+
 export const SCANNER_SORTS = ["volume", "liquidity", "mcap", "change", "newest"] as const;
 export type ScannerSort = (typeof SCANNER_SORTS)[number];
 
@@ -76,12 +78,14 @@ export function parseDexScannerQuery(
   const sortRaw = sp.get("sort");
   const dirRaw = sp.get("dir");
   const chainRaw = sp.get("chain")?.trim().toLowerCase() ?? "";
+  const chainCanonical =
+    chainRaw && chainRaw !== "all" ? (normalizeDexChainId(chainRaw) ?? chainRaw) : "";
   const majorsRaw = sp.get("majors");
   const maxLiqRaw = sp.get("maxLiq");
   const maxVolRaw = sp.get("maxVol");
   const maxMcapRaw = sp.get("maxMcap");
   return {
-    chain: chainRaw && chainRaw !== "all" ? chainRaw : defaults.chain,
+    chain: chainCanonical || defaults.chain,
     minLiq: parseNonNegNumber(sp.get("minLiq"), defaults.minLiq),
     maxLiq: maxLiqRaw != null ? parseOptionalMax(maxLiqRaw) : defaults.maxLiq,
     minVol: parseNonNegNumber(sp.get("minVol"), defaults.minVol),

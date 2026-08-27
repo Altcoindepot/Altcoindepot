@@ -10,7 +10,7 @@ import {
   getCachedDexExplorerPairs,
   type DexLivePairRow,
 } from "@/lib/dexscreener-live-pairs";
-import { dexTokenPath } from "@/lib/dex-token-path";
+import { dexTokenPath, sameDexChain } from "@/lib/dex-token-path";
 
 export type DexHeatWindow = "1h" | "24h";
 export type DexHeatStatus = "LEADING" | "FADING" | "NEUTRAL";
@@ -29,7 +29,9 @@ export type DexHeatBucket = {
   id: string;
   label: string;
   kind: "chain" | "venue";
-  /** Filter target for /dex-scanner or /pairs */
+  /** Canonical Dex chain — coins in this bucket are ONLY this chain. */
+  filterChain: string;
+  /** Deep link to filtered pairs list for this chain. */
   href: string;
   heatPct: number;
   window: DexHeatWindow;
@@ -148,10 +150,13 @@ function buildBucketFromPairs(
   id: string,
   label: string,
   kind: "chain" | "venue",
+  filterChain: string,
   href: string,
   pairs: DexLivePairRow[],
 ): DexHeatBucket | null {
-  const liquid = liquidPairs(pairs);
+  // Strict: only pairs on this chain — never mix Solana into Base, etc.
+  const onChain = pairs.filter((p) => sameDexChain(p.chain, filterChain));
+  const liquid = liquidPairs(onChain);
   if (liquid.length < MIN_SAMPLES_BUCKET) return null;
 
   const with1h = liquid.filter((p) => p.change1h != null && Number.isFinite(p.change1h));
@@ -159,13 +164,14 @@ function buildBucketFromPairs(
   const heat = heatFromPairs(liquid, use1h);
   if (!heat) return null;
 
-  const children = topChildren(liquid, use1h, 2);
+  const children = topChildren(liquid, use1h, 10);
   if (children.length === 0) return null;
 
   return {
     id,
     label,
     kind,
+    filterChain,
     href,
     heatPct: heat.heatPct,
     window: heat.window,
@@ -179,28 +185,32 @@ export function buildDexHeatSnapshot(rows: DexLivePairRow[]): DexHeatSnapshot {
   const buckets: DexHeatBucket[] = [];
 
   for (const def of CHAIN_BUCKETS) {
-    const pairs = rows.filter((r) => def.chains.includes(r.chain));
+    const filterChain = def.chains[0]!;
+    const pairs = rows.filter((r) => sameDexChain(r.chain, filterChain));
     const bucket = buildBucketFromPairs(
       def.id,
       def.label,
       "chain",
-      `/dex-scanner?chain=${encodeURIComponent(def.id)}`,
+      filterChain,
+      `/pairs?chain=${encodeURIComponent(filterChain)}`,
       pairs,
     );
     if (bucket) buckets.push(bucket);
   }
 
   for (const def of VENUE_BUCKETS) {
-    const pairs = rows.filter((r) => def.dexMatch.test(r.dex || r.dexLabel));
-    const chainHint =
-      def.id === "uniswap" ? "ethereum" : def.id === "raydium" || def.id === "pump" ? "solana" : "all";
+    const filterChain =
+      def.id === "uniswap" ? "ethereum" : def.id === "raydium" || def.id === "pump" ? "solana" : "";
+    if (!filterChain) continue;
+    const pairs = rows.filter(
+      (r) => sameDexChain(r.chain, filterChain) && def.dexMatch.test(r.dex || r.dexLabel),
+    );
     const bucket = buildBucketFromPairs(
       def.id,
       def.label,
       "venue",
-      chainHint === "all"
-        ? `/pairs?sort=volume`
-        : `/dex-scanner?chain=${encodeURIComponent(chainHint)}`,
+      filterChain,
+      `/pairs?chain=${encodeURIComponent(filterChain)}`,
       pairs,
     );
     if (bucket) buckets.push(bucket);
@@ -224,7 +234,7 @@ async function loadDexHeatUncached(): Promise<DexHeatSnapshot> {
   return buildDexHeatSnapshot(rows);
 }
 
-const getCachedDexHeat = unstable_cache(loadDexHeatUncached, ["dex-narrative-heat-v1"], {
+const getCachedDexHeat = unstable_cache(loadDexHeatUncached, ["dex-narrative-heat-v2"], {
   revalidate: DEX_EXPLORER_REVALIDATE_SECONDS,
 });
 

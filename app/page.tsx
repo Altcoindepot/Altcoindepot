@@ -8,6 +8,7 @@ import {
   getChainMovers,
   pickHomeTopMovers,
   type ChainMoverRow,
+  type ChainMoversBoard,
 } from "@/lib/dex-chain-movers";
 import { getDexNarrativeHeat, type DexHeatSnapshot } from "@/lib/dex-narrative-heat";
 
@@ -68,7 +69,10 @@ async function fetchHomeNewsSoft(limit: number): Promise<SiteNewsResult> {
 }
 
 /** Reuses cached Dex chain-movers; soft-timeout so home never stalls. */
-async function fetchHomeMoversSoft(): Promise<ChainMoverRow[]> {
+async function fetchHomeMoversSoft(): Promise<{
+  rows: ChainMoverRow[];
+  boards: ChainMoversBoard[];
+}> {
   try {
     const boards = await Promise.race([
       getChainMovers(),
@@ -76,11 +80,11 @@ async function fetchHomeMoversSoft(): Promise<ChainMoverRow[]> {
         setTimeout(() => resolve(null), 4_000);
       }),
     ]);
-    if (!boards) return [];
-    return pickHomeTopMovers(boards, 5);
+    if (!boards) return { rows: [], boards: [] };
+    return { rows: pickHomeTopMovers(boards, 5), boards };
   } catch (error) {
     console.error("[page] Home movers fetch failed.", error);
-    return [];
+    return { rows: [], boards: [] };
   }
 }
 
@@ -107,7 +111,7 @@ export default async function Home({
 }) {
   const params = await searchParams;
   const watchlistOnly = params.watchlist === "1" || params.watchlist === "true";
-  const [snapshot, homeNews, topMovers, dexHeat] = await Promise.all([
+  const [snapshot, homeNews, movers, dexHeat] = await Promise.all([
     fetchDashboardData(),
     fetchHomeNewsSoft(12),
     fetchHomeMoversSoft(),
@@ -125,7 +129,8 @@ export default async function Home({
           initialNewsItems={homeNews.items}
           initialNewsStale={homeNews.stale}
           initialNewsSourcesLabel={homeNews.sourcesLabel}
-          topMovers={topMovers}
+          topMovers={movers.rows}
+          moverBoards={movers.boards}
           dexHeat={dexHeat}
         />
       </main>

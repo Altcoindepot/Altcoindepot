@@ -1,4 +1,5 @@
 import { formatChainLabel } from "@/lib/format-chain";
+import { sameDexChain, normalizeDexChainId } from "@/lib/dex-token-path";
 
 export const DEX_LIST_SORTS = ["newest", "volume", "liquidity", "gainers", "losers"] as const;
 export type DexListSort = (typeof DEX_LIST_SORTS)[number];
@@ -122,7 +123,7 @@ export function dexListDirLabel(sort: DexListSort, dir: DexListDir): string {
 
 export const MAJOR_DEX_CHAIN_FILTERS = [
   { id: "solana", label: "SOL" },
-  { id: "eth", label: "ETH" },
+  { id: "ethereum", label: "ETH" },
   { id: "base", label: "BASE" },
   { id: "bsc", label: "BSC" },
   { id: "arbitrum", label: "ARB" },
@@ -172,6 +173,8 @@ export function parseDexListQuery(
   const sortRaw = sp.get("sort");
   const dirRaw = sp.get("dir");
   const chainRaw = sp.get("chain")?.trim().toLowerCase() ?? "";
+  const chainCanonical =
+    chainRaw && chainRaw !== "all" ? (normalizeDexChainId(chainRaw) ?? chainRaw) : "";
   const minLiqRaw = sp.get("minLiq");
   const ageRaw = sp.get("age");
   const pulseRaw = sp.get("pulse");
@@ -179,7 +182,7 @@ export function parseDexListQuery(
   return {
     sort,
     dir: sortUsesDir(sort) && isDir(dirRaw) ? dirRaw : defaults.dir,
-    chain: chainRaw && chainRaw !== "all" ? chainRaw : defaults.chain,
+    chain: chainCanonical || defaults.chain,
     minLiq: isMinLiq(minLiqRaw) ? minLiqRaw : defaults.minLiq,
     age: isAge(ageRaw) ? ageRaw : defaults.age,
     pulse: isPulse(pulseRaw) ? pulseRaw : defaults.pulse,
@@ -188,9 +191,11 @@ export function parseDexListQuery(
 
 export function chainMatches(rowChain: string | undefined, filter: string): boolean {
   if (!filter || filter === "all") return true;
-  const row = (rowChain ?? "").trim().toLowerCase();
-  const want = filter.trim().toLowerCase();
-  if (!row) return false;
+  // Accept eth/ethereum, sol/solana, etc. — never mix chains.
+  if (sameDexChain(rowChain, filter)) return true;
+  const row = normalizeDexChainId(rowChain) ?? (rowChain ?? "").trim().toLowerCase();
+  const want = normalizeDexChainId(filter) ?? filter.trim().toLowerCase();
+  if (!row || !want) return false;
   if (row === want) return true;
   return formatChainLabel(row) === formatChainLabel(want);
 }

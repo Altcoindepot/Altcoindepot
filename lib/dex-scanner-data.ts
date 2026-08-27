@@ -5,7 +5,7 @@
 
 import { unstable_cache } from "next/cache";
 import { dexVenueLabel } from "@/lib/dex-venue";
-import { normalizeDexChainId } from "@/lib/dex-token-path";
+import { normalizeDexChainId, sameDexChain } from "@/lib/dex-token-path";
 import { parseDexUsdNumber } from "@/lib/dex-pair-fields";
 import { DexScreenerFetchError } from "@/lib/dexscreener-live-pairs";
 import {
@@ -341,9 +341,7 @@ function inRange(value: number | null, min: number, max: number | null): boolean
 
 function chainOk(rowChain: string, filter: string): boolean {
   if (!filter || filter === "all") return true;
-  const a = normalizeDexChainId(rowChain) ?? rowChain;
-  const b = normalizeDexChainId(filter) ?? filter;
-  return a === b;
+  return sameDexChain(rowChain, filter);
 }
 
 /** Apply scanner filters + sort. Always drops dead liq=0 & vol=0 rows. */

@@ -35,8 +35,8 @@ const MIN_LIQ_CHIPS: Array<{ id: DexListMinLiq; label: string }> = [
 const CHAIN_CHIPS = [
   { id: "all", label: "All" },
   ...MAJOR_DEX_CHAIN_FILTERS.filter((c) =>
-    ["solana", "eth", "base", "bsc", "arbitrum"].includes(c.id),
-  ).map((c) => ({ id: c.id === "eth" ? "ethereum" : c.id, label: c.label })),
+    ["solana", "ethereum", "base", "bsc", "arbitrum"].includes(c.id),
+  ).map((c) => ({ id: c.id, label: c.label })),
 ] as const;
 
 function toSortable(rows: DexLivePairRow[]) {
