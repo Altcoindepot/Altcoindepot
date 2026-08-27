@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { NewLowCapsTable } from "@/components/dashboard/new-low-caps-table";
 import { LowCapsDisclaimerModal } from "@/components/low-caps-disclaimer-modal";
+import { DexRiskFootnote } from "@/components/dex-risk-footnote";
 import { peekDexLowCapsFetchedAt } from "@/lib/dexscreener-low-caps";
 import {
   DexScreenerFetchError,
@@ -81,6 +82,8 @@ export default async function NewLowCapsPage() {
           <p className="mt-1 max-w-2xl text-xs leading-relaxed text-zinc-500 sm:text-sm">
             Pair age over 15 minutes · min liquidity · DexScreener · not financial advice
           </p>
+
+          <DexRiskFootnote className="mt-4" />
 
           {!live.error && rows.length > 0 ? (
             <div className="mt-4">

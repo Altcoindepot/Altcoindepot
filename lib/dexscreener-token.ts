@@ -48,6 +48,7 @@ type DexPair = {
   pairAddress?: string;
   priceUsd?: string | number;
   baseToken?: { address?: string; name?: string; symbol?: string };
+  quoteToken?: { address?: string; name?: string; symbol?: string };
   priceChange?: { h24?: number };
   volume?: { h24?: number };
   liquidity?: { usd?: number };
@@ -105,6 +106,46 @@ async function dexGet(path: string): Promise<unknown | null> {
   }
 }
 
+function quotePreference(quote: string | undefined): number {
+  const q = (quote ?? "").trim().toUpperCase();
+  if (q === "USDT") return 0;
+  if (q === "USDC") return 1;
+  if (
+    q === "USD1" ||
+    q === "DAI" ||
+    q === "FDUSD" ||
+    q === "TUSD" ||
+    q === "USDE" ||
+    q === "BUSD" ||
+    q === "USD"
+  ) {
+    return 2;
+  }
+  return 3;
+}
+
+function isMajorBase(symbol: string | undefined): boolean {
+  const s = (symbol ?? "").trim().toUpperCase();
+  const majors = new Set([
+    "BTC",
+    "WBTC",
+    "ETH",
+    "WETH",
+    "SOL",
+    "WSOL",
+    "BNB",
+    "WBNB",
+    "AVAX",
+    "WAVAX",
+    "MATIC",
+    "WMATIC",
+    "POL",
+  ]);
+  if (majors.has(s)) return true;
+  if (s.startsWith("W") && majors.has(s.slice(1))) return true;
+  return false;
+}
+
 function pickBestPair(pairs: DexPair[], address: string, preferChain?: string): DexPair | null {
   if (pairs.length === 0) return null;
 
@@ -118,7 +159,21 @@ function pickBestPair(pairs: DexPair[], address: string, preferChain?: string): 
   const pool = asBase.length > 0 ? asBase : asPair.length > 0 ? asPair : scoped;
   if (pool.length === 0) return null;
 
-  return [...pool].sort((a, b) => (b.volume?.h24 ?? 0) - (a.volume?.h24 ?? 0))[0] ?? null;
+  const major = isMajorBase(pool[0]?.baseToken?.symbol);
+
+  return (
+    [...pool].sort((a, b) => {
+      if (major) {
+        const qa = quotePreference(a.quoteToken?.symbol);
+        const qb = quotePreference(b.quoteToken?.symbol);
+        if (qa !== qb) return qa - qb;
+      }
+      const volA = a.volume?.h24 ?? 0;
+      const volB = b.volume?.h24 ?? 0;
+      if (volB !== volA) return volB - volA;
+      return (b.liquidity?.usd ?? 0) - (a.liquidity?.usd ?? 0);
+    })[0] ?? null
+  );
 }
 
 /**

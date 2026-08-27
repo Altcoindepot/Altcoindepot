@@ -39,6 +39,15 @@ export default function TermsPage() {
         </p>
       </LegalSection>
 
+      <LegalSection title="Verify data and contract addresses">
+        <p>
+          Prices and pair data come from public DEX sources (including DexScreener) and may be
+          delayed, incomplete, or incorrect. Tokens often share names or tickers. It is your
+          responsibility to verify you have the correct contract address and information before
+          making any decision. This site is informational only and is not financial advice.
+        </p>
+      </LegalSection>
+
       <LegalSection title="Limitation of liability">
         <p>
           To the fullest extent permitted by law, AltCoin Depot and its operators shall not be

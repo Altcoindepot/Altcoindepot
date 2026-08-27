@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FooterDataAttribution } from "@/components/footer-data-attribution";
 import { BrandLogo } from "@/components/brand-logo";
+import { DATA_RESPONSIBILITY_DISCLAIMER } from "@/lib/data-responsibility";
 
 function XIcon({ className }: { className?: string }) {
   return (
@@ -25,6 +26,7 @@ const PRIMARY_LINKS = [
 
 const LEGAL_LINKS = [
   { href: "/about", label: "About" },
+  { href: "/disclaimer", label: "Disclaimer" },
   { href: "/privacy-policy", label: "Privacy Policy" },
   { href: "/terms", label: "Terms of Service" },
 ] as const;
@@ -105,6 +107,15 @@ export function SiteFooter() {
               ))}
             </nav>
           </div>
+          <p className="mt-3 text-[11px] leading-relaxed text-slate-400 sm:text-xs sm:leading-relaxed">
+            {DATA_RESPONSIBILITY_DISCLAIMER}{" "}
+            <Link
+              href="/disclaimer"
+              className="font-medium text-teal-300/90 underline-offset-2 hover:underline"
+            >
+              Full disclaimer →
+            </Link>
+          </p>
           <p className="mt-3 text-[11px] leading-relaxed text-slate-500 sm:text-xs sm:leading-relaxed">
             {LEGAL_DISCLAIMER}
           </p>

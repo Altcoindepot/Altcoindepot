@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { JustLaunchedSection } from "@/components/just-launched-section";
 import { JustLaunchedDisclaimerModal } from "@/components/just-launched-disclaimer-modal";
+import { DexRiskFootnote } from "@/components/dex-risk-footnote";
 import {
   getJustLaunchedPairs,
   peekJustLaunchedFetchedAt,
@@ -68,6 +69,8 @@ export default async function JustLaunchedPage() {
           <p className="mt-1 max-w-2xl text-xs leading-relaxed text-zinc-500 sm:text-sm">
             Pair age 0–15 minutes · live price, liq, vol · high risk · not financial advice
           </p>
+
+          <DexRiskFootnote className="mt-4" />
 
           {failed && rows.length === 0 ? (
             <p className="mt-4 rounded-xl border border-red-500/40 bg-red-950/30 px-4 py-4 text-sm text-red-300">

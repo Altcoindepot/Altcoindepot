@@ -1,44 +1,44 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import {
-  filterClientTop200Index,
-  loadClientTop200Index,
-} from "@/lib/client-top-200-index";
-import type { TopCoinSearchEntry } from "@/lib/top-coins-search-utils";
-import { pickBestTopCoinMatch } from "@/lib/top-coins-search-utils";
+import type { DexSearchHit } from "@/lib/dex-search";
+import { truncateContract } from "@/lib/dex-search";
+import { formatDexPriceUsd } from "@/lib/dex-pair-fields";
+import { formatChainLabel } from "@/lib/format-chain";
+import { ChainIcon } from "@/components/chain-icon";
+import { TokenAvatar } from "@/components/token-avatar";
+import { readResponseJsonSafely } from "@/lib/read-response-json";
 
 type CoinSearchBarProps = {
-  /** Header uses a fixed width; category page uses full width. */
   variant?: "header" | "wide";
   inputId?: string;
   placeholder?: string;
   showSubmitButton?: boolean;
 };
 
-/** Session cache so typing / backspacing feels instant. */
-const searchCache = new Map<string, TopCoinSearchEntry[]>();
-const CACHE_LIMIT = 80;
+const searchCache = new Map<string, DexSearchHit[]>();
+const CACHE_LIMIT = 60;
+const DEBOUNCE_MS = 250;
+const SUGGESTION_LIMIT = 10;
 
 function cacheGet(q: string) {
   return searchCache.get(q.toLowerCase());
 }
 
-function cacheSet(q: string, coins: TopCoinSearchEntry[]) {
+function cacheSet(q: string, items: DexSearchHit[]) {
   const key = q.toLowerCase();
   if (searchCache.size >= CACHE_LIMIT) {
     const first = searchCache.keys().next().value;
     if (first) searchCache.delete(first);
   }
-  searchCache.set(key, coins);
+  searchCache.set(key, items);
 }
 
 export function CoinSearchBar({
   variant = "header",
   inputId,
-  placeholder = "Search top 200 assets (e.g. BTC)",
+  placeholder = "Search ticker or contract",
   showSubmitButton = true,
 }: CoinSearchBarProps) {
   const autoId = useId();
@@ -46,33 +46,13 @@ export function CoinSearchBar({
   const listId = `${fieldId}-results`;
   const router = useRouter();
   const rootRef = useRef<HTMLDivElement>(null);
-  const indexRef = useRef<TopCoinSearchEntry[]>([]);
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<TopCoinSearchEntry[]>([]);
+  const [results, setResults] = useState<DexSearchHit[]>([]);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
-  const [indexReady, setIndexReady] = useState(false);
-  const [indexError, setIndexError] = useState<string | null>(null);
   const [searched, setSearched] = useState(false);
-
-  const warmIndex = useCallback(async () => {
-    if (indexRef.current.length > 0) {
-      setIndexReady(true);
-      return;
-    }
-    try {
-      const index = await loadClientTop200Index();
-      indexRef.current = index;
-      setIndexReady(index.length > 0);
-      setIndexError(index.length === 0 ? "Search index is syncing — try again shortly." : null);
-    } catch {
-      setIndexError("Search index is syncing — try again shortly.");
-    }
-  }, []);
-
-  useEffect(() => {
-    void warmIndex();
-  }, [warmIndex]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const q = query.trim();
@@ -81,6 +61,8 @@ export function CoinSearchBar({
       setOpen(false);
       setActiveIndex(-1);
       setSearched(false);
+      setLoading(false);
+      setError(null);
       return;
     }
 
@@ -90,22 +72,44 @@ export function CoinSearchBar({
       setOpen(true);
       setSearched(true);
       setActiveIndex(-1);
+      setLoading(false);
+      setError(null);
       return;
     }
 
-    if (!indexRef.current.length) {
-      setSearched(true);
-      setOpen(true);
-      return;
-    }
+    setLoading(true);
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        try {
+          const res = await fetch(
+            `/api/dex-search?q=${encodeURIComponent(q)}&limit=${SUGGESTION_LIMIT}&_=${Date.now()}`,
+            { cache: "no-store" },
+          );
+          const data = await readResponseJsonSafely(res);
+          const items =
+            data &&
+            typeof data === "object" &&
+            "items" in data &&
+            Array.isArray((data as { items: unknown }).items)
+              ? ((data as { items: DexSearchHit[] }).items ?? [])
+              : [];
+          cacheSet(q, items);
+          setResults(items);
+          setError(null);
+        } catch {
+          setResults([]);
+          setError("Dex search failed — try again");
+        } finally {
+          setLoading(false);
+          setSearched(true);
+          setOpen(true);
+          setActiveIndex(-1);
+        }
+      })();
+    }, DEBOUNCE_MS);
 
-    const list = filterClientTop200Index(indexRef.current, q, 10);
-    cacheSet(q, list);
-    setResults(list);
-    setOpen(true);
-    setActiveIndex(-1);
-    setSearched(true);
-  }, [query, indexReady]);
+    return () => window.clearTimeout(timer);
+  }, [query]);
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
@@ -117,11 +121,11 @@ export function CoinSearchBar({
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
-  const goToCoin = useCallback(
-    (id: string) => {
+  const goToHit = useCallback(
+    (hit: DexSearchHit) => {
       setOpen(false);
       setQuery("");
-      router.push(`/coin/${encodeURIComponent(id)}`);
+      router.push(hit.href);
     },
     [router],
   );
@@ -130,169 +134,136 @@ export function CoinSearchBar({
     (value: string) => {
       const q = value.trim();
       if (!q) return;
-
-      const best = indexRef.current.length
-        ? pickBestTopCoinMatch(indexRef.current, q)
-        : null;
-      if (best) {
-        goToCoin(best.id);
+      if (activeIndex >= 0 && results[activeIndex]) {
+        goToHit(results[activeIndex]!);
         return;
       }
-
+      if (results[0]) {
+        goToHit(results[0]);
+        return;
+      }
       router.push(`/coin?q=${encodeURIComponent(q)}`);
       setOpen(false);
     },
-    [goToCoin, router],
+    [activeIndex, goToHit, results, router],
   );
 
-  const showDropdown = open && (results.length > 0 || indexError || searched);
+  const showDropdown = open && (results.length > 0 || error || searched || loading);
 
   return (
-    <>
-      <div ref={rootRef} className={variant === "wide" ? "relative w-full" : "relative block"}>
-        <form
-          role="search"
-          className={
-            variant === "wide"
-              ? "flex flex-col gap-2 sm:flex-row sm:items-center"
-              : "flex items-center gap-2"
-          }
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (activeIndex >= 0 && results[activeIndex]) {
-              goToCoin(results[activeIndex]!.id);
-              return;
+    <div ref={rootRef} className={variant === "wide" ? "relative w-full" : "relative block"}>
+      <form
+        role="search"
+        className={
+          variant === "wide"
+            ? "flex flex-col gap-2 sm:flex-row sm:items-center"
+            : "flex items-center gap-2"
+        }
+        onSubmit={(e) => {
+          e.preventDefault();
+          submitSearch(query);
+        }}
+      >
+        <label htmlFor={fieldId} className="sr-only">
+          Search ticker or contract on DexScreener
+        </label>
+        <div className="relative min-w-0 flex-1">
+          <input
+            id={fieldId}
+            name="q"
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onFocus={() => {
+              if (results.length > 0 || error || searched) setOpen(true);
+            }}
+            onKeyDown={(e) => {
+              if (!showDropdown || results.length === 0) return;
+              if (e.key === "ArrowDown") {
+                e.preventDefault();
+                setActiveIndex((i) => (i + 1) % results.length);
+              } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                setActiveIndex((i) => (i <= 0 ? results.length - 1 : i - 1));
+              } else if (e.key === "Escape") {
+                setOpen(false);
+              }
+            }}
+            placeholder={placeholder}
+            autoComplete="off"
+            role="combobox"
+            aria-expanded={showDropdown ? true : false}
+            aria-controls={listId}
+            aria-autocomplete="list"
+            className={
+              variant === "wide"
+                ? "min-h-12 w-full flex-1 rounded-full border border-teal-400/25 bg-white/[0.04] px-3.5 py-2.5 text-base text-white placeholder:text-zinc-500 focus:border-teal-400/50 focus:outline-none focus:ring-2 focus:ring-teal-400/25 sm:text-sm"
+                : "h-10 w-full min-w-0 rounded-full border border-white/12 bg-white/[0.04] px-3.5 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-teal-400/45 focus:outline-none focus:ring-2 focus:ring-teal-400/20 lg:w-56 xl:w-72"
             }
-            submitSearch(query);
-          }}
-        >
-          <label htmlFor={fieldId} className="sr-only">
-            Search tokens and pairs
-          </label>
-          <div className="relative min-w-0 flex-1">
-            <input
-              id={fieldId}
-              name="q"
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onFocus={() => {
-                void warmIndex();
-                if (results.length > 0 || indexError || searched) setOpen(true);
-              }}
-              onKeyDown={(e) => {
-                if (!showDropdown || results.length === 0) return;
-                if (e.key === "ArrowDown") {
-                  e.preventDefault();
-                  setActiveIndex((i) => (i + 1) % results.length);
-                } else if (e.key === "ArrowUp") {
-                  e.preventDefault();
-                  setActiveIndex((i) => (i <= 0 ? results.length - 1 : i - 1));
-                } else if (e.key === "Escape") {
-                  setOpen(false);
-                }
-              }}
-              placeholder={placeholder}
-              autoComplete="off"
-              role="combobox"
-              aria-expanded={showDropdown ? true : false}
-              aria-controls={listId}
-              aria-autocomplete="list"
-              className={
-                variant === "wide"
-                  ? "min-h-12 w-full flex-1 rounded-lg border border-[#f4ddc3]/20 bg-[rgba(20,18,22,0.65)] px-3 py-2.5 text-base text-white placeholder:text-zinc-500 focus:border-teal-400/50 focus:outline-none focus:ring-2 focus:ring-teal-400/25 sm:text-sm"
-                  : "h-10 w-full min-w-0 rounded-full border border-white/12 bg-white/[0.04] px-3.5 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-teal-400/45 focus:outline-none focus:ring-2 focus:ring-teal-400/20 lg:w-52 xl:w-64"
-              }
-            />
-            {showDropdown ? (
-              <ul
-                id={listId}
-                role="listbox"
-                className="absolute right-0 top-full z-[60] mt-1 max-h-80 w-full min-w-[16rem] overflow-y-auto rounded-lg border border-white/10 bg-[#141218] py-1 shadow-xl sm:min-w-[18rem]"
-              >
-                {indexError ? (
-                  <li className="px-3 py-3 text-sm text-amber-200/90">{indexError}</li>
-                ) : null}
-                {!indexError && searched && results.length === 0 ? (
-                  <li className="px-3 py-3 text-sm text-zinc-400">
-                    No matches in the top 200. Try another symbol or name.
-                  </li>
-                ) : null}
-                {results.map((coin, idx) => {
-                  const ch = coin.price_change_percentage_24h;
-                  const price =
-                    coin.current_price != null && Number.isFinite(coin.current_price)
-                      ? new Intl.NumberFormat("en-US", {
-                          style: "currency",
-                          currency: "USD",
-                          maximumFractionDigits: coin.current_price < 1 ? 6 : 2,
-                        }).format(coin.current_price)
-                      : "—";
-                  const pct =
-                    ch != null && Number.isFinite(ch)
-                      ? `${ch >= 0 ? "+" : ""}${ch.toFixed(2)}%`
-                      : "—";
-                  return (
-                    <li key={coin.id} role="option" aria-selected={idx === activeIndex}>
-                      <button
-                        type="button"
-                        className={`flex min-h-11 w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm transition-colors hover:bg-white/[0.06] ${
-                          idx === activeIndex ? "bg-white/[0.06]" : ""
-                        }`}
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => goToCoin(coin.id)}
-                      >
-                        {coin.image ? (
-                          <Image
-                            src={coin.image}
-                            alt=""
-                            width={24}
-                            height={24}
-                            className="rounded-full"
-                          />
-                        ) : (
-                          <span className="h-6 w-6 rounded-full bg-zinc-700" />
-                        )}
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-zinc-100">{coin.name}</span>
-                          <span className="font-mono text-[10px] uppercase text-zinc-500">
-                            {coin.symbol}
-                            <span className="mx-1 text-zinc-700">·</span>#{coin.rank}
-                          </span>
-                        </span>
-                        <span className="shrink-0 text-right">
-                          <span className="block font-mono text-xs font-semibold tabular-nums text-zinc-100">
-                            {price}
-                          </span>
-                          <span
-                            className={`block font-mono text-[11px] font-semibold tabular-nums ${
-                              (ch ?? 0) >= 0 ? "text-emerald-300" : "text-red-300"
-                            }`}
-                          >
-                            {pct}
-                          </span>
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : null}
-          </div>
-          {showSubmitButton ? (
-            <button
-              type="submit"
-              className={
-                variant === "wide"
-                  ? "min-h-12 shrink-0 rounded-lg border border-[#f4ddc3]/35 bg-gradient-to-br from-[#d9ab7c] to-[#a97348] px-5 py-2.5 text-base font-semibold text-[#111217] transition-[box-shadow,transform] hover:shadow-[0_0_18px_rgba(185,129,82,0.4)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] active:scale-[0.98] sm:min-h-11 sm:text-sm"
-                  : "h-10 shrink-0 rounded-lg border border-[#f4ddc3]/35 bg-gradient-to-br from-[#d9ab7c] to-[#a97348] px-3 text-sm font-semibold text-[#111217] transition-[box-shadow,transform] hover:shadow-[0_0_18px_rgba(185,129,82,0.4)] active:scale-[0.98]"
-              }
+          />
+          {showDropdown ? (
+            <ul
+              id={listId}
+              role="listbox"
+              className="absolute right-0 top-full z-[60] mt-1 max-h-80 w-full min-w-[17rem] overflow-y-auto rounded-xl border border-teal-400/20 bg-[#0c0e14]/98 py-1 shadow-[0_12px_36px_rgba(0,0,0,0.5)] backdrop-blur-xl sm:min-w-[22rem]"
             >
-              Search
-            </button>
+              {loading ? (
+                <li className="px-3 py-3 text-sm text-zinc-400">Searching DexScreener…</li>
+              ) : null}
+              {error ? <li className="px-3 py-3 text-sm text-amber-200/90">{error}</li> : null}
+              {!loading && !error && searched && results.length === 0 ? (
+                <li className="px-3 py-3 text-sm text-zinc-400">
+                  No pair found — check the contract
+                </li>
+              ) : null}
+              {results.map((hit, idx) => (
+                <li key={hit.id} role="option" aria-selected={idx === activeIndex}>
+                  <button
+                    type="button"
+                    className={`flex min-h-12 w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm transition-colors hover:bg-white/[0.06] ${
+                      idx === activeIndex ? "bg-white/[0.06]" : ""
+                    }`}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => goToHit(hit)}
+                  >
+                    <TokenAvatar symbol={hit.symbol} imageUrl={hit.imageUrl} size={24} />
+                    <span className="min-w-0 flex-1">
+                      <span className="flex min-w-0 items-center gap-1.5">
+                        <span className="truncate font-mono text-[13px] font-bold uppercase text-zinc-100">
+                          {hit.symbol}
+                        </span>
+                        <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-zinc-500">
+                          <ChainIcon chainId={hit.chain} size={12} />
+                          {formatChainLabel(hit.chain)}
+                        </span>
+                      </span>
+                      <span className="block truncate text-[11px] text-zinc-500">{hit.name}</span>
+                      <span className="mt-0.5 block truncate font-mono text-[10px] text-zinc-600">
+                        {truncateContract(hit.address)}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-right font-mono text-xs font-semibold tabular-nums text-zinc-100">
+                      {formatDexPriceUsd(hit.priceUsd)}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
           ) : null}
-        </form>
-      </div>
-    </>
+        </div>
+        {showSubmitButton ? (
+          <button
+            type="submit"
+            className={
+              variant === "wide"
+                ? "min-h-12 shrink-0 rounded-full border border-teal-400/40 bg-teal-500/15 px-5 py-2.5 text-base font-semibold text-teal-100 sm:min-h-11 sm:text-sm"
+                : "h-10 shrink-0 rounded-full border border-teal-400/40 bg-teal-500/15 px-3 text-sm font-semibold text-teal-100"
+            }
+          >
+            Search
+          </button>
+        ) : null}
+      </form>
+    </div>
   );
 }

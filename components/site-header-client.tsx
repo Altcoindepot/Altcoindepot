@@ -166,7 +166,7 @@ export function SiteHeaderClient({ fetchedAt }: { fetchedAt?: number | null }) {
             <div className="hidden lg:block">
               <CoinSearchBar
                 inputId="header-coin-search"
-                placeholder="Search tokens, pairs…"
+                placeholder="Search ticker or contract"
                 showSubmitButton={false}
               />
             </div>

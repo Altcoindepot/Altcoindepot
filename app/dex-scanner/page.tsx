@@ -3,7 +3,8 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { DexScannerExplorer } from "@/components/dex-scanner-explorer";
-import { DisclaimerNote } from "@/components/disclaimer-note";
+import { DexScannerDisclaimerModal } from "@/components/dex-scanner-disclaimer-modal";
+import { DexRiskFootnote } from "@/components/dex-risk-footnote";
 import { DexScreenerFetchError } from "@/lib/dexscreener-live-pairs";
 import { getDexScannerRows, type DexScannerRow } from "@/lib/dex-scanner-data";
 
@@ -55,6 +56,7 @@ export default async function DexScannerPage() {
   return (
     <>
       <SiteHeader />
+      <DexScannerDisclaimerModal />
       <main id="main-content" className="border-b border-white/10 bg-[#0a0a0a] px-3 py-4 sm:px-6 sm:py-6">
         <div className="mx-auto max-w-[90rem]">
           <p className="text-[10px] uppercase tracking-widest text-zinc-500">
@@ -68,18 +70,16 @@ export default async function DexScannerPage() {
             DEX Scanner
           </h1>
           <p className="mt-1 max-w-2xl text-xs leading-relaxed text-zinc-500 sm:text-sm">
-            Advanced filters · all chains · no age gate · high risk
+            Advanced filters · all chains · no age gate · high risk · browse any mapped pair
           </p>
+
+          <DexRiskFootnote className="mt-4" />
 
           <div className="mt-5">
             <Suspense fallback={<div className="h-48 rounded-xl border border-white/10 bg-[#0c0e14]" />}>
               <DexScannerExplorer rows={rows} error={error} />
             </Suspense>
           </div>
-
-          <DisclaimerNote className="mt-4 text-[11px]">
-            Pair stats from DexScreener · informational only · not financial advice
-          </DisclaimerNote>
         </div>
       </main>
     </>

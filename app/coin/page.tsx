@@ -2,21 +2,23 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CoinSearchBar } from "@/components/coin-search-bar";
-import { CoinSearchResultsList } from "@/components/coin-search-results-list";
 import { SiteHeader } from "@/components/site-header";
-import {
-  getTopCoinsSearchIndex,
-  pickBestTopCoinMatch,
-  searchTopCoinsIndex,
-  TOP_COINS_SEARCH_LIMIT,
-} from "@/lib/top-coins-index";
+import { ChainIcon } from "@/components/chain-icon";
+import { TokenAvatar } from "@/components/token-avatar";
+import { searchDexPairs, truncateContract, type DexSearchHit } from "@/lib/dex-search";
+import { formatDexPriceUsd } from "@/lib/dex-pair-fields";
+import { formatChainLabel } from "@/lib/format-chain";
+import { DexRiskFootnote } from "@/components/dex-risk-footnote";
 
 export const metadata: Metadata = {
-  title: "Find a coin",
-  description: "Search the top 3,000 cryptocurrencies by market cap on Altcoin Depot.",
+  title: "Search DEX tokens",
+  description:
+    "Search any DexScreener-listed token by ticker or contract. Live prices from Dex — verify the contract. Informational only, not financial advice.",
 };
 
-export default async function CoinSearchRedirectPage({
+export const dynamic = "force-dynamic";
+
+export default async function CoinSearchPage({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string }>;
@@ -28,18 +30,26 @@ export default async function CoinSearchRedirectPage({
     return (
       <>
         <SiteHeader />
-        <main className="mx-auto max-w-lg px-4 py-20 text-center sm:px-6">
-          <h1 className="text-brand-altcoindepot text-xl font-semibold tracking-tight">Search</h1>
+        <main className="mx-auto max-w-lg px-4 py-16 text-center sm:px-6 sm:py-20">
+          <h1 className="text-xl font-semibold tracking-tight text-zinc-50">Search DEX tokens</h1>
           <p className="mt-2 text-sm text-zinc-400">
-            Search the top {TOP_COINS_SEARCH_LIMIT.toLocaleString()} coins by name or ticker. Each
-            result opens a full stats page with price, ATH/ATL, charts, and feeds.
+            Paste a ticker or contract address. Live price from DexScreener — always verify the
+            contract before any decision.
           </p>
           <div className="mx-auto mt-8 max-w-md text-left">
             <CoinSearchBar variant="wide" inputId="coin-page-search" />
           </div>
+          <p className="mt-4 text-[11px] text-zinc-500">
+            Or browse the{" "}
+            <Link href="/dex-scanner" className="text-teal-300 underline-offset-2 hover:underline">
+              DEX Scanner
+            </Link>
+            .
+          </p>
+          <DexRiskFootnote className="mt-8 text-left" />
           <Link
             href="/"
-            className="mt-8 inline-block text-sm text-[#00ff9f] underline-offset-2 hover:underline"
+            className="mt-6 inline-block text-sm text-teal-300 underline-offset-2 hover:underline"
           >
             ← Back home
           </Link>
@@ -48,46 +58,77 @@ export default async function CoinSearchRedirectPage({
     );
   }
 
-  let index;
+  let hits: DexSearchHit[] = [];
+  let failed = false;
   try {
-    index = await getTopCoinsSearchIndex();
+    hits = await searchDexPairs(query, 12);
   } catch {
-    return (
-      <>
-        <SiteHeader />
-        <main className="mx-auto max-w-lg px-4 py-20 text-center sm:px-6">
-          <h1 className="text-brand-altcoindepot text-xl font-semibold tracking-tight">Search unavailable</h1>
-          <p className="mt-2 text-sm text-zinc-400">
-            The coin index could not be loaded. Try again shortly.
-          </p>
-          <Link href="/" className="mt-8 inline-block text-sm text-[#00ff9f] hover:underline">
-            ← Back home
-          </Link>
-        </main>
-      </>
-    );
+    hits = [];
+    failed = true;
   }
 
-  const best = pickBestTopCoinMatch(index, query);
-  if (best) {
-    redirect(`/coin/${best.id}`);
+  if (hits.length === 1) {
+    redirect(hits[0]!.href);
   }
-
-  const hits = searchTopCoinsIndex(index, query, 20);
 
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto max-w-xl px-4 py-12 sm:px-6">
-        <h1 className="text-brand-altcoindepot text-xl font-semibold tracking-tight">Search results</h1>
-        <p className="mt-2 text-sm text-zinc-400">
-          Top {index.length.toLocaleString()} coins by market cap · query{" "}
-          <span className="font-mono text-zinc-200">{query}</span>
+      <main className="mx-auto max-w-2xl px-4 py-10 sm:px-6 sm:py-14">
+        <h1 className="text-xl font-semibold tracking-tight text-zinc-50">Search results</h1>
+        <p className="mt-1 text-sm text-zinc-400">
+          Query: <span className="font-mono text-zinc-200">{query}</span>
         </p>
-        <CoinSearchResultsList query={query} coins={hits} totalIndexed={index.length} />
-        <Link href="/" className="mt-8 inline-block text-sm text-[#00ff9f] hover:underline">
-          ← Back home
-        </Link>
+        <div className="mt-6">
+          <CoinSearchBar variant="wide" inputId="coin-page-search-results" />
+        </div>
+
+        {failed ? (
+          <p className="mt-6 rounded-xl border border-red-500/40 bg-red-950/30 px-4 py-3 text-sm text-red-300">
+            DexScreener search failed. Try again shortly.
+          </p>
+        ) : hits.length === 0 ? (
+          <p className="mt-6 rounded-xl border border-white/10 bg-[#0c0e14] px-4 py-6 text-sm text-zinc-500">
+            No pair found — check the contract. You can also open the{" "}
+            <Link href="/dex-scanner" className="text-teal-300 underline-offset-2 hover:underline">
+              DEX Scanner
+            </Link>
+            .
+          </p>
+        ) : (
+          <ul className="mt-6 divide-y divide-white/5 overflow-hidden rounded-xl border border-teal-400/20 bg-white/[0.03]">
+            {hits.map((hit) => (
+              <li key={hit.id}>
+                <Link
+                  href={hit.href}
+                  className="flex min-h-12 items-center gap-2.5 px-3 py-2.5 hover:bg-white/[0.04] sm:px-4"
+                >
+                  <TokenAvatar symbol={hit.symbol} imageUrl={hit.imageUrl} size={28} />
+                  <span className="min-w-0 flex-1">
+                    <span className="flex min-w-0 items-center gap-1.5">
+                      <span className="truncate font-mono text-[13px] font-bold uppercase text-zinc-50">
+                        {hit.symbol}
+                      </span>
+                      <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-zinc-500">
+                        <ChainIcon chainId={hit.chain} size={14} />
+                        {formatChainLabel(hit.chain)}
+                      </span>
+                    </span>
+                    <span className="block truncate text-[11px] text-zinc-500">{hit.name}</span>
+                    <span className="mt-0.5 block truncate font-mono text-[10px] text-zinc-600">
+                      {truncateContract(hit.address)}
+                    </span>
+                  </span>
+                  <span className="shrink-0 text-right font-mono text-sm font-semibold tabular-nums text-zinc-100">
+                    {formatDexPriceUsd(hit.priceUsd)}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <DexRiskFootnote className="mt-6" />
       </main>
     </>
   );

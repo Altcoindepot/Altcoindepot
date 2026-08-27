@@ -37,6 +37,7 @@ type DexPair = {
   chainId?: string;
   dexId?: string;
   baseToken?: { address?: string; name?: string; symbol?: string };
+  quoteToken?: { address?: string; name?: string; symbol?: string };
   priceUsd?: string | number | null;
   priceChange?: { h24?: number; h6?: number; h1?: number };
   volume?: { h24?: number };
@@ -121,11 +122,61 @@ async function dexFetch(path: string): Promise<unknown> {
   return res.json();
 }
 
+function quotePreference(quote: string | undefined): number {
+  const q = (quote ?? "").trim().toUpperCase();
+  if (q === "USDT") return 0;
+  if (q === "USDC") return 1;
+  if (
+    q === "USD1" ||
+    q === "DAI" ||
+    q === "FDUSD" ||
+    q === "TUSD" ||
+    q === "USDE" ||
+    q === "BUSD" ||
+    q === "USD"
+  ) {
+    return 2;
+  }
+  return 3;
+}
+
+function isMajorBase(symbol: string | undefined): boolean {
+  const s = (symbol ?? "").trim().toUpperCase();
+  const majors = new Set([
+    "BTC",
+    "WBTC",
+    "ETH",
+    "WETH",
+    "SOL",
+    "WSOL",
+    "BNB",
+    "WBNB",
+    "AVAX",
+    "WAVAX",
+    "MATIC",
+    "WMATIC",
+    "POL",
+  ]);
+  if (majors.has(s)) return true;
+  if (s.startsWith("W") && majors.has(s.slice(1))) return true;
+  return false;
+}
+
 function pickBestPair(pairs: DexPair[]): DexPair | null {
   if (pairs.length === 0) return null;
-  return [...pairs].sort(
-    (a, b) => (parseDexUsdNumber(b.volume?.h24) ?? 0) - (parseDexUsdNumber(a.volume?.h24) ?? 0),
-  )[0] ?? null;
+  const major = isMajorBase(pairs[0]?.baseToken?.symbol);
+  return (
+    [...pairs].sort((a, b) => {
+      if (major) {
+        const qa = quotePreference(a.quoteToken?.symbol);
+        const qb = quotePreference(b.quoteToken?.symbol);
+        if (qa !== qb) return qa - qb;
+      }
+      return (
+        (parseDexUsdNumber(b.volume?.h24) ?? 0) - (parseDexUsdNumber(a.volume?.h24) ?? 0)
+      );
+    })[0] ?? null
+  );
 }
 
 async function fetchPairsFromTopBoosts(): Promise<DexPair[]> {

@@ -13,6 +13,7 @@ import type { DexTokenPageData } from "@/lib/dexscreener-token";
 import { geckoTerminalChartEmbedUrl } from "@/lib/dexscreener-token";
 import type { GeckoCoinStats } from "@/lib/gecko-coin-stats";
 import type { DexTrade } from "@/lib/geckoterminal-trades";
+import { DATA_RESPONSIBILITY_DISCLAIMER } from "@/lib/data-responsibility";
 import { formatChainLabel } from "@/lib/format-chain";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
 import { ds } from "@/lib/ui-classes";
@@ -128,6 +129,12 @@ export function DexTokenView({
         <div className="mt-2">
           <CopyAddressButton address={token.address} />
         </div>
+        <p className="mt-2 text-[11px] leading-relaxed text-amber-100/80">
+          {DATA_RESPONSIBILITY_DISCLAIMER}{" "}
+          <Link href="/disclaimer" className="font-semibold text-amber-50 underline-offset-2 hover:underline">
+            Full disclaimer →
+          </Link>
+        </p>
       </div>
 
       <TokenGeckoStatsPanel stats={geckoStats} />
@@ -158,8 +165,9 @@ export function DexTokenView({
       <DexRecentTrades trades={trades} pairUrl={token.pairUrl} />
 
       <p className="mt-6 rounded-xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-sm leading-relaxed text-amber-100/90">
-        High-risk DEX token. New and low-cap pairs can be illiquid or fraudulent. This page is
-        informational only and is not financial advice. Data may be delayed or incomplete.
+        High-risk DEX token. New and low-cap pairs can be illiquid or fraudulent. Prices and pair
+        data may be delayed or incorrect. It is your responsibility to verify the contract address
+        before any decision. This page is informational only and is not financial advice.
       </p>
       <DisclaimerNote className="mt-2">Informational only · not financial advice</DisclaimerNote>
 
