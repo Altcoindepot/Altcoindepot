@@ -143,7 +143,7 @@ export function PodcastsGrid({ podcasts }: { podcasts: PodcastWithEpisodes[] }) 
 
           <div className="mt-auto border-t border-white/10 pt-4">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-500">
-              Full catalog
+              Hear every episode on YouTube, Spotify, or Amazon Music.
             </p>
             <div className="mt-2 flex flex-wrap gap-2">
               <a

@@ -3,7 +3,8 @@ import { SiteHeader } from "@/components/site-header";
 import { PodcastsGrid } from "@/components/podcasts-grid";
 import { loadPodcastsWithEpisodes } from "@/lib/podcasts-page-data";
 
-export const dynamic = "force-dynamic";
+/** Latest-episode cards refresh on a daily cadence. */
+export const revalidate = 86_400;
 
 export async function generateMetadata(): Promise<Metadata> {
   const podcasts = await loadPodcastsWithEpisodes();
@@ -11,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: { absolute: "Crypto Podcasts | AltCoin Depot" },
     description:
-      "Crypto podcasts — Bankless, The Milk Road Show, The Pomp Podcast, and The Wolf of All Streets. Latest episodes with play links.",
+      "Crypto podcasts — Bankless, Coffee with Captain, Coin Stories, Milk Road, Pomp, Wolf of All Streets, Unchained, and What Bitcoin Did. Latest episodes with play links.",
     alternates: { canonical: "/podcasts" },
     robots: hasEpisodes
       ? { index: true, follow: true }
@@ -31,8 +32,10 @@ export default async function PodcastsPage() {
           Crypto Podcasts
         </h1>
         <p className="mt-2 max-w-3xl text-xs leading-relaxed text-zinc-400 sm:mt-3 sm:text-base">
-          Curated crypto shows. Tap an episode to play on YouTube · full catalogs on Spotify / Amazon
-          Music.
+          Curated shows focused on crypto and markets. Each card lists the five most recent uploads
+          from the show&apos;s official YouTube channel (tap a thumbnail to watch). For the full
+          back catalog, use YouTube, Spotify, or Amazon Music — links are at the bottom of each
+          card. Shows are listed in alphabetical order.
         </p>
 
         {!hasEpisodes ? (

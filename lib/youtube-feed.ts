@@ -7,7 +7,12 @@ export type YoutubeFeedItem = {
   href: string;
   publishedAt: string;
   thumbnailUrl?: string;
+  /** Seconds when known (used to prefer full episodes over shorts/jingles). */
+  durationSeconds?: number;
 };
+
+/** Prefer full episodes over Shorts / jingles on podcast cards. */
+export const PODCAST_MIN_DURATION_SECONDS = 8 * 60;
 
 export type CachedYoutubeFeed = {
   videos: YoutubeFeedItem[];
@@ -19,6 +24,13 @@ export type CachedYoutubeFeed = {
 
 const CACHE_TTL_MS = 15 * 60_000;
 const feedCache = new Map<string, { videos: YoutubeFeedItem[]; fetchedAt: number }>();
+
+const YT_BROWSER_HEADERS: HeadersInit = {
+  Accept: "text/html,application/xhtml+xml,application/atom+xml,application/xml;q=0.9,*/*;q=0.8",
+  "Accept-Language": "en-US,en;q=0.9",
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+};
 
 function stripHtml(input: string): string {
   return input.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
@@ -157,42 +169,110 @@ function parseYoutubeVideoAtom(xml: string, limit: number): YoutubeFeedItem[] {
   return out;
 }
 
+function sortNewestFirst(videos: YoutubeFeedItem[]): YoutubeFeedItem[] {
+  return [...videos].sort(
+    (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
+  );
+}
+
 /** Latest uploads from a YouTube channel (Atom feed → playlist feed → page scrape). */
 export async function getLatestYoutubeVideosForChannel(
   channelId: string,
   limit = 5,
   handle?: string,
+  opts?: { minDurationSeconds?: number; revalidateSeconds?: number },
 ): Promise<YoutubeFeedItem[]> {
+  const minDuration = opts?.minDurationSeconds ?? 0;
+  const revalidateSeconds = opts?.revalidateSeconds ?? 3600;
+  // Over-fetch when filtering shorts so cards still fill to `limit`.
+  const fetchLimit = minDuration > 0 ? Math.max(limit * 6, 24) : limit;
+
   const ids = new Set<string>();
   if (UC_RE.test(channelId)) ids.add(channelId.match(UC_RE)![1]!);
 
-  // Prefer handle scrape first when Atom is unavailable in many environments.
   if (handle) {
-    const scrapedHandle = await scrapeHandleUploads(handle, limit);
-    if (scrapedHandle.length > 0) return scrapedHandle;
     const resolved = await resolveHandleToChannelId(handle);
     if (resolved) ids.add(resolved);
   }
 
+  // Atom/playlist first — real published dates, newest → oldest.
   for (const id of ids) {
-    const fromAtom = await fetchChannelAtomOrPlaylist(id, limit);
-    if (fromAtom.length > 0) return fromAtom;
+    const fromAtom = await fetchChannelAtomOrPlaylist(id, fetchLimit, revalidateSeconds);
+    const filtered = await filterByMinDuration(fromAtom, limit, minDuration);
+    if (filtered.length > 0) return sortNewestFirst(filtered);
+  }
+
+  if (handle) {
+    const scrapedHandle = await scrapeHandleUploads(handle, fetchLimit, revalidateSeconds);
+    const filtered = await filterByMinDuration(scrapedHandle, limit, minDuration);
+    if (filtered.length > 0) return sortNewestFirst(filtered);
   }
 
   for (const id of ids) {
-    const scraped = await scrapeChannelUploads(id, limit);
-    if (scraped.length > 0) return scraped;
+    const scraped = await scrapeChannelUploads(id, fetchLimit, revalidateSeconds);
+    const filtered = await filterByMinDuration(scraped, limit, minDuration);
+    if (filtered.length > 0) return sortNewestFirst(filtered);
   }
 
   return [];
 }
 
-const YT_BROWSER_HEADERS: HeadersInit = {
-  Accept: "text/html,application/xhtml+xml,application/atom+xml,application/xml;q=0.9,*/*;q=0.8",
-  "Accept-Language": "en-US,en;q=0.9",
-  "User-Agent":
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-};
+async function lookupVideoDurationSeconds(videoId: string): Promise<number | null> {
+  try {
+    const res = await fetch(`https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`, {
+      next: { revalidate: 86400 },
+      headers: YT_BROWSER_HEADERS,
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    const m =
+      html.match(/"lengthSeconds":"(\d+)"/) ??
+      html.match(/"approxDurationMs":"(\d+)"/);
+    if (!m?.[1]) return null;
+    if (m[0].includes("approxDurationMs")) {
+      return Math.round(Number(m[1]) / 1000);
+    }
+    return Number(m[1]);
+  } catch {
+    return null;
+  }
+}
+
+async function filterByMinDuration(
+  videos: YoutubeFeedItem[],
+  limit: number,
+  minDurationSeconds: number,
+): Promise<YoutubeFeedItem[]> {
+  // Keep input order (expected newest → oldest); only drop short clips.
+  if (minDurationSeconds <= 0) return videos.slice(0, limit);
+  const out: YoutubeFeedItem[] = [];
+  for (const v of videos) {
+    let secs = v.durationSeconds;
+    if (secs == null || !Number.isFinite(secs)) {
+      secs = (await lookupVideoDurationSeconds(v.id)) ?? undefined;
+    }
+    // Skip known-short clips; keep unknown duration only if we still need fillers later.
+    if (secs != null && secs < minDurationSeconds) continue;
+    if (secs != null) {
+      out.push({ ...v, durationSeconds: secs });
+    } else {
+      // Duration unknown — defer; only add if we can't fill with confirmed full eps.
+      continue;
+    }
+    if (out.length >= limit) break;
+  }
+  // If still short, allow unknown-duration items rather than leave the card empty.
+  if (out.length < limit) {
+    for (const v of videos) {
+      if (out.some((x) => x.id === v.id)) continue;
+      const secs = v.durationSeconds;
+      if (secs != null && secs < minDurationSeconds) continue;
+      out.push(v);
+      if (out.length >= limit) break;
+    }
+  }
+  return out.slice(0, limit);
+}
 
 function uploadsPlaylistId(channelId: string): string | null {
   const m = channelId.match(UC_RE);
@@ -203,6 +283,7 @@ function uploadsPlaylistId(channelId: string): string | null {
 async function fetchChannelAtomOrPlaylist(
   channelId: string,
   limit: number,
+  revalidateSeconds = 3600,
 ): Promise<YoutubeFeedItem[]> {
   const urls = [
     `https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(channelId)}`,
@@ -217,7 +298,7 @@ async function fetchChannelAtomOrPlaylist(
   for (const feedUrl of urls) {
     try {
       const res = await fetch(feedUrl, {
-        next: { revalidate: 3600 },
+        next: { revalidate: revalidateSeconds },
         headers: YT_BROWSER_HEADERS,
       });
       if (!res.ok) continue;
@@ -233,13 +314,37 @@ async function fetchChannelAtomOrPlaylist(
 }
 
 function uniqueVideoIds(html: string, limit: number): string[] {
-  const out: string[] = [];
+  return uniqueVideosFromHtml(html, limit).map((v) => v.id);
+}
+
+/**
+ * Collect uploads in document order (YouTube /videos is newest → oldest),
+ * then attach duration when a nearby lengthSeconds is present.
+ */
+function uniqueVideosFromHtml(
+  html: string,
+  limit: number,
+): Array<{ id: string; durationSeconds?: number }> {
+  const durationById = new Map<string, number>();
+  for (const m of html.matchAll(
+    /"videoId":"([a-zA-Z0-9_-]{11})"[^|]{0,400}?"lengthSeconds":"(\d+)"/g,
+  )) {
+    durationById.set(m[1]!, Number(m[2]));
+  }
+  for (const m of html.matchAll(
+    /"lengthSeconds":"(\d+)"[^|]{0,400}?"videoId":"([a-zA-Z0-9_-]{11})"/g,
+  )) {
+    if (!durationById.has(m[2]!)) durationById.set(m[2]!, Number(m[1]));
+  }
+
+  const out: Array<{ id: string; durationSeconds?: number }> = [];
   const seen = new Set<string>();
   for (const m of html.matchAll(/"videoId":"([a-zA-Z0-9_-]{11})"/g)) {
     const id = m[1]!;
     if (seen.has(id)) continue;
     seen.add(id);
-    out.push(id);
+    const durationSeconds = durationById.get(id);
+    out.push(durationSeconds != null ? { id, durationSeconds } : { id });
     if (out.length >= limit) break;
   }
   return out;
@@ -262,17 +367,22 @@ async function oembedTitle(videoId: string): Promise<string | null> {
   return null;
 }
 
-async function videosFromIds(ids: string[]): Promise<YoutubeFeedItem[]> {
+async function videosFromIds(
+  entries: Array<{ id: string; durationSeconds?: number }>,
+): Promise<YoutubeFeedItem[]> {
+  // Index offsets preserve newest→oldest when Atom dates aren't available.
+  const now = Date.now();
   return Promise.all(
-    ids.map(async (vid) => {
+    entries.map(async ({ id: vid, durationSeconds }, index) => {
       const title = (await oembedTitle(vid)) ?? "YouTube video";
       return {
         id: vid,
         title,
         summary: "",
         href: `https://www.youtube.com/watch?v=${encodeURIComponent(vid)}`,
-        publishedAt: new Date().toISOString(),
+        publishedAt: new Date(now - index * 60_000).toISOString(),
         thumbnailUrl: `https://i.ytimg.com/vi/${vid}/mqdefault.jpg`,
+        durationSeconds,
       } satisfies YoutubeFeedItem;
     }),
   );
@@ -281,6 +391,7 @@ async function videosFromIds(ids: string[]): Promise<YoutubeFeedItem[]> {
 async function scrapeChannelUploads(
   channelId: string,
   limit: number,
+  revalidateSeconds = 3600,
 ): Promise<YoutubeFeedItem[]> {
   const pages = [
     `https://www.youtube.com/channel/${encodeURIComponent(channelId)}/videos`,
@@ -289,13 +400,13 @@ async function scrapeChannelUploads(
   for (const url of pages) {
     try {
       const res = await fetch(url, {
-        next: { revalidate: 3600 },
+        next: { revalidate: revalidateSeconds },
         headers: YT_BROWSER_HEADERS,
       });
       if (!res.ok) continue;
       const html = await res.text();
-      const ids = uniqueVideoIds(html, limit);
-      if (ids.length > 0) return videosFromIds(ids);
+      const entries = uniqueVideosFromHtml(html, limit);
+      if (entries.length > 0) return videosFromIds(entries);
     } catch {
       /* try next */
     }
@@ -306,6 +417,7 @@ async function scrapeChannelUploads(
 async function scrapeHandleUploads(
   handle: string,
   limit: number,
+  revalidateSeconds = 3600,
 ): Promise<YoutubeFeedItem[]> {
   const clean = handle.replace(/^@/, "");
   const pages = [
@@ -315,13 +427,13 @@ async function scrapeHandleUploads(
   for (const url of pages) {
     try {
       const res = await fetch(url, {
-        next: { revalidate: 3600 },
+        next: { revalidate: revalidateSeconds },
         headers: YT_BROWSER_HEADERS,
       });
       if (!res.ok) continue;
       const html = await res.text();
-      const ids = uniqueVideoIds(html, limit);
-      if (ids.length > 0) return videosFromIds(ids);
+      const entries = uniqueVideosFromHtml(html, limit);
+      if (entries.length > 0) return videosFromIds(entries);
     } catch {
       /* try next */
     }

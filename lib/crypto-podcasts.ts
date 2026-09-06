@@ -25,6 +25,31 @@ export const CRYPTO_PODCASTS: CryptoPodcast[] = [
       "https://music.amazon.com/podcasts/532e806f-83c4-4f5a-9c89-b0f80d0ef37e",
   },
   {
+    slug: "coffee-with-captain",
+    title: "Coffee with Captain",
+    tagline: "Daily weekday morning show on crypto markets, products, and onchain culture.",
+    // Resolved from @coffeewithcaptainshow channel page
+    youtubeChannelId: "UCfYdmS4SMxI-kQeMguO0VWA",
+    youtubeHandle: "coffeewithcaptainshow",
+    youtubeCatalogUrl: "https://www.youtube.com/@coffeewithcaptainshow/videos",
+    spotifyCatalogUrl: "https://open.spotify.com/show/5SnBGrAMVlqjUtEfeUlf78",
+    amazonMusicCatalogUrl:
+      "https://music.amazon.com/podcasts/2c1fae9f-8c67-4ae3-9864-ce2485ba135a",
+  },
+  {
+    slug: "coin-stories",
+    title: "Coin Stories",
+    tagline:
+      "Natalie Brunell on Bitcoin, money, and long-form interviews with builders and macro voices.",
+    // Resolved from @NatalieBrunell channel page
+    youtubeChannelId: "UCru3nlhzHrbgK21x0MdB_eg",
+    youtubeHandle: "NatalieBrunell",
+    youtubeCatalogUrl: "https://www.youtube.com/@NatalieBrunell/videos",
+    spotifyCatalogUrl: "https://open.spotify.com/show/0YOEwxAR1uIx1a15QpqE0l",
+    amazonMusicCatalogUrl:
+      "https://music.amazon.com/podcasts/dc0bb56c-a826-4570-984b-a2a7c5a6849e/coin-stories-with-natalie-brunell",
+  },
+  {
     slug: "the-milk-road-show",
     title: "The Milk Road Show",
     tagline: "Daily crypto news and interviews with builders and investors.",
@@ -55,5 +80,30 @@ export const CRYPTO_PODCASTS: CryptoPodcast[] = [
     spotifyCatalogUrl: "https://spoti.fi/30N5FDe",
     amazonMusicCatalogUrl:
       "https://www.amazon.com/s?k=The+Wolf+of+All+Streets+podcast&i=digital-music-podcasts",
+  },
+  {
+    slug: "unchained",
+    title: "Unchained",
+    tagline:
+      "Laura Shin on crypto news, regulation, DeFi, and industry interviews — no-hype journalism.",
+    // Resolved from @UnchainedCrypto channel page
+    youtubeChannelId: "UCuKiSkbYrUOOEEiYQEVPniQ",
+    youtubeHandle: "UnchainedCrypto",
+    youtubeCatalogUrl: "https://www.youtube.com/@UnchainedCrypto/videos",
+    spotifyCatalogUrl: "https://open.spotify.com/show/1cJrrfGY1SKBIRn5noKSAf",
+    amazonMusicCatalogUrl:
+      "https://www.amazon.com/s?k=Unchained+Laura+Shin+podcast&i=digital-music-podcasts",
+  },
+  {
+    slug: "what-bitcoin-did",
+    title: "What Bitcoin Did",
+    tagline: "Danny Knowles on Bitcoin, macro, and the future of money.",
+    // Resolved from @WhatBitcoinDidPod channel page
+    youtubeChannelId: "UCtvg5cXLY_tHDJeBoRySBtg",
+    youtubeHandle: "WhatBitcoinDidPod",
+    youtubeCatalogUrl: "https://www.youtube.com/@WhatBitcoinDidPod/videos",
+    spotifyCatalogUrl: "https://open.spotify.com/show/18Pixm6jNMATYXSO6cUnTH",
+    amazonMusicCatalogUrl:
+      "https://www.amazon.com/s?k=What+Bitcoin+Did+podcast&i=digital-music-podcasts",
   },
 ].sort((a, b) => a.title.localeCompare(b.title, "en", { sensitivity: "base" }));
