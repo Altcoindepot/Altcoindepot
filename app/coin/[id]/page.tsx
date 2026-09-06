@@ -47,6 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       return {
         title: { absolute: fallback.title },
         description: fallback.description,
+        alternates: { canonical: `/coin/${encodeURIComponent(id)}` },
         robots: { index: true, follow: true },
       };
     }
@@ -68,10 +69,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       categories: coin.categories,
     });
     const narrative = tags[0] ?? "crypto";
+    const platforms = parseGeckoPlatforms(coin.platforms);
+    const primary = platforms[0];
 
     const { title, description } = buildCoinSeoCopy(name, ticker, coin.id, {
       narrative,
       tags,
+      listedOnGecko: true,
+      chain: primary?.chain ?? null,
+      contractAddress: primary?.address ?? null,
     });
 
     return {

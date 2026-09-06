@@ -25,6 +25,8 @@ export type DexLivePairRow = {
   chain: string;
   dex: string;
   dexLabel: string;
+  /** Quote side for pair pills (e.g. USDC). */
+  quoteSymbol: string | null;
   priceUsd: number | null;
   /** Prefer for short-window heat when present. */
   change1h: number | null;
@@ -83,6 +85,7 @@ export function mapDexPairToLiveRow(pair: DexPair): DexLivePairRow | null {
       ? pair.pairCreatedAt
       : null;
 
+  const quoteRaw = pair.quoteToken?.symbol?.trim();
   return {
     id: `${chain}:${base.address.toLowerCase()}`,
     symbol: base.symbol.toUpperCase(),
@@ -91,6 +94,7 @@ export function mapDexPairToLiveRow(pair: DexPair): DexLivePairRow | null {
     chain,
     dex,
     dexLabel: dexVenueLabel(dex) || dex || "—",
+    quoteSymbol: quoteRaw ? quoteRaw.toUpperCase() : null,
     priceUsd,
     change1h,
     change24h,

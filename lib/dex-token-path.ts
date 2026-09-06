@@ -61,6 +61,13 @@ export function normalizeDexChainId(chain: string | undefined): string | null {
   return DEX_CHAIN_CANONICAL[key] ?? key;
 }
 
+/** EVM addresses → lowercase; Solana / base58 left as-is (case-sensitive). */
+export function canonicalizeTokenAddress(address: string): string {
+  const v = address.trim();
+  if (/^0x[a-fA-F0-9]+$/.test(v)) return v.toLowerCase();
+  return v;
+}
+
 /** Chain ids to try against DexScreener APIs for a route/list chain param. */
 export function dexChainLookupCandidates(chain: string | undefined): string[] {
   const canonical = normalizeDexChainId(chain);
@@ -90,7 +97,27 @@ export function dexTokenPath(
   const token = address?.trim() ?? "";
   if (!chainId) return null;
   if (!isTokenAddress(token)) return null;
-  return `/token/${encodeURIComponent(chainId)}/${encodeURIComponent(token)}`;
+  const addr = canonicalizeTokenAddress(token);
+  return `/token/${encodeURIComponent(chainId)}/${encodeURIComponent(addr)}`;
+}
+
+/**
+ * True when the request URL already matches the canonical token path
+ * (`ethereum` not `eth`, lowercase EVM address).
+ */
+export function isCanonicalTokenRoute(
+  chainRaw: string,
+  addressRaw: string,
+  canonicalChain: string,
+  canonicalAddress: string,
+): boolean {
+  const wantChain = normalizeDexChainId(canonicalChain);
+  const wantAddr = canonicalizeTokenAddress(canonicalAddress);
+  if (!wantChain || !wantAddr) return false;
+  return (
+    chainRaw.trim().toLowerCase() === wantChain &&
+    canonicalizeTokenAddress(addressRaw) === wantAddr
+  );
 }
 
 export function isTokenAddress(value: string): boolean {

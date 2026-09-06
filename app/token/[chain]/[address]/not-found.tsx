@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/site-header";
 export const metadata: Metadata = {
   title: "Token not found",
   description: "This DEX token page could not be loaded on AltCoin Depot.",
+  robots: { index: false, follow: true },
 };
 
 export default function DexTokenNotFound() {

@@ -19,6 +19,7 @@ export const metadata: Metadata = {
   title: { absolute: TITLE },
   description: DESCRIPTION,
   alternates: { canonical: "/" },
+  robots: { index: true, follow: true },
   openGraph: {
     title: TITLE,
     description: DESCRIPTION,
@@ -79,7 +80,7 @@ async function fetchHomeMoversSoft(): Promise<{
       }),
     ]);
     if (!boards) return { rows: [], boards: [] };
-    return { rows: pickHomeTopMovers(boards, 5), boards };
+    return { rows: pickHomeTopMovers(boards, 8), boards };
   } catch (error) {
     console.error("[page] Home movers fetch failed.", error);
     return { rows: [], boards: [] };
@@ -87,7 +88,60 @@ async function fetchHomeMoversSoft(): Promise<{
 }
 
 async function fetchDexHeatSoft(): Promise<DexHeatSnapshot> {
-  const empty: DexHeatSnapshot = { buckets: [], windowLabel: "24H", updatedAt: Date.now() };
+  const empty: DexHeatSnapshot = {
+    buckets: [
+      {
+        id: "solana",
+        label: "Solana",
+        kind: "chain",
+        filterChain: "solana",
+        href: "/pairs?chain=solana",
+        heatPct: 0,
+        window: "24h",
+        status: "NEUTRAL",
+        sampleSize: 0,
+        children: [],
+      },
+      {
+        id: "base",
+        label: "Base",
+        kind: "chain",
+        filterChain: "base",
+        href: "/pairs?chain=base",
+        heatPct: 0,
+        window: "24h",
+        status: "NEUTRAL",
+        sampleSize: 0,
+        children: [],
+      },
+      {
+        id: "ethereum",
+        label: "Ethereum",
+        kind: "chain",
+        filterChain: "ethereum",
+        href: "/pairs?chain=ethereum",
+        heatPct: 0,
+        window: "24h",
+        status: "NEUTRAL",
+        sampleSize: 0,
+        children: [],
+      },
+      {
+        id: "injective",
+        label: "INJ",
+        kind: "chain",
+        filterChain: "injective",
+        href: "/pairs?chain=injective",
+        heatPct: 0,
+        window: "24h",
+        status: "NEUTRAL",
+        sampleSize: 0,
+        children: [],
+      },
+    ],
+    windowLabel: "24H",
+    updatedAt: Date.now(),
+  };
   try {
     const heat = await Promise.race([
       getDexNarrativeHeat(),

@@ -91,6 +91,8 @@ export type ChainMoverRow = {
   window: MoverWindow;
   imageUrl?: string | null;
   liquidityUsd: number | null;
+  /** Quote side when known (for SOL/USDC-style labels). */
+  quoteSymbol?: string | null;
   /** Dex rows = "dex" (or omit); CEX pads = "cex". */
   venue: MoverVenue;
   cexExchange?: "binance" | "coinbase";
@@ -124,6 +126,7 @@ type Candidate = {
   address: string;
   symbol: string;
   name: string;
+  quoteSymbol: string | null;
   priceUsd: number;
   change1h: number | null;
   change24h: number | null;
@@ -221,6 +224,9 @@ function pairToCandidate(pair: DexPair, expectChain: string): Candidate | null {
     address: base.address,
     symbol: symbol.toUpperCase(),
     name: name || symbol,
+    quoteSymbol: pair.quoteToken?.symbol?.trim()
+      ? pair.quoteToken.symbol.trim().toUpperCase()
+      : null,
     priceUsd,
     change1h: change1h != null && Number.isFinite(change1h) ? change1h : null,
     change24h: change24h != null && Number.isFinite(change24h) ? change24h : null,
@@ -324,15 +330,19 @@ function toMoverRow(c: Candidate, window: MoverWindow, changePct: number): Chain
     window,
     imageUrl: c.imageUrl,
     liquidityUsd: c.liquidityUsd,
+    quoteSymbol: c.quoteSymbol,
     venue: "dex",
   };
 }
 
 function toCexMoverRow(row: CexPadRow, boardChainId: string): ChainMoverRow {
+  const quote = row.pairLabel.includes("/")
+    ? row.pairLabel.split("/")[1] ?? null
+    : "USDT";
   return {
     id: `cex:${row.id}`,
     symbol: row.base,
-    name: row.pairLabel,
+    name: row.base,
     chain: boardChainId,
     address: "",
     priceUsd: row.priceUsd,
@@ -340,6 +350,7 @@ function toCexMoverRow(row: CexPadRow, boardChainId: string): ChainMoverRow {
     window: "24h",
     imageUrl: null,
     liquidityUsd: null,
+    quoteSymbol: quote,
     venue: "cex",
     cexExchange: row.exchange,
   };

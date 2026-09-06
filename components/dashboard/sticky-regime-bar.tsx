@@ -1,18 +1,27 @@
 import { ds } from "@/lib/ui-classes";
 import { InfoTooltip } from "@/components/info-tooltip";
 
-/** One-line sticky regime — phone fold budget, not three widgets. */
+/** One-line regime — phone fold budget, not three widgets. */
 export function StickyRegimeBar({
   regimeLabel,
   cycleDay,
   cycleProgressPct,
+  sticky = true,
 }: {
   regimeLabel: string;
   cycleDay: number;
   cycleProgressPct: number;
+  /** Home mock puts this below the fold — disable sticky there. */
+  sticky?: boolean;
 }) {
   return (
-    <div className="sticky top-[3.65rem] z-40 px-3 pb-0 pt-0.5 sm:top-[4.85rem] sm:px-4 sm:pt-1">
+    <div
+      className={
+        sticky
+          ? "sticky top-[3.65rem] z-40 px-3 pb-0 pt-0.5 sm:top-[4.85rem] sm:px-4 sm:pt-1"
+          : "px-0"
+      }
+    >
       <div className="chrome-glass mx-auto flex max-w-[90rem] items-center gap-2 px-2.5 py-1 sm:gap-3 sm:px-4 sm:py-1.5">
         <InfoTooltip
           label="About Market Regime"

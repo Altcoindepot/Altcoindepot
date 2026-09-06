@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   description:
     "Crypto news from CoinDesk, The Block, Decrypt, Blockworks, and The Defiant. Informational only — not financial advice.",
   alternates: { canonical: "/news" },
+  robots: { index: true, follow: true },
 };
 
 export const dynamic = "force-dynamic";

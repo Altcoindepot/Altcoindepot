@@ -2,6 +2,7 @@ import { getDexScreenerLowCaps } from "@/lib/dexscreener-low-caps";
 import {
   dexChainLookupCandidates,
   normalizeDexChainId,
+  canonicalizeTokenAddress,
   sanitizeAddressParam,
   sameDexChain,
   sameTokenAddress,
@@ -37,7 +38,7 @@ export type DexTokenPageData = {
   dexLabel?: string;
   /** Website / socials from DexScreener when present. */
   projectLinks?: DexProjectLink[];
-  /** True when this token is in the current New & Low Caps set (indexable). */
+  /** True when this token is in the current New & Low Caps set (UI enrichment). */
   inLowCapsList: boolean;
 };
 
@@ -278,7 +279,9 @@ export async function getDexScreenerTokenPage(
 
   return {
     chain: resolvedChain,
-    address: pair?.baseToken?.address ?? listed?.contractAddress ?? address,
+    address: canonicalizeTokenAddress(
+      pair?.baseToken?.address ?? listed?.contractAddress ?? address,
+    ),
     name: pair?.baseToken?.name ?? listed?.name ?? "Token",
     symbol: pair?.baseToken?.symbol ?? listed?.symbol ?? "TOKEN",
     image: pair?.info?.imageUrl ?? listed?.image ?? "",
@@ -300,6 +303,7 @@ export async function getDexScreenerTokenPage(
       (typeof pair?.dexId === "string" ? pair.dexId : undefined) ?? listed?.dexId,
     ),
     projectLinks: projectLinks.length > 0 ? projectLinks : undefined,
+    /** Enrichment flag for UI — not used for robots indexing. */
     inLowCapsList: Boolean(listed),
   };
 }

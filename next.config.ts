@@ -38,6 +38,8 @@ const nextConfig: NextConfig = {
     ],
   },
   async redirects() {
+    // Token chain aliases (eth→ethereum, bnb→bsc, …) redirect in
+    // app/token/[chain]/[address]/page.tsx so route types stay clean.
     return Object.entries(COIN_ID_ALIASES).map(([from, to]) => ({
       source: `/coin/${from}`,
       destination: `/coin/${to}`,

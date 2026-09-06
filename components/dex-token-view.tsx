@@ -104,17 +104,18 @@ export function DexTokenView({
           )}
           <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">
-              {pageH1 ?? token.name}
+              {pageH1 ?? `${token.name} (${symbol})`}
             </h1>
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <span className="font-mono text-sm uppercase text-zinc-300">{symbol}</span>
               <span className={ds.badgeInfo}>{chainLabel}</span>
               <DexVenueBadge dexId={token.dexId} dexLabel={token.dexLabel} />
               {notOnGecko ? (
                 <span className={ds.badgeWarn}>Not on CoinGecko yet</span>
               ) : null}
             </div>
-            <p className="mt-1 text-sm text-zinc-500">{token.name}</p>
+            <p className="mt-1 text-sm text-zinc-400">
+              Live price in USD · {chainLabel} contract below
+            </p>
           </div>
           <div className="text-right">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">

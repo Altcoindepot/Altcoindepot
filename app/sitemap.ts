@@ -5,11 +5,11 @@ import { getDexScreenerLowCaps } from "@/lib/dexscreener-low-caps";
 import { getJustLaunchedPairs } from "@/lib/dexscreener-just-launched";
 import { dexTokenPath } from "@/lib/dex-token-path";
 import { isJustLaunchedAge } from "@/lib/pair-age-split";
-import { loadPodcastsWithEpisodes } from "@/lib/podcasts-page-data";
+import { PODCAST_SHOW_PATHS } from "@/lib/crypto-podcasts";
 
 const SITE = "https://altcoindepot.com";
 
-/** Core static routes — not a 7k coin dump. */
+/** Core static routes — public, indexable desks only (no redirect stubs / noindex junk). */
 const STATIC_PATHS = [
   "/about",
   "/contact",
@@ -25,18 +25,15 @@ const STATIC_PATHS = [
   "/tools",
   "/cex-trending",
   "/dex-trending",
-  "/top-100-trending",
   "/gainers-losers",
   "/pairs",
   "/dex-scanner",
   "/new-low-caps",
   "/just-launched",
+  "/podcasts",
   "/market-overview",
   "/compare",
   "/sectors",
-  "/watchlist",
-  "/portfolio",
-  "/alerts",
   "/ecosystem",
 ] as const;
 
@@ -126,20 +123,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  // /podcasts only when real episodes exist (noindex empty catalog).
-  try {
-    const podcasts = await loadPodcastsWithEpisodes();
-    if (podcasts.some((p) => p.episodes.length > 0)) {
-      staticEntries.push({
-        url: `${SITE}/podcasts`,
-        lastModified: now,
-        changeFrequency: "daily",
-        priority: 0.65,
-      });
-    }
-  } catch {
-    /* omit podcasts from sitemap when feed fails */
-  }
+  const podcastShowEntries: MetadataRoute.Sitemap = PODCAST_SHOW_PATHS.map((path) => ({
+    url: `${SITE}${path}`,
+    lastModified: now,
+    changeFrequency: "daily",
+    priority: 0.65,
+  }));
 
   const categoryEntries: MetadataRoute.Sitemap = PUBLIC_CATEGORIES.map((category) => ({
     url: `${SITE}/category/${encodeURIComponent(category.slug)}`,
@@ -181,6 +170,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     homepage,
     ...coinEntries,
     ...staticEntries,
+    ...podcastShowEntries,
     ...categoryEntries,
     ...narrativeEntries,
     ...dexTokenEntries,

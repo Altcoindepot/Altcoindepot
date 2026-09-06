@@ -12,6 +12,10 @@ export type CryptoPodcast = {
   amazonMusicCatalogUrl: string;
 };
 
+/**
+ * Canonical show slugs for /podcasts/[slug].
+ * Keep all eight — do not drop any.
+ */
 export const CRYPTO_PODCASTS: CryptoPodcast[] = [
   {
     slug: "bankless",
@@ -50,7 +54,7 @@ export const CRYPTO_PODCASTS: CryptoPodcast[] = [
       "https://music.amazon.com/podcasts/dc0bb56c-a826-4570-984b-a2a7c5a6849e/coin-stories-with-natalie-brunell",
   },
   {
-    slug: "the-milk-road-show",
+    slug: "milk-road",
     title: "The Milk Road Show",
     tagline: "Daily crypto news and interviews with builders and investors.",
     youtubeChannelId: "UCWPil6c2lnmMbh2cJRwuHzQ",
@@ -61,7 +65,7 @@ export const CRYPTO_PODCASTS: CryptoPodcast[] = [
       "https://music.amazon.com/podcasts/01a87797-16bf-4d21-baaf-e8db413b56a0",
   },
   {
-    slug: "the-pomp-podcast",
+    slug: "pomp",
     title: "The Pomp Podcast",
     tagline: "Long-form conversations on Bitcoin, business, and markets.",
     youtubeChannelId: "UCML9PlpcOxM_H53IM0fa4XA",
@@ -69,17 +73,6 @@ export const CRYPTO_PODCASTS: CryptoPodcast[] = [
     youtubeCatalogUrl: "https://www.youtube.com/@AnthonyPompliano/videos",
     spotifyCatalogUrl: "https://open.spotify.com/show/2QwpFjzJ0ZteqmMqw2xIfA",
     amazonMusicCatalogUrl: "https://www.amazon.com/dp/B0G5Y1KQ58",
-  },
-  {
-    slug: "the-wolf-of-all-streets",
-    title: "The Wolf of All Streets",
-    tagline: "Scott Melker on Bitcoin, trading, and conversations across crypto and finance.",
-    youtubeChannelId: "UCxIU1RFIdDpvA8VOITswQ1A",
-    youtubeHandle: "scottmelker",
-    youtubeCatalogUrl: "https://www.youtube.com/@scottmelker/videos",
-    spotifyCatalogUrl: "https://spoti.fi/30N5FDe",
-    amazonMusicCatalogUrl:
-      "https://www.amazon.com/s?k=The+Wolf+of+All+Streets+podcast&i=digital-music-podcasts",
   },
   {
     slug: "unchained",
@@ -106,4 +99,44 @@ export const CRYPTO_PODCASTS: CryptoPodcast[] = [
     amazonMusicCatalogUrl:
       "https://www.amazon.com/s?k=What+Bitcoin+Did+podcast&i=digital-music-podcasts",
   },
+  {
+    slug: "wolf-of-all-streets",
+    title: "The Wolf of All Streets",
+    tagline: "Scott Melker on Bitcoin, trading, and conversations across crypto and finance.",
+    youtubeChannelId: "UCxIU1RFIdDpvA8VOITswQ1A",
+    youtubeHandle: "scottmelker",
+    youtubeCatalogUrl: "https://www.youtube.com/@scottmelker/videos",
+    spotifyCatalogUrl: "https://spoti.fi/30N5FDe",
+    amazonMusicCatalogUrl:
+      "https://www.amazon.com/s?k=The+Wolf+of+All+Streets+podcast&i=digital-music-podcasts",
+  },
 ].sort((a, b) => a.title.localeCompare(b.title, "en", { sensitivity: "base" }));
+
+/** Old / alternate slugs → canonical show slug. */
+export const PODCAST_SLUG_ALIASES: Record<string, string> = {
+  "the-milk-road-show": "milk-road",
+  "milk-road-show": "milk-road",
+  "the-pomp-podcast": "pomp",
+  "pomp-podcast": "pomp",
+  "the-wolf-of-all-streets": "wolf-of-all-streets",
+};
+
+export function podcastPath(slug: string): string {
+  return `/podcasts/${encodeURIComponent(slug)}`;
+}
+
+export function resolvePodcastSlug(raw: string): string | null {
+  const key = raw.trim().toLowerCase();
+  if (!key) return null;
+  const aliased = PODCAST_SLUG_ALIASES[key] ?? key;
+  return CRYPTO_PODCASTS.some((p) => p.slug === aliased) ? aliased : null;
+}
+
+export function getPodcastBySlug(raw: string): CryptoPodcast | null {
+  const slug = resolvePodcastSlug(raw);
+  if (!slug) return null;
+  return CRYPTO_PODCASTS.find((p) => p.slug === slug) ?? null;
+}
+
+/** All eight show paths for sitemap / SEO checks. */
+export const PODCAST_SHOW_PATHS = CRYPTO_PODCASTS.map((p) => podcastPath(p.slug));

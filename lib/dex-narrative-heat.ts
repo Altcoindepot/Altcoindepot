@@ -19,6 +19,8 @@ export type DexHeatChild = {
   id: string;
   symbol: string;
   name: string;
+  /** Display like SOL/USDC when quote is known. */
+  pairLabel: string;
   priceUsd: number | null;
   changePct: number;
   href: string;
@@ -105,10 +107,12 @@ function statusFromHeat(heatPct: number): DexHeatStatus {
 }
 
 function childFromPair(p: DexLivePairRow, changePct: number): DexHeatChild {
+  const pairLabel = p.quoteSymbol ? `${p.symbol}/${p.quoteSymbol}` : p.symbol;
   return {
     id: p.id,
     symbol: p.symbol,
     name: p.name,
+    pairLabel,
     priceUsd: p.priceUsd,
     changePct,
     href:
@@ -142,6 +146,26 @@ function liquidPairs(rows: DexLivePairRow[]): DexLivePairRow[] {
   return rows.filter((r) => (r.liquidityUsd ?? 0) >= MIN_LIQ);
 }
 
+function emptyBucket(
+  id: string,
+  label: string,
+  filterChain: string,
+  href: string,
+): DexHeatBucket {
+  return {
+    id,
+    label,
+    kind: "chain",
+    filterChain,
+    href,
+    heatPct: 0,
+    window: "24h",
+    status: "NEUTRAL",
+    sampleSize: 0,
+    children: [],
+  };
+}
+
 function buildBucketFromPairs(
   id: string,
   label: string,
@@ -149,19 +173,21 @@ function buildBucketFromPairs(
   filterChain: string,
   href: string,
   pairs: DexLivePairRow[],
-): DexHeatBucket | null {
+): DexHeatBucket {
   // Strict: only pairs on this chain — never mix Solana into Base, etc.
   const onChain = pairs.filter((p) => sameDexChain(p.chain, filterChain));
   const liquid = liquidPairs(onChain);
-  if (liquid.length < MIN_SAMPLES_BUCKET) return null;
+  if (liquid.length < MIN_SAMPLES_BUCKET) {
+    return emptyBucket(id, label, filterChain, href);
+  }
 
   const with1h = liquid.filter((p) => p.change1h != null && Number.isFinite(p.change1h));
   const use1h = with1h.length >= MIN_SAMPLES_FOR_1H;
   const heat = heatFromPairs(liquid, use1h);
-  if (!heat) return null;
+  if (!heat) return emptyBucket(id, label, filterChain, href);
 
   const children = topChildren(liquid, use1h, 10);
-  if (children.length === 0) return null;
+  if (children.length === 0) return emptyBucket(id, label, filterChain, href);
 
   return {
     id,
@@ -178,12 +204,11 @@ function buildBucketFromPairs(
 }
 
 export function buildDexHeatSnapshot(rows: DexLivePairRow[]): DexHeatSnapshot {
-  const buckets: DexHeatBucket[] = [];
-
-  for (const def of CHAIN_BUCKETS) {
+  /** Always Solana → Base → Ethereum → INJ so home stays a fixed 2×2. */
+  const buckets: DexHeatBucket[] = CHAIN_BUCKETS.map((def) => {
     const filterChain = def.chains[0]!;
     const pairs = rows.filter((r) => sameDexChain(r.chain, filterChain));
-    const bucket = buildBucketFromPairs(
+    return buildBucketFromPairs(
       def.id,
       def.label,
       "chain",
@@ -191,19 +216,11 @@ export function buildDexHeatSnapshot(rows: DexLivePairRow[]): DexHeatSnapshot {
       `/pairs?chain=${encodeURIComponent(filterChain)}`,
       pairs,
     );
-    if (bucket) buckets.push(bucket);
-  }
-
-  // Keep chain order Solana → Base → Ethereum → INJ when all present; else by heat.
-  const order = CHAIN_BUCKETS.map((c) => c.id);
-  buckets.sort((a, b) => {
-    const ia = order.indexOf(a.id);
-    const ib = order.indexOf(b.id);
-    if (ia >= 0 && ib >= 0) return ia - ib;
-    return b.heatPct - a.heatPct;
   });
 
-  const dominantWindow = buckets.some((b) => b.window === "1h") ? "1H" : "24H";
+  const dominantWindow = buckets.some((b) => b.window === "1h" && b.sampleSize > 0)
+    ? "1H"
+    : "24H";
 
   return {
     buckets,
@@ -217,15 +234,25 @@ async function loadDexHeatUncached(): Promise<DexHeatSnapshot> {
   return buildDexHeatSnapshot(rows);
 }
 
-const getCachedDexHeat = unstable_cache(loadDexHeatUncached, ["dex-narrative-heat-v3-inj"], {
+const getCachedDexHeat = unstable_cache(loadDexHeatUncached, ["dex-narrative-heat-v4-home2x2"], {
   revalidate: DEX_EXPLORER_REVALIDATE_SECONDS,
 });
+
+function emptySnapshot(): DexHeatSnapshot {
+  return {
+    buckets: CHAIN_BUCKETS.map((def) =>
+      emptyBucket(def.id, def.label, def.chains[0]!, `/pairs?chain=${encodeURIComponent(def.chains[0]!)}`),
+    ),
+    windowLabel: "24H",
+    updatedAt: Date.now(),
+  };
+}
 
 export async function getDexNarrativeHeat(): Promise<DexHeatSnapshot> {
   try {
     return await getCachedDexHeat();
   } catch (err) {
     console.warn("[dex-narrative-heat] failed", err);
-    return { buckets: [], windowLabel: "24H", updatedAt: Date.now() };
+    return emptySnapshot();
   }
 }

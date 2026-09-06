@@ -1,28 +1,32 @@
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site-header";
 import { PodcastsGrid } from "@/components/podcasts-grid";
+import { CRYPTO_PODCASTS } from "@/lib/crypto-podcasts";
 import { loadPodcastsWithEpisodes } from "@/lib/podcasts-page-data";
 
 /** Latest-episode cards refresh on a daily cadence. */
 export const revalidate = 86_400;
 
-export async function generateMetadata(): Promise<Metadata> {
-  const podcasts = await loadPodcastsWithEpisodes();
-  const hasEpisodes = podcasts.some((p) => p.episodes.length > 0);
-  return {
-    title: { absolute: "Crypto Podcasts | AltCoin Depot" },
-    description:
-      "Crypto podcasts — Bankless, Coffee with Captain, Coin Stories, Milk Road, Pomp, Wolf of All Streets, Unchained, and What Bitcoin Did. Latest episodes with play links.",
-    alternates: { canonical: "/podcasts" },
-    robots: hasEpisodes
-      ? { index: true, follow: true }
-      : { index: false, follow: true },
-  };
-}
+const SHOW_LIST =
+  "Bankless, Coffee with Captain, Coin Stories, The Milk Road Show, The Pomp Podcast, Unchained, What Bitcoin Did, and The Wolf of All Streets";
+
+export const metadata: Metadata = {
+  title: {
+    absolute:
+      "Crypto Podcasts – Bankless, Unchained, Pomp, Milk Road, Coin Stories & more | AltCoin Depot",
+  },
+  description: `Crypto podcasts on AltCoin Depot: ${SHOW_LIST}. Each card lists the five most recent uploads from the show's official YouTube channel — with YouTube, Spotify, and Amazon Music catalog links.`,
+  alternates: { canonical: "/podcasts" },
+  robots: { index: true, follow: true },
+};
 
 export default async function PodcastsPage() {
   const podcasts = await loadPodcastsWithEpisodes();
-  const hasEpisodes = podcasts.some((p) => p.episodes.length > 0);
+  // Guarantee all eight shows render even if a feed fails for one entry.
+  const bySlug = new Map(podcasts.map((p) => [p.slug, p]));
+  const allEight = CRYPTO_PODCASTS.map(
+    (show) => bySlug.get(show.slug) ?? { ...show, episodes: [] },
+  );
 
   return (
     <>
@@ -38,16 +42,9 @@ export default async function PodcastsPage() {
           card. Shows are listed in alphabetical order.
         </p>
 
-        {!hasEpisodes ? (
-          <p className="mt-8 glass-panel rounded-xl px-4 py-8 text-center text-sm text-zinc-500">
-            Episodes could not be loaded right now. Check back shortly, or open the shows on YouTube /
-            Spotify from Resources.
-          </p>
-        ) : (
-          <div className="mt-6 sm:mt-10">
-            <PodcastsGrid podcasts={podcasts} />
-          </div>
-        )}
+        <div className="mt-6 sm:mt-10">
+          <PodcastsGrid podcasts={allEight} />
+        </div>
       </main>
     </>
   );

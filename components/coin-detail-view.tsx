@@ -603,11 +603,11 @@ export function CoinDetailView({
             {coin.market_cap_rank != null ? `Rank #${coin.market_cap_rank}` : "Unranked"}
           </p>
           <h1 className="text-brand-altcoindepot mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
-            {(coin.symbol ?? "TOKEN").toString().toUpperCase()} Dex price, contract, ATH &amp; supply
+            {(coin.name ?? "Crypto Asset").toString().trim()} (
+            {(coin.symbol ?? "TOKEN").toString().trim().toUpperCase() || "TOKEN"})
           </h1>
-          <p className="mt-1 text-base text-zinc-300">{coin.name}</p>
-          <p className="mt-0.5 font-mono text-sm text-zinc-500">
-            {(coin.symbol ?? "—").toString().toUpperCase()}
+          <p className="mt-1 text-base text-zinc-300">
+            Live price in USD · contract address below
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <NarrativeTags coinId={coin.id} categories={coin.categories} max={3} />
