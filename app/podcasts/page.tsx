@@ -31,7 +31,7 @@ export default async function PodcastsPage() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto max-w-6xl px-3 py-6 sm:px-6 sm:py-14">
+      <main className="page-shell mx-auto max-w-6xl px-3 py-6 sm:px-6 sm:py-14">
         <h1 className="text-brand-altcoindepot text-xl font-extrabold tracking-tight sm:text-3xl md:text-4xl">
           Crypto Podcasts
         </h1>

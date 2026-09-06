@@ -271,8 +271,8 @@ export function CoinSearchBar({
             aria-autocomplete="list"
             className={
               wide
-                ? "min-h-12 w-full rounded-2xl border border-teal-400/40 bg-[#0c0e14] px-4 text-base font-medium text-white placeholder:font-normal placeholder:text-zinc-500 focus:border-teal-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/30"
-                : "h-10 w-full min-w-0 rounded-full border border-teal-400/30 bg-[#0c0e14] px-3.5 text-sm font-medium text-zinc-100 placeholder:font-normal placeholder:text-zinc-500 focus:border-teal-400/50 focus:outline-none focus:ring-2 focus:ring-teal-400/25 lg:w-56 xl:w-72"
+                ? "min-h-12 w-full rounded-2xl border border-teal-400/40 bg-[var(--surface-inset)] px-4 text-base font-medium text-white placeholder:font-normal placeholder:text-zinc-500 focus:border-teal-400/60 focus:outline-none focus:ring-2 focus:ring-teal-400/30"
+                : "h-10 w-full min-w-0 rounded-full border border-teal-400/30 bg-[var(--surface-inset)] px-3.5 text-sm font-medium text-zinc-100 placeholder:font-normal placeholder:text-zinc-500 focus:border-teal-400/50 focus:outline-none focus:ring-2 focus:ring-teal-400/25 lg:w-56 xl:w-72"
             }
           />
 
@@ -281,7 +281,7 @@ export function CoinSearchBar({
             <ul
               id={listId}
               role="listbox"
-              className="absolute right-0 top-full z-[60] mt-1.5 hidden max-h-96 w-full min-w-[22rem] overflow-y-auto rounded-2xl border border-teal-400/30 bg-[#0a0c12] py-1 shadow-[0_16px_48px_rgba(0,0,0,0.65)] lg:block"
+              className="glass-dropdown absolute right-0 top-full z-[60] mt-1.5 hidden max-h-96 w-full min-w-[22rem] overflow-y-auto rounded-2xl py-1 shadow-[0_16px_48px_rgba(0,0,0,0.65)] lg:block"
             >
               {resultsList}
             </ul>
@@ -310,7 +310,7 @@ export function CoinSearchBar({
           <ul
             id={`${listId}-mobile`}
             role="listbox"
-            className="mx-2 max-h-[min(52vh,22rem)] overflow-y-auto rounded-2xl border border-teal-400/35 bg-[#0a0c12] py-1 shadow-[0_-8px_40px_rgba(0,0,0,0.65)]"
+            className="glass-dropdown mx-2 max-h-[min(52vh,22rem)] overflow-y-auto rounded-2xl py-1 shadow-[0_-8px_40px_rgba(0,0,0,0.65)]"
           >
             {resultsList}
           </ul>

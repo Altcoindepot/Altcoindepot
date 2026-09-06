@@ -100,7 +100,7 @@ export function PriceMarquee() {
 
   return (
     <div
-      className="border-b border-[#f4ddc3]/10 bg-gradient-to-r from-[#0a0a0a] via-[#111111] to-[#0a0a0a] py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:py-2"
+      className="border-b border-teal-400/15 bg-gradient-to-r from-[#05080c] via-[#0a1218] to-[#05080c] py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:py-2"
       aria-label="Live Dex movers ticker"
     >
       <div className="flex snap-x snap-mandatory gap-6 overflow-x-auto px-4 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden sm:hidden">

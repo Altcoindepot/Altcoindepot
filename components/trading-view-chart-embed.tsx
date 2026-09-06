@@ -68,7 +68,7 @@ export function TradingViewChartEmbed({
   );
 
   return (
-    <article className="mt-4 overflow-hidden rounded-xl border border-white/10 bg-[#111111]">
+    <article className="mt-4 overflow-hidden glass-panel rounded-xl">
       <div className="flex flex-col gap-2 border-b border-white/10 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
         <div>
           <h3 className="text-base font-semibold text-zinc-100 sm:text-sm">
@@ -103,7 +103,7 @@ export function TradingViewChartEmbed({
               className={`min-h-11 min-w-[3rem] flex-1 rounded-lg border px-3 py-2 text-sm font-semibold tabular-nums transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a855f7] sm:min-h-9 sm:flex-none sm:px-2.5 sm:py-1.5 sm:text-[11px] ${
                 active
                   ? "border-[#00ff9f]/50 bg-[#00ff9f]/10 text-[#00ff9f]"
-                  : "border-white/12 bg-[#111111] text-zinc-400 hover:border-white/25 hover:text-zinc-200"
+                  : "border-white/12 bg-[var(--surface-inset)] text-zinc-400 hover:border-white/25 hover:text-zinc-200"
               }`}
               aria-pressed={active}
             >
@@ -126,10 +126,10 @@ export function TradingViewChartEmbed({
                 key={instrument}
                 type="button"
                 onClick={() => setActiveSymbol(instrument)}
-                className={`rounded-md border px-2 py-1.5 text-[10px] font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] sm:py-1 ${
+                className={`rounded-md border px-2 py-1.5 text-[10px] font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400/70 sm:py-1 ${
                   active
-                    ? "border-[#d1a173]/55 bg-[#d1a173]/15 text-[#f4ebe0]"
-                    : "border-white/15 text-zinc-400 hover:border-[#d1a173]/40 hover:text-[#d7ad82]"
+                    ? "border-teal-400/50 bg-teal-500/15 text-teal-50"
+                    : "border-white/15 text-zinc-400 hover:border-teal-400/40 hover:text-teal-300"
                 }`}
                 aria-pressed={active}
               >

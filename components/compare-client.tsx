@@ -361,7 +361,7 @@ export function CompareClient({ initialIds = [] }: { initialIds?: string[] }) {
                         <th key={c.id} className="px-4 py-3">
                           <Link
                             href={`/coin/${encodeURIComponent(c.id)}`}
-                            className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-100 hover:text-[#d7ad82]"
+                            className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-100 hover:text-teal-300"
                           >
                             {(quote?.image || c.image) && (
                               <Image

@@ -57,7 +57,7 @@ export function EcosystemTickerColumn({
               key={e.id}
               href={href}
               role="listitem"
-              className="glass-card bronze-ring flex min-w-[9.5rem] shrink-0 flex-col gap-0.5 rounded-lg border-2 border-[#f4ddc3]/45 px-3 py-2 text-left outline outline-1 outline-[#2a1e16]/60 transition-[border-color,box-shadow,transform] hover:border-[#d1a173]/70 hover:shadow-[0_0_20px_rgba(185,129,82,0.25)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] active:scale-[0.99] sm:min-w-0"
+              className="glass-card bronze-ring flex min-w-[9.5rem] shrink-0 flex-col gap-0.5 rounded-lg border-2 border-teal-400/40 px-3 py-2 text-left transition-[border-color,box-shadow,transform] hover:border-teal-400/55 hover:shadow-[0_0_20px_rgba(185,129,82,0.25)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400/70 active:scale-[0.99] sm:min-w-0"
             >
               <span className="text-xs font-semibold tracking-tight text-zinc-100">
                 {e.label}

@@ -50,7 +50,7 @@ function Icon({ kind }: { kind: DexProjectLinkKind }) {
 }
 
 const fullLinkClass =
-  "inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-lg border border-white/12 bg-[#0c0e14] px-2.5 text-xs font-medium text-zinc-300 transition-colors hover:border-teal-400/35 hover:text-teal-200 md:min-h-8 md:min-w-8";
+  "inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-lg surface-inset px-2.5 text-xs font-medium text-zinc-300 transition-colors hover:border-teal-400/35 hover:text-teal-200 md:min-h-8 md:min-w-8";
 
 const iconLinkClass =
   "inline-flex size-7 items-center justify-center rounded-md text-zinc-400 transition-colors hover:text-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400/50";

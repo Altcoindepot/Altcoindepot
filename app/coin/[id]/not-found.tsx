@@ -15,7 +15,7 @@ export default function CoinNotFound() {
   return (
     <>
       <SiteHeader />
-      <main className="min-h-[50vh] border-t border-white/5 bg-[#0a0a0a] px-4 py-20 text-center sm:px-6">
+      <main className="page-shell min-h-[50vh] border-t border-white/5 px-4 py-20 text-center sm:px-6">
         <h1 className="text-brand-altcoindepot text-xl font-semibold sm:text-2xl">
           Asset Data Profile Currently Syncing.
         </h1>
@@ -25,7 +25,7 @@ export default function CoinNotFound() {
         </p>
         <Link
           href="/"
-          className="mt-8 inline-flex min-h-12 items-center justify-center rounded-lg border border-[#d1a173]/45 bg-[#d1a173]/15 px-6 text-sm font-semibold text-[#d7ad82] transition-[box-shadow,transform] hover:shadow-[0_0_24px_rgba(185,129,82,0.2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] active:scale-[0.98]"
+          className="mt-8 inline-flex min-h-12 items-center justify-center rounded-lg border border-teal-400/45 bg-teal-500/15 px-6 text-sm font-semibold text-teal-300 transition-[box-shadow,transform] hover:shadow-[0_0_24px_rgba(16,255,196,0.18)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400/70 active:scale-[0.98]"
         >
           Return Home
         </Link>

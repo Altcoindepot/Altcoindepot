@@ -96,7 +96,7 @@ export function PriceAlertForm({
       <button
         type="submit"
         disabled={busy}
-        className="inline-flex min-h-11 items-center justify-center rounded-lg border border-[#d1a173]/45 bg-[#d1a173]/10 px-4 py-2.5 text-sm font-semibold text-[#d7ad82] transition-colors hover:border-[#d1a173]/70 disabled:opacity-60 sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs"
+        className="inline-flex min-h-11 items-center justify-center rounded-lg border border-teal-400/45 bg-teal-500/10 px-4 py-2.5 text-sm font-semibold text-teal-300 transition-colors hover:border-teal-400/55 disabled:opacity-60 sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs"
       >
         {busy ? "Saving…" : "Set price alert"}
       </button>

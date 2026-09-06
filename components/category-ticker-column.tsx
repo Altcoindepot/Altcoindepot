@@ -69,7 +69,7 @@ export function CategoryTickerColumn({
                 key={coin.id}
                 href={href}
                 role="listitem"
-                className="glass-card bronze-ring flex min-h-0 flex-col gap-0.5 rounded-lg border-2 border-[#f4ddc3]/45 p-2 text-left outline outline-1 outline-[#2a1e16]/60 transition-[border-color,box-shadow] hover:border-[#d1a173]/70 hover:shadow-[0_0_18px_rgba(185,129,82,0.25)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173]"
+                className="glass-card bronze-ring flex min-h-0 flex-col gap-0.5 rounded-lg border-2 border-teal-400/40 p-2 text-left transition-[border-color,box-shadow] hover:border-teal-400/55 hover:shadow-[0_0_18px_rgba(185,129,82,0.25)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400/70"
               >
                 <span className="flex min-w-0 items-center gap-1.5">
                   <Image

@@ -12,7 +12,7 @@ export default function PodcastNotFound() {
   return (
     <>
       <SiteHeader />
-      <main className="min-h-[50vh] border-t border-white/5 bg-[#0a0a0a] px-4 py-20 text-center sm:px-6">
+      <main className="page-shell min-h-[50vh] border-t border-white/5 px-4 py-20 text-center sm:px-6">
         <h1 className="text-brand-altcoindepot text-xl font-semibold sm:text-2xl">
           Podcast not found
         </h1>

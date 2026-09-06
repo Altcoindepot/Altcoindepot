@@ -136,7 +136,7 @@ export default async function CoinPage({ params }: Props) {
     return (
       <>
         <SiteHeader />
-        <main className="min-h-[60vh] border-t border-white/5 bg-[#0a0a0a]">
+        <main className="page-shell min-h-[60vh] border-t border-white/5">
           <CoinDetailView coin={stub} dexLive={dexLive} showGeckoFundamentals={false} />
         </main>
       </>
@@ -229,7 +229,7 @@ export default async function CoinPage({ params }: Props) {
   return (
     <>
       <SiteHeader />
-      <main className="min-h-[60vh] border-t border-white/5 bg-[#0a0a0a]">
+      <main className="page-shell min-h-[60vh] border-t border-white/5">
         <CoinDetailView
           coin={coin}
           twitterHref={twitterHref}

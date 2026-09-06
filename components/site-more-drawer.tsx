@@ -45,7 +45,7 @@ export function SiteMoreDrawer({
       <aside
         role="dialog"
         aria-label="Menu"
-        className="absolute inset-y-0 left-0 flex w-[min(20rem,88vw)] flex-col border-r border-white/10 bg-[#0a0a0a] px-3 py-4 shadow-2xl"
+        className="chrome-glass absolute inset-y-0 left-0 flex w-[min(20rem,88vw)] flex-col rounded-none border-y-0 border-l-0 px-3 py-4 shadow-2xl"
       >
         <div className="mb-4 flex items-center justify-between gap-2 px-1">
           <Link href="/" aria-label="AltCoin Depot home" onClick={onClose}>

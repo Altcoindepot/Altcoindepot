@@ -1,8 +1,13 @@
-/** Shared UI class tokens for the decision-support modules. */
+/** Shared UI class tokens — homepage wet-glass theme. */
 export const ds = {
   panel: "ds-panel p-4 sm:p-5",
   panelLg: "ds-panel p-5 sm:p-6",
   card: "ds-card p-4",
+  listShell: "ds-list-shell",
+  pageShell: "page-shell",
+  input: "surface-input",
+  inset: "surface-inset",
+  dropdown: "glass-dropdown",
   label: "ds-label",
   subtitle: "ds-subtitle",
   disclaimer: "ds-disclaimer",

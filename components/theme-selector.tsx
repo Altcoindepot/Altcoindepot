@@ -62,10 +62,10 @@ export function ThemeSelector() {
   }, []);
 
   const shell = (
-    <div className="mt-1 border-t border-[#f4ddc3]/15 pt-3">
+    <div className="mt-1 border-t border-teal-400/20 pt-3">
       <p
         id="theme-selector-label"
-        className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-widest text-[#d7ad82]"
+        className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-widest text-teal-300"
       >
         Appearance
       </p>
@@ -87,10 +87,10 @@ export function ThemeSelector() {
                 persistThemePreference(opt.value);
                 setPreference(opt.value);
               }}
-              className={`flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-md px-1 py-2 text-[11px] font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] sm:text-xs ${
+              className={`flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-md px-1 py-2 text-[11px] font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400/70 sm:text-xs ${
                 active
-                  ? "bg-[#d1a173]/25 text-[#faf7f2] ring-1 ring-[#d1a173]/45"
-                  : "text-[#d6c4b0] hover:bg-[#d1a173]/15 hover:text-[#faf7f2]"
+                  ? "bg-teal-500/25 text-zinc-50 ring-1 ring-teal-400/45"
+                  : "text-zinc-400 hover:bg-teal-500/15 hover:text-zinc-50"
               }`}
             >
               <ThemeIcon kind={opt.icon} />

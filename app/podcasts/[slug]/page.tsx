@@ -76,7 +76,7 @@ export default async function PodcastShowPage({ params }: Props) {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto max-w-6xl px-3 py-6 sm:px-6 sm:py-14">
+      <main className="page-shell mx-auto max-w-6xl px-3 py-6 sm:px-6 sm:py-14">
         <p className="text-[11px] font-medium text-zinc-500">
           <Link href="/podcasts" className="text-teal-300/90 underline-offset-2 hover:underline">
             Crypto Podcasts

@@ -84,7 +84,7 @@ export function SuggestedCoinsPanel({
           return (
             <li
               key={seed.id}
-              className="flex items-center gap-2 rounded-xl border border-[#f4ddc3]/12 bg-[#0c0e14]/70 px-3 py-2.5"
+              className="flex items-center gap-2 rounded-xl border border-teal-400/20 bg-[#0c0e14]/70 px-3 py-2.5"
             >
               <Link
                 href={`/coin/${encodeURIComponent(seed.id)}`}
@@ -129,7 +129,7 @@ export function SuggestedCoinsPanel({
                         : `Removed ${symbol} from watchlist`,
                     );
                   }}
-                  className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg border border-[#d1a173]/35 text-sm text-[#d7ad82] disabled:border-white/10 disabled:text-zinc-500"
+                  className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg border border-teal-400/35 text-sm text-teal-300 disabled:border-white/10 disabled:text-zinc-500"
                   aria-label={onList ? `${symbol} already on watchlist` : `Add ${symbol} to watchlist`}
                 >
                   {onList ? "★" : "☆"}

@@ -36,7 +36,7 @@ export default function DisclaimerPage() {
             Some links may be affiliate links. See our{" "}
             <Link
               href="/affiliate-disclosure"
-              className="text-[#d7ad82] underline-offset-2 hover:underline"
+              className="text-teal-300 underline-offset-2 hover:underline"
             >
               affiliate disclosure
             </Link>{" "}
@@ -44,7 +44,7 @@ export default function DisclaimerPage() {
           </p>
           <p>
             See also our{" "}
-            <Link href="/terms" className="text-[#d7ad82] underline-offset-2 hover:underline">
+            <Link href="/terms" className="text-teal-300 underline-offset-2 hover:underline">
               Terms of Service
             </Link>
             .

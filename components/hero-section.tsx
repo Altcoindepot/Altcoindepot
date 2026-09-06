@@ -2,7 +2,7 @@ export function HeroSection() {
   return (
     <section
       aria-labelledby="hero-heading"
-      className="relative overflow-hidden border-b border-[#f4ddc3]/15 bg-[#0e1118]/70 px-4 py-16 sm:px-6 sm:py-24"
+      className="relative overflow-hidden border-b border-teal-400/20 bg-[#0e1118]/70 px-4 py-16 sm:px-6 sm:py-24"
     >
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.22]"

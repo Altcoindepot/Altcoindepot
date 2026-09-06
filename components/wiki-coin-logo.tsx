@@ -28,7 +28,7 @@ export function WikiCoinLogo({
   if (!src || failed) {
     return (
       <span
-        className={`inline-flex shrink-0 items-center justify-center rounded-full bg-[#d1a173]/20 font-bold text-[#d7ad82] ring-1 ring-[#d1a173]/35 ${className}`.trim()}
+        className={`inline-flex shrink-0 items-center justify-center rounded-full bg-teal-500/20 font-bold text-teal-300 ring-1 ring-teal-400/35 ${className}`.trim()}
         style={{ width: size, height: size, fontSize: Math.max(11, size * 0.42) }}
         aria-hidden
       >
@@ -47,7 +47,7 @@ export function WikiCoinLogo({
       loading="lazy"
       decoding="async"
       referrerPolicy="no-referrer"
-      className={`shrink-0 rounded-full bg-[#0c0e14] object-cover ring-1 ring-white/15 ${className}`.trim()}
+      className={`shrink-0 rounded-full bg-[var(--surface-inset)] object-cover ring-1 ring-white/15 ${className}`.trim()}
       style={{ width: size, height: size }}
       onError={() => setFailed(true)}
     />

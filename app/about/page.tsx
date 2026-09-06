@@ -31,13 +31,13 @@ export default function AboutPage() {
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
             href="/disclaimer"
-            className="inline-flex min-h-11 items-center text-sm text-[#d7ad82] underline-offset-2 hover:underline"
+            className="inline-flex min-h-11 items-center text-sm text-teal-300 underline-offset-2 hover:underline"
           >
             Disclaimer
           </Link>
           <Link
             href="/contact"
-            className="inline-flex min-h-11 items-center text-sm text-[#d7ad82] underline-offset-2 hover:underline"
+            className="inline-flex min-h-11 items-center text-sm text-teal-300 underline-offset-2 hover:underline"
           >
             Contact
           </Link>

@@ -30,14 +30,14 @@ export function CoinSearchResultsList({
   }
 
   return (
-    <ul className="mt-6 divide-y divide-white/10 overflow-hidden rounded-xl border border-white/10 bg-[#111111]">
+    <ul className="mt-6 divide-y divide-white/10 overflow-hidden glass-panel rounded-xl">
       {coins.map((coin) => {
         const ch = coin.price_change_percentage_24h;
         return (
           <li key={coin.id}>
             <Link
               href={`/coin/${encodeURIComponent(coin.id)}`}
-              className="flex min-h-14 items-center gap-3 px-4 py-3 transition-colors hover:bg-white/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#d1a173]"
+              className="flex min-h-14 items-center gap-3 px-4 py-3 transition-colors hover:bg-white/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-teal-400/70"
             >
               {coin.image ? (
                 <Image src={coin.image} alt="" width={32} height={32} className="rounded-full" />

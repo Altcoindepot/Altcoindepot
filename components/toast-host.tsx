@@ -39,7 +39,7 @@ export function ToastHost() {
       aria-live="polite"
       className="pointer-events-none fixed inset-x-0 bottom-6 z-[100] flex justify-center px-4"
     >
-      <p className="rounded-xl border border-[#d1a173]/35 bg-[#141218]/95 px-4 py-2.5 text-sm font-medium text-[#f6f2eb] shadow-[0_12px_40px_rgba(0,0,0,0.55)] backdrop-blur-md">
+      <p className="rounded-xl border border-teal-400/35 bg-[var(--glass-fallback)]/95 px-4 py-2.5 text-sm font-medium text-zinc-100 shadow-[0_12px_40px_rgba(0,0,0,0.55)] backdrop-blur-md">
         {message}
       </p>
     </div>

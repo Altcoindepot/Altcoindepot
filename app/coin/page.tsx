@@ -87,7 +87,7 @@ export default async function CoinSearchPage({
             Search failed. Try again shortly.
           </p>
         ) : hits.length === 0 ? (
-          <p className="mt-6 rounded-xl border border-white/10 bg-[#0c0e14] px-4 py-6 text-sm text-zinc-500">
+          <p className="mt-6 rounded-xl glass-panel px-4 py-6 text-sm text-zinc-500">
             No pair found — check the contract. You can also open the{" "}
             <Link href="/dex-scanner" className="text-teal-300 underline-offset-2 hover:underline">
               DEX Scanner

@@ -36,7 +36,7 @@ function MoverList({
   variant: "gainers" | "losers";
 }) {
   return (
-    <div className="min-w-0 rounded-xl border border-white/10 bg-[#0c0e14]">
+    <div className="min-w-0 rounded-xl glass-panel">
       <div className="flex items-center justify-between border-b border-white/8 px-3 py-2.5">
         <h3
           className={`text-xs font-semibold uppercase tracking-wider ${
@@ -100,7 +100,7 @@ function ChainBoard({ board }: { board: ChainMoversBoard }) {
   return (
     <section
       aria-labelledby={`movers-${board.chainId}-heading`}
-      className="rounded-2xl border border-teal-400/20 bg-[#0a0a0a]/60 p-3 sm:p-4"
+      className="glass-panel rounded-2xl p-3 sm:p-4"
     >
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
@@ -150,7 +150,7 @@ export function ChainGainersLosers({
   if (boards.length === 0) {
     return (
       <p
-        className={`rounded-xl border border-white/10 bg-[#0c0e14] px-4 py-8 text-sm text-zinc-500 ${className}`.trim()}
+        className={`rounded-xl glass-panel px-4 py-8 text-sm text-zinc-500 ${className}`.trim()}
       >
         No mover data available right now. Check back shortly.
       </p>
@@ -173,7 +173,7 @@ export function ChainMoversTeaser({ className = "" }: { className?: string }) {
       aria-labelledby="movers-teaser-heading"
       className={`border-t border-white/10 pt-6 sm:pt-8 ${className}`.trim()}
     >
-      <div className="flex flex-wrap items-end justify-between gap-3 rounded-2xl border border-white/10 bg-[#0c0e14] px-4 py-4 sm:px-5">
+      <div className="flex flex-wrap items-end justify-between gap-3 rounded-2xl glass-panel px-4 py-4 sm:px-5">
         <div>
           <h2
             id="movers-teaser-heading"

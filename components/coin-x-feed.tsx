@@ -67,7 +67,7 @@ export function CoinXFeed({
   }, [coinId]);
 
   return (
-    <div className="mt-3 rounded-lg border border-white/10 bg-[#111111]">
+    <div className="mt-3 rounded-lg border border-white/10 bg-[var(--surface-inset)]">
       {stale ? (
         <p className="border-b border-amber-400/20 bg-amber-400/10 px-3 py-1.5 text-[10px] text-amber-200">
           Feed delayed. Showing cached posts.

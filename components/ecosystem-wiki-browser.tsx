@@ -29,7 +29,7 @@ export function EcosystemWikiBrowser({
           onClick={() => setSelected("all")}
           className={`inline-flex min-h-[44px] items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors ${
             selected === "all"
-              ? "border-[#d1a173]/55 bg-[#d1a173]/15 text-[#d7ad82] shadow-[0_0_16px_rgba(185,129,82,0.18)]"
+              ? "border-teal-400/50 bg-teal-500/15 text-teal-300 shadow-[0_0_16px_rgba(16,255,196,0.16)]"
               : "border-white/10 bg-[#0c0e14] text-zinc-400 hover:border-white/20 hover:text-zinc-200"
           }`}
         >
@@ -45,7 +45,7 @@ export function EcosystemWikiBrowser({
               onClick={() => setSelected(row.id)}
               className={`inline-flex min-h-[44px] items-center gap-2 rounded-full border px-2.5 py-1.5 text-sm font-semibold transition-colors ${
                 active
-                  ? "border-[#d1a173]/55 bg-[#d1a173]/15 text-[#d7ad82] shadow-[0_0_16px_rgba(185,129,82,0.18)]"
+                  ? "border-teal-400/50 bg-teal-500/15 text-teal-300 shadow-[0_0_16px_rgba(16,255,196,0.16)]"
                   : "border-white/10 bg-[#0c0e14] text-zinc-300 hover:border-white/20 hover:text-zinc-100"
               }`}
             >

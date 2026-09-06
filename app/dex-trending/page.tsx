@@ -137,7 +137,7 @@ export default async function DexTrendingPage() {
                           target="_blank"
                           rel="noopener noreferrer"
                           aria-label={`Open ${row.pair} on ${board.label}`}
-                          className="glass-card rounded-md border-2 border-[#f4ddc3]/45 p-2.5 outline outline-1 outline-[#2a1e16]/60 transition-colors hover:border-[#d1a173]/70 hover:bg-[rgba(48,35,26,0.25)]"
+                          className="glass-card rounded-md border-2 border-teal-400/40 p-2.5 transition-colors hover:border-teal-400/55 hover:bg-white/[0.04]"
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">

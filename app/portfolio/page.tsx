@@ -191,9 +191,9 @@ export default function PortfolioPage() {
 
         {mounted && holdings.length > 0 ? (
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-xl border border-[#f4ddc3]/20 bg-[#0f131b]/70 px-4 py-3">
+            <div className="rounded-xl border border-teal-400/25 bg-[#0f131b]/70 px-4 py-3">
               <p className="text-[10px] uppercase tracking-wide text-zinc-500">Total value</p>
-              <p className="mt-1 font-mono text-xl text-[#d7ad82]">{formatUsd(totalValue)}</p>
+              <p className="mt-1 font-mono text-xl text-teal-300">{formatUsd(totalValue)}</p>
               <p
                 className={`mt-1 font-mono text-xs tabular-nums ${
                   totalChange24h >= 0 ? "text-emerald-300" : "text-red-300"
@@ -232,7 +232,7 @@ export default function PortfolioPage() {
 
         <form
           onSubmit={onAdd}
-          className="mt-8 space-y-3 rounded-xl border border-[#f4ddc3]/15 bg-[#0f131b]/70 p-4"
+          className="mt-8 space-y-3 rounded-xl border border-teal-400/20 bg-[#0f131b]/70 p-4"
         >
           <h2 className="text-sm font-semibold text-zinc-100">
             {editingId ? "Edit holding" : "Add holding"}
@@ -312,7 +312,7 @@ export default function PortfolioPage() {
             <button
               type="submit"
               disabled={!selected || !amount}
-              className="min-h-11 rounded-lg border border-[#d1a173]/45 bg-[#d1a173]/10 px-4 py-2 text-sm font-semibold text-[#d7ad82] disabled:opacity-50"
+              className="min-h-11 rounded-lg border border-teal-400/45 bg-teal-500/10 px-4 py-2 text-sm font-semibold text-teal-300 disabled:opacity-50"
             >
               {editingId ? "Save changes" : "Save holding"}
             </button>
@@ -349,7 +349,7 @@ export default function PortfolioPage() {
             ))}
           </ul>
         ) : holdings.length === 0 ? (
-          <div className="mt-8 rounded-xl border border-dashed border-[#f4ddc3]/18 bg-[#0f131b]/60 px-5 py-10 text-center">
+          <div className="mt-8 rounded-xl border border-dashed border-teal-400/20 bg-[#0f131b]/60 px-5 py-10 text-center">
             <p className="text-base font-semibold text-zinc-100">No holdings yet</p>
             <p className="mx-auto mt-2 max-w-md text-sm text-zinc-400">
               Search for a coin above, enter how much you hold, and save it. Data stays on this
@@ -413,7 +413,7 @@ export default function PortfolioPage() {
                 <button
                   type="button"
                   onClick={() => startEdit(h.id)}
-                  className="inline-flex min-h-11 items-center rounded-lg border border-white/15 px-3 text-sm text-zinc-300 hover:border-[#d1a173]/40 hover:text-[#d7ad82]"
+                  className="inline-flex min-h-11 items-center rounded-lg border border-white/15 px-3 text-sm text-zinc-300 hover:border-teal-400/40 hover:text-teal-300"
                 >
                   Edit
                 </button>

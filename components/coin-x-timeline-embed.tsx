@@ -126,7 +126,7 @@ export function CoinXTimelineEmbed({ handle }: { handle: string }) {
         </a>
       </div>
 
-      <div ref={rootRef} className="mt-4 overflow-hidden rounded-xl border border-[#f4ddc3]/12">
+      <div ref={rootRef} className="mt-4 overflow-hidden rounded-xl border border-teal-400/20">
         {failed ? (
           <div className="px-4 py-8 text-center">
             <p className="text-sm text-zinc-400">Timeline couldn’t load in this browser.</p>
@@ -134,7 +134,7 @@ export function CoinXTimelineEmbed({ handle }: { handle: string }) {
               href={profileUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-3 inline-flex text-sm font-medium text-[#d7ad82] underline-offset-2 hover:underline"
+              className="mt-3 inline-flex text-sm font-medium text-teal-300 underline-offset-2 hover:underline"
             >
               Open @{clean} on X
             </a>

@@ -99,10 +99,10 @@ export function LiveTopCoins({ coins }: { coins: CoinMarket[] }) {
             key={coin.id}
             href={`/coin/${encodeURIComponent(coin.id)}`}
             role="listitem"
-            className="glass-card group flex h-full min-h-[22rem] w-[min(85vw,21rem)] shrink-0 snap-start flex-col rounded-xl border border-[#f4ddc3]/12 p-6 outline-none transition-[border-color,background-color,box-shadow,transform] hover:-translate-y-0.5 hover:border-[#d1a173]/55 hover:bg-[rgba(48,35,26,0.32)] hover:shadow-[0_16px_40px_rgba(0,0,0,0.45)] focus-visible:border-[#d1a173]/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] lg:w-auto lg:min-w-0 lg:shrink lg:p-7"
+            className="glass-card group flex h-full min-h-[22rem] w-[min(85vw,21rem)] shrink-0 snap-start flex-col rounded-xl border border-teal-400/20 p-6 outline-none transition-[border-color,background-color,box-shadow,transform] hover:-translate-y-0.5 hover:border-teal-400/50 hover:bg-white/[0.04] hover:shadow-[0_16px_40px_rgba(0,0,0,0.45)] focus-visible:border-teal-400/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400/70 lg:w-auto lg:min-w-0 lg:shrink lg:p-7"
           >
             <div className="flex items-center justify-between gap-2">
-              <span className="font-mono text-xs font-semibold text-[#d7ad82]">#{rank}</span>
+              <span className="font-mono text-xs font-semibold text-teal-300">#{rank}</span>
             </div>
             <div className="mt-3 flex items-center gap-3">
               <span className="relative size-10 shrink-0 overflow-hidden rounded-full ring-1 ring-white/10 sm:size-9">
@@ -116,7 +116,7 @@ export function LiveTopCoins({ coins }: { coins: CoinMarket[] }) {
                 />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-base font-semibold text-zinc-100 transition-colors group-hover:text-[#d7ad82]">
+                <p className="truncate text-base font-semibold text-zinc-100 transition-colors group-hover:text-teal-300">
                   {coin.name}
                 </p>
                 <p className="text-xs uppercase tracking-wide text-zinc-500">{coin.symbol}</p>

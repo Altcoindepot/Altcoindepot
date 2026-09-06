@@ -12,7 +12,7 @@ export function DexListSegment() {
     <div
       role="tablist"
       aria-label="DEX lists"
-      className="inline-flex rounded-lg border border-white/12 bg-[#0c0e14] p-0.5"
+      className="inline-flex rounded-lg surface-inset p-0.5"
     >
       <Link
         href="/just-launched"

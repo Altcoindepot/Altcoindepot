@@ -34,7 +34,7 @@ export default function PrivacyPage() {
           </p>
           <p>
             Questions? Reach us via the{" "}
-            <Link href="/contact" className="text-[#d7ad82] underline-offset-2 hover:underline">
+            <Link href="/contact" className="text-teal-300 underline-offset-2 hover:underline">
               contact
             </Link>{" "}
             page.

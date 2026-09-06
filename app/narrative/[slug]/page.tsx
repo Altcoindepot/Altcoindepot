@@ -63,7 +63,7 @@ export default async function NarrativePage({ params }: Props) {
       <SiteHeader />
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
         <p className="text-xs uppercase tracking-widest text-zinc-500">
-          <Link href="/" className="hover:text-[#d7ad82]">
+          <Link href="/" className="hover:text-teal-300">
             Dashboard
           </Link>
           <span className="mx-2 text-zinc-700">/</span>

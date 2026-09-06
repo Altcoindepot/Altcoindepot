@@ -87,7 +87,7 @@ function MiniSparkline({
   const width = 220;
   const height = 64;
   if (!points.length) {
-    return <div className="mt-2 h-16 rounded-md border border-white/10 bg-[#0a0a0a]" />;
+    return <div className="mt-2 h-16 rounded-md surface-inset" />;
   }
   const min = Math.min(...points);
   const max = Math.max(...points);
@@ -103,7 +103,7 @@ function MiniSparkline({
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
-      className="mt-2 h-16 w-full rounded-md border border-white/10 bg-[#0a0a0a]"
+      className="mt-2 h-16 w-full rounded-md surface-inset"
       role="img"
       aria-label="Trend sparkline"
     >
@@ -140,7 +140,7 @@ function MiniRangeBar({
       ? clamp(((current - low) / (high - low)) * 100, 0, 100)
       : null;
   return (
-    <div className="mt-2 rounded-md border border-white/10 bg-[#0a0a0a] px-2 py-2">
+    <div className="mt-2 rounded-md surface-inset px-2 py-2">
       <div className="relative h-2 rounded-full bg-zinc-800">
         <div className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[#00ff9f]/20 via-[#00ff9f]/35 to-[#00ff9f]/20" />
         {pct != null ? (
@@ -165,7 +165,7 @@ function MiniMomentumBars({
 }) {
   const cap = 25;
   return (
-    <div className="mt-2 grid grid-cols-4 gap-1 rounded-md border border-white/10 bg-[#0a0a0a] p-2">
+    <div className="mt-2 grid grid-cols-4 gap-1 rounded-md surface-inset p-2">
       {values.map((v) => {
         const heightPct = v.value == null ? 8 : clamp((Math.abs(v.value) / cap) * 100, 8, 100);
         const positive = (v.value ?? 0) >= 0;
@@ -189,7 +189,7 @@ function MiniGauge({ value }: { value: number }) {
   const bounded = clamp(value, -30, 30);
   const pct = ((bounded + 30) / 60) * 100;
   return (
-    <div className="mt-2 rounded-md border border-white/10 bg-[#0a0a0a] p-2">
+    <div className="mt-2 rounded-md surface-inset p-2">
       <div className="h-2 rounded-full bg-gradient-to-r from-red-500/70 via-zinc-600 to-emerald-400/80" />
       <div className="relative -mt-2 h-4">
         <span
@@ -348,7 +348,7 @@ function Stat({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-[#111111] px-3 py-2.5 transition-[border-color,box-shadow] hover:border-[#00ff9f]/20 hover:shadow-[0_0_16px_rgba(0,255,159,0.05)]">
+    <div className="surface-inset rounded-lg px-3 py-2.5 transition-[border-color,box-shadow] hover:border-[#00ff9f]/20 hover:shadow-[0_0_16px_rgba(0,255,159,0.05)]">
       <dt className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">{label}</dt>
       <dd className="mt-1 font-mono text-xs text-zinc-100 sm:text-sm">{children}</dd>
     </div>
@@ -505,7 +505,7 @@ export function CoinDetailView({
               {showMediumPanel ? (
                 <section
                   aria-labelledby="coin-medium-feed"
-                  className="rounded-xl border border-white/10 bg-[#101217] p-3"
+                  className="rounded-xl glass-panel p-3"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <h2 id="coin-medium-feed" className="text-sm font-semibold text-zinc-100">
@@ -525,7 +525,7 @@ export function CoinDetailView({
                           href={post.href}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="block rounded-lg border border-white/10 bg-[#0d0f14] px-2.5 py-2 transition-colors hover:border-[#00ff9f]/35"
+                          className="block rounded-lg surface-inset px-2.5 py-2 transition-colors hover:border-[#00ff9f]/35"
                         >
                           <p className="line-clamp-2 text-xs font-semibold text-zinc-100">{post.title}</p>
                           <p className="mt-1 line-clamp-3 text-[11px] leading-relaxed text-zinc-400">
@@ -537,7 +537,7 @@ export function CoinDetailView({
                         </a>
                       ))
                     ) : (
-                      <div className="rounded-lg border border-white/10 bg-[#0d0f14] px-2.5 py-2">
+                      <div className="rounded-lg surface-inset px-2.5 py-2">
                         <p className="text-[11px] text-zinc-400">
                           Medium feed detected, but no posts could be loaded right now. Try opening the
                           profile directly.
@@ -768,7 +768,7 @@ export function CoinDetailView({
                   <p className={ds.label}>Compared to BTC</p>
                   <Link
                     href={`/compare?add=${encodeURIComponent(coin.id)},bitcoin`}
-                    className="text-[11px] font-medium text-[#d7ad82] underline-offset-2 hover:underline"
+                    className="text-[11px] font-medium text-teal-300 underline-offset-2 hover:underline"
                   >
                     Compare side by side
                   </Link>
@@ -872,14 +872,14 @@ export function CoinDetailView({
         <h2 id="coin-market-stats" className="text-base font-semibold text-white sm:text-lg">
           Market stats <span className="text-zinc-500">(USD, CoinGecko)</span>
         </h2>
-        <article className="mt-4 rounded-lg border border-white/10 bg-[#111111] p-3">
+        <article className="mt-4 surface-inset rounded-lg p-3">
           <h3 className="text-sm font-semibold text-zinc-100">What is {coin.name}?</h3>
           <p className="mt-2 text-xs leading-relaxed text-zinc-400 sm:text-sm">
             {whatIsSummary ?? "A short explanation is not available from CoinGecko right now."}
           </p>
           {descriptionText && descriptionText.length > (whatIsSummary?.length ?? 0) + 40 ? (
             <details className="mt-3">
-              <summary className="cursor-pointer text-xs font-medium text-[#d7ad82]">
+              <summary className="cursor-pointer text-xs font-medium text-teal-300">
                 Read more
               </summary>
               <p className="mt-2 text-xs leading-relaxed text-zinc-500 sm:text-sm">
@@ -888,7 +888,7 @@ export function CoinDetailView({
             </details>
           ) : null}
         </article>
-        <article className="mt-3 rounded-lg border border-white/10 bg-[#111111] p-3">
+        <article className="mt-3 surface-inset rounded-lg p-3">
           <h3 className="text-sm font-semibold text-zinc-100">
             Where to buy {(coin.symbol ?? "").toString().toUpperCase() || "—"}
           </h3>
@@ -964,21 +964,21 @@ export function CoinDetailView({
           Tokenomics
         </h2>
         <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          <article className="rounded-lg border border-white/10 bg-[#111111] px-3 py-2.5">
+          <article className="surface-inset rounded-lg px-3 py-2.5">
             <p className="text-[10px] uppercase tracking-wide text-zinc-500">Circulating / max</p>
             <p className="mt-1 font-mono text-sm text-zinc-100">{formatPctText(circulatingVsMaxPct)}</p>
             <p className="mt-1 text-xs text-zinc-400">
               {formatNum(circulating)} / {formatNum(maxSupply)}
             </p>
           </article>
-          <article className="rounded-lg border border-white/10 bg-[#111111] px-3 py-2.5">
+          <article className="surface-inset rounded-lg px-3 py-2.5">
             <p className="text-[10px] uppercase tracking-wide text-zinc-500">Circulating / total</p>
             <p className="mt-1 font-mono text-sm text-zinc-100">{formatPctText(circulatingVsTotalPct)}</p>
             <p className="mt-1 text-xs text-zinc-400">
               {formatNum(circulating)} / {formatNum(totalSupply)}
             </p>
           </article>
-          <article className="rounded-lg border border-white/10 bg-[#111111] px-3 py-2.5">
+          <article className="surface-inset rounded-lg px-3 py-2.5">
             <p className="text-[10px] uppercase tracking-wide text-zinc-500">Market cap / FDV</p>
             <p className="mt-1 font-mono text-sm text-zinc-100">{formatPctText(mcapToFdvPct)}</p>
             <p className="mt-1 text-xs text-zinc-400">
@@ -986,7 +986,7 @@ export function CoinDetailView({
             </p>
           </article>
         </div>
-        <div className="mt-3 rounded-lg border border-white/10 bg-[#111111] px-3 py-2.5 text-xs text-zinc-400">
+        <div className="mt-3 surface-inset rounded-lg px-3 py-2.5 text-xs text-zinc-400">
           {whitepaper ? (
             <>
               Project documentation is available:{" "}
@@ -994,7 +994,7 @@ export function CoinDetailView({
                 href={whitepaper}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[#d7ad82] underline-offset-2 hover:underline"
+                className="text-teal-300 underline-offset-2 hover:underline"
               >
                 open whitepaper
               </a>
@@ -1015,7 +1015,7 @@ export function CoinDetailView({
           schedules may vary by project and should be verified in project docs.
         </p>
         <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          <article className="rounded-lg border border-white/10 bg-[#111111] px-3 py-2.5">
+          <article className="surface-inset rounded-lg px-3 py-2.5">
             <p className="text-[10px] uppercase tracking-wide text-zinc-500">Past unlocked</p>
             <p className="mt-1 font-mono text-sm text-zinc-100">{formatPctText(unlockPastPct)}</p>
             <p className="mt-1 text-xs text-zinc-400">
@@ -1023,14 +1023,14 @@ export function CoinDetailView({
               {maxSupply != null ? ` of ${formatNum(maxSupply)} max` : totalSupply != null ? ` of ${formatNum(totalSupply)} total` : ""}
             </p>
           </article>
-          <article className="rounded-lg border border-white/10 bg-[#111111] px-3 py-2.5">
+          <article className="surface-inset rounded-lg px-3 py-2.5">
             <p className="text-[10px] uppercase tracking-wide text-zinc-500">Present float</p>
             <p className="mt-1 font-mono text-sm text-zinc-100">{formatCompactUsd(marketCap)}</p>
             <p className="mt-1 text-xs text-zinc-400">
               Market cap with {formatNum(circulating)} currently circulating tokens
             </p>
           </article>
-          <article className="rounded-lg border border-white/10 bg-[#111111] px-3 py-2.5">
+          <article className="surface-inset rounded-lg px-3 py-2.5">
             <p className="text-[10px] uppercase tracking-wide text-zinc-500">Future unlock potential</p>
             <p className="mt-1 font-mono text-sm text-zinc-100">{formatPctText(remainingToUnlockPct)}</p>
             <p className="mt-1 text-xs text-zinc-400">
@@ -1040,7 +1040,7 @@ export function CoinDetailView({
             </p>
           </article>
         </div>
-        <div className="mt-3 rounded-lg border border-white/10 bg-[#111111] px-3 py-2.5 text-xs text-zinc-400">
+        <div className="mt-3 surface-inset rounded-lg px-3 py-2.5 text-xs text-zinc-400">
           <p>
             FDV overhang vs current market cap:{" "}
             <span className="font-mono text-zinc-200">{signedPctText(fdvOverhangPct)}</span>.
@@ -1053,7 +1053,7 @@ export function CoinDetailView({
                   href={whitepaper}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[#d7ad82] underline-offset-2 hover:underline"
+                  className="text-teal-300 underline-offset-2 hover:underline"
                 >
                   project whitepaper
                 </a>
@@ -1071,13 +1071,13 @@ export function CoinDetailView({
           Analytics
         </h2>
         <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          <article className="rounded-lg border border-white/10 bg-[#111111] px-3 py-2.5">
+          <article className="surface-inset rounded-lg px-3 py-2.5">
             <p className="text-[10px] uppercase tracking-wide text-zinc-500">Trend score</p>
             <p className="mt-1 font-mono text-sm text-zinc-100">{momentumScore.toFixed(2)}</p>
             <p className="mt-1 text-xs text-zinc-400">{trendLabel}</p>
             <MiniGauge value={momentumScore} />
           </article>
-          <article className="rounded-lg border border-white/10 bg-[#111111] px-3 py-2.5">
+          <article className="surface-inset rounded-lg px-3 py-2.5">
             <p className="text-[10px] uppercase tracking-wide text-zinc-500">24h volatility</p>
             <p className="mt-1 font-mono text-sm text-zinc-100">
               {range24Pct != null ? `${range24Pct.toFixed(2)}%` : "—"}
@@ -1085,7 +1085,7 @@ export function CoinDetailView({
             <p className="mt-1 text-xs text-zinc-400">Range between 24h high and low</p>
             <MiniRangeBar low={low24} high={high24} current={current} />
           </article>
-          <article className="rounded-lg border border-white/10 bg-[#111111] px-3 py-2.5">
+          <article className="surface-inset rounded-lg px-3 py-2.5">
             <p className="text-[10px] uppercase tracking-wide text-zinc-500">Position vs 24h high</p>
             <p className="mt-1 font-mono text-sm text-zinc-100">
               {nearHighPct != null ? `${nearHighPct.toFixed(1)}%` : "—"}
@@ -1093,13 +1093,13 @@ export function CoinDetailView({
             <p className="mt-1 text-xs text-zinc-400">Current price as % of today&apos;s high</p>
             <MiniRangeBar low={low24} high={high24} current={current} />
           </article>
-          <article className="rounded-lg border border-white/10 bg-[#111111] px-3 py-2.5">
+          <article className="surface-inset rounded-lg px-3 py-2.5">
             <p className="text-[10px] uppercase tracking-wide text-zinc-500">Support zone (est.)</p>
             <p className="mt-1 font-mono text-sm text-zinc-100">{formatUsd(low24)}</p>
             <p className="mt-1 text-xs text-zinc-400">Using 24h low as short-term support proxy</p>
             <MiniRangeBar low={low24} high={high24} current={low24} />
           </article>
-          <article className="rounded-lg border border-white/10 bg-[#111111] px-3 py-2.5">
+          <article className="surface-inset rounded-lg px-3 py-2.5">
             <p className="text-[10px] uppercase tracking-wide text-zinc-500">
               Resistance zone (est.)
             </p>
@@ -1109,7 +1109,7 @@ export function CoinDetailView({
             </p>
             <MiniRangeBar low={low24} high={high24} current={high24} />
           </article>
-          <article className="rounded-lg border border-white/10 bg-[#111111] px-3 py-2.5">
+          <article className="surface-inset rounded-lg px-3 py-2.5">
             <p className="text-[10px] uppercase tracking-wide text-zinc-500">Momentum blend</p>
             <p className="mt-1 text-xs text-zinc-300">
               40% 24h · 35% 7d · 15% 30d · 10% 1y

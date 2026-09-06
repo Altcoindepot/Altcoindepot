@@ -53,7 +53,7 @@ export default function TermsPage() {
           To the fullest extent permitted by law, AltCoin Depot and its operators shall not be
           liable for trading losses, deficits, or other damages arising from reliance on displayed
           data, models, or content. See our{" "}
-          <Link href="/disclaimer" className="text-[#d7ad82] underline-offset-2 hover:underline">
+          <Link href="/disclaimer" className="text-teal-300 underline-offset-2 hover:underline">
             disclaimer
           </Link>{" "}
           for additional risk disclosures.
@@ -64,7 +64,7 @@ export default function TermsPage() {
         <p>
           We may update these Terms by posting a revised version on this page. Continued use after
           changes constitutes acceptance. Questions may be sent via our{" "}
-          <Link href="/contact" className="text-[#d7ad82] underline-offset-2 hover:underline">
+          <Link href="/contact" className="text-teal-300 underline-offset-2 hover:underline">
             contact page
           </Link>
           .

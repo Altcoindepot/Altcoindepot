@@ -77,7 +77,7 @@ function NumberField({
           const n = Number(raw);
           onCommit(Number.isFinite(n) && n >= 0 ? n : null);
         }}
-        className="h-11 w-full rounded-lg border border-white/12 bg-[#0c0e14] px-2.5 font-mono text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-teal-400/40 focus:outline-none focus:ring-2 focus:ring-teal-400/20"
+        className="h-11 w-full rounded-lg surface-inset px-2.5 font-mono text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-teal-400/40 focus:outline-none focus:ring-2 focus:ring-teal-400/20"
       />
     </label>
   );
@@ -204,7 +204,7 @@ function AdvancedFilters({
             defaultValue={query.q}
             key={query.q}
             placeholder="Symbol, name, or contract"
-            className="h-11 w-full max-w-md rounded-lg border border-white/12 bg-[#0a0a0a] px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-teal-400/40 focus:outline-none focus:ring-2 focus:ring-teal-400/20"
+            className="h-11 w-full max-w-md rounded-lg surface-input px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-teal-400/40 focus:outline-none focus:ring-2 focus:ring-teal-400/20"
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 push({ ...query, q: (e.target as HTMLInputElement).value.trim() });
@@ -249,7 +249,7 @@ function AdvancedFilters({
             type="checkbox"
             checked={query.includeMajors}
             onChange={(e) => push({ ...query, includeMajors: e.target.checked })}
-            className="size-4 rounded border-white/20 bg-[#0a0a0a] text-teal-500 focus:ring-teal-400/30"
+            className="size-4 rounded border-white/20 bg-[var(--surface-inset)] text-teal-500 focus:ring-teal-400/30"
           />
           Include majors (BTC, ETH, SOL…)
         </label>
@@ -313,7 +313,7 @@ export function DexScannerExplorer({
   return (
     <div className="space-y-3 overflow-x-hidden">
       {/* Mobile: sticky summary + chain chips + Filters CTA */}
-      <div className="sticky top-[4.35rem] z-30 -mx-3 space-y-2 border-b border-teal-400/20 bg-[#0a0a0a]/90 px-3 py-2.5 shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-xl sm:top-[4.85rem] md:hidden">
+      <div className="sticky top-[4.35rem] z-30 -mx-3 space-y-2 border-b border-teal-400/20 bg-[#05080c]/90 px-3 py-2.5 shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-xl sm:top-[4.85rem] md:hidden">
         <div className="flex items-center gap-2">
           <p className="min-w-0 flex-1 truncate text-[11px] tabular-nums text-zinc-400">
             {summary}
@@ -336,7 +336,7 @@ export function DexScannerExplorer({
       </div>
 
       {/* Desktop / tablet filters (full panel, including chains) */}
-      <div className="hidden space-y-3 rounded-xl border border-white/10 bg-[#0c0e14] p-3 sm:p-4 md:block">
+      <div className="hidden space-y-3 rounded-xl glass-panel p-3 sm:p-4 md:block">
         <div>
           <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-600">
             Chain
@@ -360,8 +360,8 @@ export function DexScannerExplorer({
             aria-label="Close filters"
             onClick={() => setFiltersOpen(false)}
           />
-          <div className="absolute inset-x-0 bottom-0 max-h-[min(88vh,40rem)] overflow-y-auto rounded-t-2xl border border-white/10 bg-[#0c0e14] shadow-2xl pb-[calc(1rem+env(safe-area-inset-bottom))]">
-            <div className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-white/10 bg-[#0c0e14] px-4 py-3">
+          <div className="absolute inset-x-0 bottom-0 max-h-[min(88vh,40rem)] overflow-y-auto rounded-t-2xl glass-panel shadow-2xl pb-[calc(1rem+env(safe-area-inset-bottom))]">
+            <div className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-white/10 bg-[var(--surface-inset)] px-4 py-3">
               <p className="text-sm font-semibold text-zinc-100">Filters</p>
               <button
                 type="button"
@@ -390,7 +390,7 @@ export function DexScannerExplorer({
       ) : null}
 
       {!error && filtered.length === 0 ? (
-        <div className="rounded-xl border border-white/10 bg-[#0c0e14] px-4 py-8 text-center">
+        <div className="rounded-xl glass-panel px-4 py-8 text-center">
           <p className="text-sm leading-relaxed text-zinc-500">No pairs match these filters</p>
           <button
             type="button"
@@ -403,7 +403,7 @@ export function DexScannerExplorer({
       ) : null}
 
       {!error && shown.length > 0 ? (
-        <section className="overflow-hidden rounded-xl border border-white/10 bg-[#0c0e14]">
+        <section className="overflow-hidden rounded-xl glass-panel">
           <div className="flex items-baseline justify-between gap-2 border-b border-white/10 px-3 py-2 sm:px-4">
             <h2 className="text-sm font-semibold text-zinc-100">Scanner results</h2>
             <p className="text-[10px] tabular-nums text-zinc-500">

@@ -57,7 +57,7 @@ export default async function PairsPage() {
   return (
     <>
       <SiteHeader />
-      <main id="main-content" className="border-b border-white/10 bg-[#0a0a0a] px-3 py-4 sm:px-6 sm:py-6">
+      <main id="main-content" className="page-shell border-b border-white/10 px-3 py-4 sm:px-6 sm:py-6">
         <div className="mx-auto max-w-[90rem]">
           <p className="text-[10px] uppercase tracking-widest text-zinc-500">
             <Link href="/" className="hover:text-teal-200">
@@ -75,7 +75,7 @@ export default async function PairsPage() {
           </p>
 
           <div className="mt-5">
-            <Suspense fallback={<div className="h-40 rounded-xl border border-white/10 bg-[#0c0e14]" />}>
+            <Suspense fallback={<div className="h-40 rounded-xl glass-panel" />}>
               <PairsExplorer rows={rows} error={error} />
             </Suspense>
           </div>

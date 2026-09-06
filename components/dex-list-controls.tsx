@@ -28,7 +28,7 @@ import {
 const fieldClass = "grid gap-1";
 const labelClass = "text-[10px] font-semibold uppercase tracking-wider text-zinc-500";
 const selectClass =
-  "min-h-11 w-full rounded-lg border border-white/15 bg-[#0c0e14] px-3 text-sm text-zinc-100 focus:border-teal-400/50 focus:outline-none focus:ring-2 focus:ring-teal-400/25 md:min-h-8 md:text-xs";
+  "min-h-11 w-full rounded-lg surface-input px-3 text-sm text-zinc-100 focus:border-teal-400/50 focus:outline-none focus:ring-2 focus:ring-teal-400/25 md:min-h-8 md:text-xs";
 
 function Fields({
   idPrefix,
@@ -209,7 +209,7 @@ export function DexListControls({
           aria-expanded={open}
           aria-controls="dex-list-filter-panel"
           onClick={() => setOpen((v) => !v)}
-          className="flex min-h-11 w-full min-w-0 items-center justify-between gap-3 rounded-lg border border-white/12 bg-[#0c0e14] px-3 text-left"
+          className="flex min-h-11 w-full min-w-0 items-center justify-between gap-3 rounded-lg surface-inset px-3 text-left"
         >
           <span className="min-w-0">
             <span className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
@@ -233,7 +233,7 @@ export function DexListControls({
         {open ? (
           <div
             id="dex-list-filter-panel"
-            className="mt-2 grid gap-3 rounded-lg border border-white/10 bg-[#0c0e14] p-3"
+            className="mt-2 grid gap-3 rounded-lg glass-panel p-3"
           >
             <Fields
               idPrefix="dex-m"

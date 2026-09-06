@@ -26,7 +26,7 @@ export default async function NewsPage() {
   return (
     <>
       <SiteHeader />
-      <main id="main-content" className="border-b border-white/10 bg-[#0a0a0a] px-4 py-8 sm:px-6">
+      <main id="main-content" className="page-shell border-b border-white/10 px-4 py-8 sm:px-6">
         <div className="mx-auto max-w-3xl">
           <p className="text-xs uppercase tracking-widest text-zinc-500">
             <Link href="/" className="hover:text-teal-200">
@@ -51,7 +51,7 @@ export default async function NewsPage() {
                     href={item.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block rounded-lg border border-white/10 bg-[#0c0e14] px-3.5 py-3 transition-colors hover:border-teal-400/25 hover:bg-[#10131a]"
+                    className="glass-panel block rounded-lg px-3.5 py-3 transition-colors hover:border-teal-400/25 hover:bg-white/[0.04]"
                   >
                     <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
                       <span className="inline-flex rounded border border-white/[0.08] px-1.5 py-px text-[9px] font-semibold uppercase tracking-wider text-zinc-400">

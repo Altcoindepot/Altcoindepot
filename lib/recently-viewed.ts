@@ -90,6 +90,7 @@ export type RecommendableRow = {
   chain?: string;
   contractAddress?: string;
   dexLabel?: string;
+  dexId?: string | null;
 };
 
 export function recommendFromHistory<T extends RecommendableRow>(
@@ -118,7 +119,10 @@ export function recommendFromHistory<T extends RecommendableRow>(
     .map((row) => {
       let score = 0;
       if (topChain && (row.chain ?? "").toLowerCase() === topChain) score += 2;
-      if (topDex && (row.dexLabel ?? "").toLowerCase() === topDex) score += 3;
+      const dexKey = (row.dexId ?? row.dexLabel ?? "").toLowerCase();
+      if (topDex && dexKey && (dexKey === topDex || dexKey.includes(topDex) || topDex.includes(dexKey))) {
+        score += 3;
+      }
       return { row, score };
     })
     .filter((x) => x.score > 0)

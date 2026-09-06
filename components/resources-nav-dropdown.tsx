@@ -64,7 +64,7 @@ export function ResourcesNavDropdown() {
           id={menuId}
           role="menu"
           aria-label="Resources"
-          className="absolute left-0 top-full z-50 mt-1 min-w-[11rem] overflow-hidden rounded-xl border border-white/10 bg-[#0c0e14] py-1 shadow-xl shadow-black/40"
+          className="absolute left-0 top-full z-50 mt-1 min-w-[11rem] overflow-hidden rounded-xl glass-panel py-1 shadow-xl shadow-black/40"
         >
           {RESOURCES_NAV.map((item) => {
             const itemActive = pathname === item.href || pathname.startsWith(`${item.href}/`);

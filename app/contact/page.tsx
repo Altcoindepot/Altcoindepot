@@ -22,7 +22,7 @@ export default function ContactPage() {
               href="https://x.com/altcoindepot"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-11 items-center font-medium text-[#d7ad82] underline-offset-2 hover:underline"
+              className="inline-flex min-h-11 items-center font-medium text-teal-300 underline-offset-2 hover:underline"
             >
               @altcoindepot on X
             </a>
@@ -30,7 +30,7 @@ export default function ContactPage() {
           <li>
             <a
               href="mailto:AltCoinDepot@gmail.com"
-              className="inline-flex min-h-11 items-center font-medium text-[#d7ad82] underline-offset-2 hover:underline"
+              className="inline-flex min-h-11 items-center font-medium text-teal-300 underline-offset-2 hover:underline"
             >
               AltCoinDepot@gmail.com
             </a>

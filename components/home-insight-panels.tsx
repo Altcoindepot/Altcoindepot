@@ -64,14 +64,14 @@ function CatalystCard({
     event.countdown ??
     (event.eventAt ? formatEventCountdown(event.eventAt) : null);
   const high = impact === "High";
-  const dateCls = accent === "listing" ? "text-[#d7ad82]" : "text-zinc-400";
+  const dateCls = accent === "listing" ? "text-teal-300" : "text-zinc-400";
 
   return (
     <a
       href={event.url}
       target={event.url.startsWith("http") ? "_blank" : undefined}
       rel={event.url.startsWith("http") ? "noopener noreferrer" : undefined}
-      className={`ds-card flex h-[6.25rem] flex-col justify-between px-3.5 py-3 transition-colors hover:border-[#d1a173]/40 ${
+      className={`ds-card flex h-[6.25rem] flex-col justify-between px-3.5 py-3 transition-colors hover:border-teal-400/40 ${
         high ? "ring-1 ring-amber-300/25" : ""
       }`}
     >
@@ -219,7 +219,7 @@ export function HomeInsightPanels() {
   const stillLoading = catalysts.length === 0 && catalystSourceProvider === "Loading";
 
   return (
-    <section className="section-band border-b border-[#f4ddc3]/08 bg-[#0f131b]/60 px-4 py-16 sm:px-6 sm:py-20">
+    <section className="section-band border-b border-teal-400/15 bg-[#0f131b]/60 px-4 py-16 sm:px-6 sm:py-20">
       <div className="mx-auto grid max-w-6xl gap-4">
         <article className={ds.panelLg}>
           <div className="flex flex-wrap items-center justify-between gap-2">

@@ -3,11 +3,11 @@ import { permanentRedirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Top 200 Trending",
-  description: "Live Dex movers by chain on AltCoin Depot — redirects to Gainers & Losers.",
+  description: "Redirects to the Tokens Dex pairs board on AltCoin Depot.",
   robots: { index: false, follow: true },
 };
 
-/** CoinGecko /coins/markets board removed — Dex gainers/losers is the source of truth. */
+/** Legacy URL — Tokens board now lives at /top-100-trending. */
 export default function Top200TrendingPage() {
-  permanentRedirect("/gainers-losers");
+  permanentRedirect("/top-100-trending");
 }

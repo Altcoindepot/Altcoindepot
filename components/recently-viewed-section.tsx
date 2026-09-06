@@ -92,7 +92,7 @@ export function RecentlyViewedSection() {
     return (
       <section
         aria-labelledby="recently-viewed-heading"
-        className="section-band border-b border-[#f4ddc3]/08 bg-[#0f131b]/50 px-4 py-16 sm:px-6 sm:py-20"
+        className="section-band border-b border-teal-400/15 bg-[#0f131b]/50 px-4 py-16 sm:px-6 sm:py-20"
       >
         <div className="glass-panel mx-auto max-w-6xl rounded-2xl p-5 sm:p-6 md:p-7">
           <SectionHeading id="recently-viewed-heading">Recently viewed</SectionHeading>
@@ -118,7 +118,7 @@ export function RecentlyViewedSection() {
   return (
     <section
       aria-labelledby="recently-viewed-heading"
-      className="section-band border-b border-[#f4ddc3]/08 bg-[#0f131b]/50 px-4 py-16 sm:px-6 sm:py-20"
+      className="section-band border-b border-teal-400/15 bg-[#0f131b]/50 px-4 py-16 sm:px-6 sm:py-20"
     >
       <div className="glass-panel mx-auto max-w-6xl rounded-2xl p-5 sm:p-6 md:p-7">
         <div className="flex flex-wrap items-end justify-between gap-3">
@@ -140,7 +140,7 @@ export function RecentlyViewedSection() {
         </div>
 
         {visible.length === 0 ? (
-          <div className="mt-6 rounded-xl border border-dashed border-[#f4ddc3]/18 bg-[#0c0e14]/50 px-5 py-8 text-center">
+          <div className="mt-6 rounded-xl border border-dashed border-teal-400/20 bg-[#0c0e14]/50 px-5 py-8 text-center">
             <p className="text-sm font-medium text-zinc-200">No coins viewed yet</p>
             <p className="mx-auto mt-2 max-w-md text-sm text-zinc-500">
               Open any coin page and it’ll show up here for quick return visits.
@@ -148,7 +148,7 @@ export function RecentlyViewedSection() {
             <SuggestedCoinsPanel title="Popular coins to explore" />
             <Link
               href="/"
-              className="mt-5 inline-flex min-h-11 items-center justify-center rounded-lg border border-[#d1a173]/40 bg-[#d1a173]/12 px-4 text-sm font-semibold text-[#d7ad82]"
+              className="mt-5 inline-flex min-h-11 items-center justify-center rounded-lg border border-teal-400/40 bg-teal-500/10 px-4 text-sm font-semibold text-teal-300"
             >
               Browse featured coins
             </Link>
@@ -163,7 +163,7 @@ export function RecentlyViewedSection() {
                 <li key={entry.id} className={index >= 3 ? "hidden sm:block" : undefined}>
                   <Link
                     href={`/coin/${encodeURIComponent(entry.id)}`}
-                    className="glass-card flex min-h-[4.5rem] items-center gap-3 rounded-xl border border-[#f4ddc3]/12 p-4 transition-[border-color,background-color,transform] hover:-translate-y-0.5 hover:border-[#d1a173]/50 hover:bg-[rgba(48,35,26,0.28)]"
+                    className="glass-card flex min-h-[4.5rem] items-center gap-3 rounded-xl border border-teal-400/20 p-4 transition-[border-color,background-color,transform] hover:-translate-y-0.5 hover:border-teal-400/50 hover:bg-white/[0.04]"
                   >
                     {img ? (
                       <Image

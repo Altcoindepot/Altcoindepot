@@ -44,7 +44,7 @@ export default function AlertsPage() {
         <button
           type="button"
           onClick={() => void enableNotifications()}
-          className="mt-4 rounded-lg border border-[#d1a173]/45 bg-[#d1a173]/10 px-3 py-1.5 text-xs font-semibold text-[#d7ad82]"
+          className="mt-4 rounded-lg border border-teal-400/45 bg-teal-500/10 px-3 py-1.5 text-xs font-semibold text-teal-300"
         >
           Allow browser notifications
         </button>
@@ -55,7 +55,7 @@ export default function AlertsPage() {
         ) : alerts.length === 0 ? (
           <p className="mt-8 rounded-lg border border-white/10 bg-[#111111] p-6 text-sm text-zinc-400">
             No alerts yet. Open any{" "}
-            <Link href="/" className="text-[#d7ad82] underline-offset-2 hover:underline">
+            <Link href="/" className="text-teal-300 underline-offset-2 hover:underline">
               coin page
             </Link>{" "}
             and use “Set price alert”.
@@ -65,7 +65,7 @@ export default function AlertsPage() {
             {alerts.map((a) => (
               <li
                 key={a.id}
-                className="flex flex-wrap items-center gap-3 rounded-xl border border-[#f4ddc3]/15 bg-[#0f131b]/70 px-3 py-3"
+                className="flex flex-wrap items-center gap-3 rounded-xl border border-teal-400/20 bg-[#0f131b]/70 px-3 py-3"
               >
                 <Link
                   href={`/coin/${encodeURIComponent(a.coinId)}`}

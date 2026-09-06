@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
-import { ChainGainersLosers } from "@/components/dashboard/chain-gainers-losers";
+import { GainersPageView } from "@/components/dashboard/gainers-page-view";
 import { DisclaimerNote } from "@/components/disclaimer-note";
 import {
   getChainMovers,
@@ -13,7 +13,7 @@ import { formatChainLabel } from "@/lib/format-chain";
 
 const TITLE = "Top Crypto Gainers & Losers by Chain | AltCoin Depot";
 const DESCRIPTION =
-  "Top 10 DexScreener gainers and losers on Ethereum, Solana, Base, and Injective — Dex first, CEX pad. Prefers 1h when available. Informational only, not financial advice.";
+  "Top DexScreener gainers and losers on Ethereum, Solana, Base, and Injective — Dex first, CEX pad. Informational only, not financial advice.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -52,59 +52,30 @@ export default async function GainersLosersPage({
   return (
     <>
       <SiteHeader fetchedAt={fetchedAt} />
-      <main id="main-content" className="border-b border-white/10 bg-[#0a0a0a] px-3 py-4 sm:px-6 sm:py-6">
-        <div className="mx-auto max-w-[90rem]">
+      <main id="main-content" className="page-shell border-b border-white/10 px-3 pb-8 pt-3 sm:px-6 sm:pb-10 sm:pt-4">
+        <div className="mx-auto max-w-lg sm:max-w-2xl lg:max-w-3xl">
           <p className="text-[10px] uppercase tracking-widest text-zinc-500">
             <Link href="/" className="hover:text-teal-200">
               Home
             </Link>
             <span className="mx-2 text-zinc-700">/</span>
-            Gainers &amp; Losers
+            Gainers
           </p>
-          <h1 className="mt-2 text-xl font-bold tracking-tight text-zinc-50 sm:text-2xl md:text-3xl">
+          <h1 className="mt-2 text-xl font-bold tracking-tight text-zinc-50 sm:text-2xl">
             {chainFilter
-              ? `${formatChainLabel(chainFilter)} gainers & losers`
-              : "Top gainers & losers by chain"}
+              ? `${formatChainLabel(chainFilter)} gainers`
+              : "Gainers & losers"}
           </h1>
-          <p className="mt-1 max-w-2xl text-xs leading-relaxed text-zinc-500 sm:text-sm">
-            {chainFilter ? (
-              <>
-                Showing <span className="text-zinc-300">{formatChainLabel(chainFilter)}</span> only ·{" "}
-                <Link href="/gainers-losers" className="text-teal-300 underline-offset-2 hover:underline">
-                  All boards
-                </Link>
-                {" · "}
-              </>
-            ) : null}
-            ETH · SOL · BASE · INJ · <span className="text-zinc-300">10 gainers + 10 losers</span> ·
-            Dex first, CEX pad · board uses <span className="text-zinc-300">1H</span> when enough
-            pairs have it, else <span className="text-zinc-300">24H</span> · not financial advice
+          <p className="mt-1 text-xs leading-relaxed text-zinc-500">
+            Live Dex movers · ETH · SOL · BASE · INJ · not financial advice
           </p>
 
-          <div className="mt-5">
-            <ChainGainersLosers boards={boards} />
+          <div className="mt-4 sm:mt-5">
+            <GainersPageView boards={boards} chainFilter={chainFilter} />
           </div>
 
-          <p className="mt-5 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-zinc-600">
-            <Link href="/just-launched" className="text-teal-300/90 underline-offset-2 hover:underline">
-              Just Launched →
-            </Link>
-            <Link href="/new-low-caps" className="text-teal-300/90 underline-offset-2 hover:underline">
-              New &amp; Low Caps →
-            </Link>
-            {chainFilter && chainFilter !== "injective" ? (
-              <Link
-                href={`/pairs?chain=${encodeURIComponent(chainFilter)}`}
-                className="text-teal-300/90 underline-offset-2 hover:underline"
-              >
-                All {formatChainLabel(chainFilter)} pairs →
-              </Link>
-            ) : null}
-          </p>
-
-          <DisclaimerNote className="mt-4 text-[11px]">
+          <DisclaimerNote className="mt-5 text-[11px]">
             Dex prices from DexScreener · CEX pads from Binance USDT / Coinbase · informational only
-            · not financial advice
           </DisclaimerNote>
         </div>
       </main>

@@ -80,16 +80,16 @@ export function PriceTrackerTable({
           return (
             <article
               key={coin.id}
-              className="glass-card rounded-lg border-2 border-[#f4ddc3]/45 p-4 outline outline-1 outline-[#2a1e16]/60 transition-colors hover:border-[#d1a173]/70 hover:bg-[rgba(48,35,26,0.3)] sm:p-4"
+              className="glass-card rounded-lg border-2 border-teal-400/40 p-4 transition-colors hover:border-teal-400/55 hover:bg-white/[0.04] sm:p-4"
             >
               <div className="flex items-center justify-between gap-2">
-                <span className="font-mono text-xs font-semibold text-[#d7ad82]">#{rank}</span>
+                <span className="font-mono text-xs font-semibold text-teal-300">#{rank}</span>
                 {xHref ? (
                   <a
                     href={xHref}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex rounded p-0.5 text-zinc-500 transition-colors hover:text-[#d7ad82]"
+                    className="inline-flex rounded p-0.5 text-zinc-500 transition-colors hover:text-teal-300"
                     aria-label={`${coin.name} on X`}
                   >
                     <XIcon className="size-4" />
@@ -111,7 +111,7 @@ export function PriceTrackerTable({
                 <div className="min-w-0">
                   <Link
                     href={`/coin/${encodeURIComponent(coin.id)}`}
-                    className="block truncate text-sm font-semibold text-zinc-100 transition-colors hover:text-[#d7ad82]"
+                    className="block truncate text-sm font-semibold text-zinc-100 transition-colors hover:text-teal-300"
                   >
                     {coin.name}
                   </Link>

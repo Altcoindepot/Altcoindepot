@@ -55,7 +55,7 @@ export default async function ComparePage({ searchParams }: Props) {
       <SiteHeader />
       <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
         <p className="text-xs uppercase tracking-widest text-zinc-500">
-          <Link href="/" className="hover:text-[#d7ad82]">
+          <Link href="/" className="hover:text-teal-300">
             Home
           </Link>
           <span className="mx-2 text-zinc-700">/</span>
@@ -64,7 +64,7 @@ export default async function ComparePage({ searchParams }: Props) {
 
         <h1 className="mt-3 flex items-center gap-3 text-xl font-extrabold tracking-tight sm:text-2xl">
           <span
-            className="hidden h-7 w-1 shrink-0 rounded-full bg-[#d1a173]/80 sm:block"
+            className="hidden h-7 w-1 shrink-0 rounded-full bg-teal-400/80 sm:block"
             aria-hidden
           />
           <span className="text-brand-altcoindepot">Compare Crypto Prices Side by Side</span>
@@ -94,7 +94,7 @@ export default async function ComparePage({ searchParams }: Props) {
             liquidity without jumping between tabs. Market cap parity shows what each coin’s price
             would be at another coin’s market cap. Pair this with coin pages that show{" "}
             <strong className="font-medium text-zinc-300">Compared to BTC</strong> and{" "}
-            <Link href="/" className="text-[#d7ad82] underline-offset-2 hover:underline">
+            <Link href="/" className="text-teal-300 underline-offset-2 hover:underline">
               Market Regime
             </Link>{" "}
             on the homepage for context.

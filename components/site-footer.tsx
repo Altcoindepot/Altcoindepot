@@ -40,7 +40,7 @@ const LEGAL_DISCLAIMER =
  */
 export function SiteFooter() {
   return (
-    <footer className="mt-auto border-t border-white/10 bg-[#080a0e] px-4 py-10 sm:px-6 sm:py-12">
+    <footer className="mt-auto border-t border-white/10 bg-[#05080c] px-4 py-10 sm:px-6 sm:py-12">
       <div className="mx-auto flex max-w-7xl flex-col gap-8 sm:gap-10">
         <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
           <div className="max-w-md text-center sm:text-left">
@@ -55,7 +55,7 @@ export function SiteFooter() {
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="inline-flex min-h-9 items-center text-sm font-medium text-slate-400 opacity-90 transition-opacity duration-200 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173]"
+                      className="inline-flex min-h-9 items-center text-sm font-medium text-slate-400 opacity-90 transition-opacity duration-200 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400/70"
                     >
                       {link.label}
                     </Link>
@@ -74,7 +74,7 @@ export function SiteFooter() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="AltCoinDepot on X (opens in a new tab)"
-              className="group flex min-h-12 items-center gap-3 rounded-xl border border-white/10 bg-[#0c0e14] px-5 py-3 text-metallic opacity-90 transition-[opacity,border-color,box-shadow,transform] duration-200 hover:border-[#d1a173]/35 hover:opacity-100 hover:shadow-[0_0_24px_rgba(185,129,82,0.15)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173] active:scale-[0.98]"
+              className="group flex min-h-12 items-center gap-3 rounded-xl glass-panel px-5 py-3 text-metallic opacity-90 transition-[opacity,border-color,box-shadow,transform] duration-200 hover:border-teal-400/35 hover:opacity-100 hover:shadow-[0_0_24px_rgba(16,255,196,0.15)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400/70 active:scale-[0.98]"
             >
               <XIcon className="size-9 shrink-0 text-zinc-100 sm:size-10" />
               <span className="text-sm font-bold tracking-tight text-zinc-100">
@@ -86,7 +86,7 @@ export function SiteFooter() {
 
         <section
           aria-labelledby="footer-legal-disclaimer-heading"
-          className="rounded-lg border border-white/[0.06] bg-[#0a0c11]/80 px-4 py-4 sm:px-5 sm:py-5"
+          className="glass-panel rounded-lg px-4 py-4 sm:px-5 sm:py-5"
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
             <h2
@@ -100,7 +100,7 @@ export function SiteFooter() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="text-xs font-medium text-slate-500 opacity-80 transition-opacity duration-200 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173]"
+                  className="text-xs font-medium text-slate-500 opacity-80 transition-opacity duration-200 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400/70"
                 >
                   {link.label}
                 </Link>

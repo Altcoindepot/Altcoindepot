@@ -22,7 +22,7 @@ export function LegalPageLayout({
   return (
     <>
       <SiteHeader />
-      <main className="min-h-[60vh] border-t border-white/5 bg-[#09090b] px-4 py-12 sm:px-6 sm:py-16">
+      <main className="page-shell min-h-[60vh] border-t border-white/5 px-4 py-12 sm:px-6 sm:py-16">
         <article className="mx-auto w-full max-w-3xl">
           <header className="border-b border-white/[0.06] pb-6">
             <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
@@ -47,7 +47,7 @@ export function LegalPageLayout({
           <footer className="mt-10 border-t border-white/[0.06] pt-6">
             <Link
               href="/"
-              className="inline-flex min-h-11 items-center text-sm font-medium text-[#d7ad82] underline-offset-2 transition-opacity hover:underline hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d1a173]"
+              className="inline-flex min-h-11 items-center text-sm font-medium text-teal-300 underline-offset-2 transition-opacity hover:underline hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400/70"
             >
               ← Return Home
             </Link>

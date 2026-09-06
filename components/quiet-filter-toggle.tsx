@@ -42,7 +42,7 @@ export function QuietFilterToggle({
       aria-pressed={enabled}
       className={`inline-flex min-h-9 items-center rounded-lg border px-3 text-xs font-semibold transition-colors ${
         enabled
-          ? "border-[#d1a173]/45 bg-[#d1a173]/15 text-[#d7ad82]"
+          ? "border-teal-400/45 bg-teal-500/15 text-teal-300"
           : "border-white/15 text-zinc-400 hover:border-white/25 hover:text-zinc-200"
       }`}
       title="Hide extreme low-liquidity meme noise from this list"

@@ -91,7 +91,7 @@ export default function WatchlistPage() {
             ))}
           </ul>
         ) : entries.length === 0 ? (
-          <div className="mt-8 rounded-xl border border-dashed border-[#f4ddc3]/18 bg-[#0f131b]/60 px-5 py-10 text-center">
+          <div className="mt-8 rounded-xl border border-dashed border-teal-400/20 bg-[#0f131b]/60 px-5 py-10 text-center">
             <p className="text-base font-semibold text-zinc-100">Your watchlist is empty</p>
             <p className="mx-auto mt-2 max-w-md text-sm text-zinc-400">
               Star coins from any coin page to track them here. Everything stays on this device —
@@ -100,7 +100,7 @@ export default function WatchlistPage() {
             <SuggestedCoinsPanel allowWatchlistAdd title="Suggested coins to add" />
             <Link
               href="/"
-              className="mt-6 inline-flex min-h-11 items-center justify-center rounded-lg border border-[#d1a173]/40 bg-[#d1a173]/12 px-5 text-sm font-semibold text-[#d7ad82]"
+              className="mt-6 inline-flex min-h-11 items-center justify-center rounded-lg border border-teal-400/40 bg-teal-500/10 px-5 text-sm font-semibold text-teal-300"
             >
               Browse markets
             </Link>
@@ -113,7 +113,7 @@ export default function WatchlistPage() {
               return (
                 <li
                   key={entry.id}
-                  className="flex flex-wrap items-center gap-3 rounded-xl border border-[#f4ddc3]/15 bg-[#0f131b]/70 px-3 py-3"
+                  className="flex flex-wrap items-center gap-3 rounded-xl border border-teal-400/20 bg-[#0f131b]/70 px-3 py-3"
                 >
                   <Link
                     href={`/coin/${encodeURIComponent(entry.id)}`}

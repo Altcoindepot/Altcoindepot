@@ -104,7 +104,7 @@ export function HomeTrendingSection() {
   return (
     <section
       aria-labelledby="home-trending-heading"
-      className="section-band border-b border-[#f4ddc3]/08 bg-[#0f131b]/58 px-4 py-16 sm:px-6 sm:py-20"
+      className="section-band border-b border-teal-400/15 bg-[#0f131b]/58 px-4 py-16 sm:px-6 sm:py-20"
     >
       <div className="glass-panel mx-auto max-w-6xl rounded-2xl p-5 sm:p-6 md:p-7">
         <div className="flex flex-wrap items-end justify-between gap-3">
@@ -148,10 +148,10 @@ export function HomeTrendingSection() {
                 <li key={coin.id} className="h-full">
                   <Link
                     href={`/coin/${encodeURIComponent(coin.id)}`}
-                    className="glass-card flex h-full min-h-[15.5rem] flex-col rounded-xl border border-[#f4ddc3]/12 p-4 transition-[border-color,transform,background-color] hover:-translate-y-0.5 hover:border-[#d1a173]/50 hover:bg-[rgba(48,35,26,0.28)]"
+                    className="glass-card flex h-full min-h-[15.5rem] flex-col rounded-xl border border-teal-400/20 p-4 transition-[border-color,transform,background-color] hover:-translate-y-0.5 hover:border-teal-400/50 hover:bg-white/[0.04]"
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#d1a173]/15 font-mono text-[11px] font-bold text-[#d7ad82]">
+                      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-teal-500/15 font-mono text-[11px] font-bold text-teal-300">
                         {rank}
                       </span>
                       {coin.image ? (

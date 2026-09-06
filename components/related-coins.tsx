@@ -63,7 +63,7 @@ export function RelatedCoins({ coinId }: { coinId: string }) {
             <li key={c.id}>
               <Link
                 href={`/coin/${encodeURIComponent(c.id)}`}
-                className="flex items-center gap-2 rounded-lg border border-white/10 bg-[#111111] px-3 py-2.5 transition-colors hover:border-[#d1a173]/45"
+                className="flex items-center gap-2 rounded-lg border border-white/10 bg-[var(--surface-inset)] px-3 py-2.5 transition-colors hover:border-teal-400/45"
               >
                 {c.image ? (
                   <Image src={c.image} alt="" width={28} height={28} className="rounded-full" />

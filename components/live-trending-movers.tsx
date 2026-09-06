@@ -298,7 +298,7 @@ export function LiveTrendingMovers({
       className={
         isPage
           ? "bg-[#0f131b]/55 px-4 py-10 sm:px-6 sm:py-12"
-          : "section-band border-b border-[#f4ddc3]/08 bg-[#0f131b]/55 px-4 py-16 sm:px-6 sm:py-20"
+          : "section-band border-b border-teal-400/15 bg-[#0f131b]/55 px-4 py-16 sm:px-6 sm:py-20"
       }
     >
       <div
@@ -326,7 +326,7 @@ export function LiveTrendingMovers({
               ) : null}
               <Link
                 href="/gainers-losers"
-                className="text-sm font-semibold text-[#d7ad82] underline-offset-2 hover:underline"
+                className="text-sm font-semibold text-teal-300 underline-offset-2 hover:underline"
               >
                 Full board →
               </Link>

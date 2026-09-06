@@ -122,7 +122,7 @@ export default async function DexTokenPage({ params }: Props) {
   return (
     <>
       <SiteHeader />
-      <main id="main-content" className="border-b border-white/10 bg-[#0a0a0a] px-4 py-8 sm:px-6">
+      <main id="main-content" className="page-shell border-b border-white/10 px-4 py-8 sm:px-6">
         <DexTokenView
           token={token}
           trades={trades}

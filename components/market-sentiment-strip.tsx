@@ -156,7 +156,7 @@ export function MarketSentimentStrip() {
     <section
       id="market-regime"
       aria-label="Market sentiment trackers"
-      className="section-band border-b border-[#f4ddc3]/08 bg-[#0f131b]/70 px-4 py-16 sm:px-6 sm:py-20"
+      className="section-band border-b border-teal-400/15 bg-[#0f131b]/70 px-4 py-16 sm:px-6 sm:py-20"
     >
       <div className="mx-auto mb-6 flex max-w-6xl flex-wrap items-end justify-between gap-3">
         <div>

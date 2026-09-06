@@ -153,7 +153,7 @@ export function PairsExplorer({
           DexScreener fetch failed: {error}
         </p>
       ) : filtered.length === 0 ? (
-        <p className="rounded-xl border border-white/10 bg-[#0c0e14] px-4 py-8 text-center text-sm text-zinc-500">
+        <p className="rounded-xl glass-panel px-4 py-8 text-center text-sm text-zinc-500">
           No pairs match this chain and filter set right now.
         </p>
       ) : (

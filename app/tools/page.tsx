@@ -18,19 +18,19 @@ export default function ToolsPage() {
         </p>
         <ul className="mt-8 space-y-3 text-sm">
           <li>
-            <Link href="/watchlist" className="text-[#d7ad82] underline-offset-2 hover:underline">
+            <Link href="/watchlist" className="text-teal-300 underline-offset-2 hover:underline">
               Watchlist
             </Link>
             <span className="text-zinc-500"> — save coins to track</span>
           </li>
           <li>
-            <Link href="/portfolio" className="text-[#d7ad82] underline-offset-2 hover:underline">
+            <Link href="/portfolio" className="text-teal-300 underline-offset-2 hover:underline">
               Portfolio
             </Link>
             <span className="text-zinc-500"> — manual holdings &amp; total value</span>
           </li>
           <li>
-            <Link href="/alerts" className="text-[#d7ad82] underline-offset-2 hover:underline">
+            <Link href="/alerts" className="text-teal-300 underline-offset-2 hover:underline">
               Price alerts
             </Link>
             <span className="text-zinc-500"> — browser notifications at a target price</span>

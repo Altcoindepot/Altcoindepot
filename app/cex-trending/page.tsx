@@ -185,7 +185,7 @@ export default async function CexTrendingPage() {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={`Open ${row.symbol} on ${board.label}`}
-                        className={`glass-card rounded-md border-2 border-[#f4ddc3]/45 p-2.5 outline outline-1 outline-[#2a1e16]/60 transition-colors ${brand?.glowClass ?? "hover:border-white/35"}`}
+                        className={`glass-card rounded-md border-2 border-teal-400/40 p-2.5 transition-colors ${brand?.glowClass ?? "hover:border-white/35"}`}
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">

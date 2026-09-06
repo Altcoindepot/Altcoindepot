@@ -49,7 +49,7 @@ export default function PrivacyPolicyPage() {
       <LegalSection title="Contact">
         <p>
           Questions about this Privacy Policy may be directed through our{" "}
-          <Link href="/contact" className="text-[#d7ad82] underline-offset-2 hover:underline">
+          <Link href="/contact" className="text-teal-300 underline-offset-2 hover:underline">
             contact page
           </Link>
           .

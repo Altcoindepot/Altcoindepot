@@ -35,7 +35,7 @@ export async function MarketsDataShell({ between }: { between?: ReactNode } = {}
 
       <section
         aria-labelledby="classic-markets-heading"
-        className="border-t border-[#f4ddc3]/10 bg-[#090a0d]/80"
+        className="border-t border-teal-400/15 bg-[#090a0d]/80"
       >
         <div className="mx-auto max-w-[90rem] px-4 py-10 sm:px-6">
           <SectionHeading id="classic-markets-heading">Live markets</SectionHeading>
