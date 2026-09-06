@@ -5,6 +5,7 @@ import { getDexScreenerLowCaps } from "@/lib/dexscreener-low-caps";
 import { getJustLaunchedPairs } from "@/lib/dexscreener-just-launched";
 import { dexTokenPath } from "@/lib/dex-token-path";
 import { isJustLaunchedAge } from "@/lib/pair-age-split";
+import { loadPodcastsWithEpisodes } from "@/lib/podcasts-page-data";
 
 const SITE = "https://altcoindepot.com";
 
@@ -18,7 +19,6 @@ const STATIC_PATHS = [
   "/disclaimer",
   "/affiliate-disclosure",
   "/coin",
-  "/podcasts",
   "/news",
   "/blog",
   "/directory",
@@ -125,6 +125,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: "daily",
     priority: 0.6,
   }));
+
+  // /podcasts only when real episodes exist (noindex empty catalog).
+  try {
+    const podcasts = await loadPodcastsWithEpisodes();
+    if (podcasts.some((p) => p.episodes.length > 0)) {
+      staticEntries.push({
+        url: `${SITE}/podcasts`,
+        lastModified: now,
+        changeFrequency: "daily",
+        priority: 0.65,
+      });
+    }
+  } catch {
+    /* omit podcasts from sitemap when feed fails */
+  }
 
   const categoryEntries: MetadataRoute.Sitemap = PUBLIC_CATEGORIES.map((category) => ({
     url: `${SITE}/category/${encodeURIComponent(category.slug)}`,

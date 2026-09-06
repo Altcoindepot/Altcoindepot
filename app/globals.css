@@ -63,6 +63,13 @@
   animation: leading-heat-pulse 2.8s ease-in-out infinite;
 }
 
+@media (max-width: 1023px) {
+  .leading-heat-pulse {
+    animation: none;
+    box-shadow: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .leading-heat-pulse {
     animation: none;

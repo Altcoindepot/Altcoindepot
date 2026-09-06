@@ -1,7 +1,5 @@
 import { unstable_cache } from "next/cache";
 import { isProductionBuild } from "@/lib/build-phase";
-import { coinGeckoFetch } from "@/lib/coingecko";
-import { ecosystemWikiData } from "@/lib/ecosystem-wiki";
 
 /** CoinGecko id → 24h price change %. */
 export type WikiChange24hMap = Record<string, number | null>;
@@ -14,39 +12,16 @@ export type WikiMarketMeta = {
   logos: WikiLogoMap;
 };
 
+/**
+ * DISABLED — previously `/coins/markets?ids=` for wiki 24h % + logos.
+ * Never call CoinGecko markets. Logos stay static from ecosystem-wiki.
+ */
 async function loadWikiMarketMeta(): Promise<WikiMarketMeta> {
   if (isProductionBuild()) return { change24h: {}, logos: {} };
-  const ids = Object.keys(ecosystemWikiData);
-  if (ids.length === 0) return { change24h: {}, logos: {} };
-
-  try {
-    const res = await coinGeckoFetch(
-      `/coins/markets?vs_currency=usd&ids=${encodeURIComponent(ids.join(","))}&order=market_cap_desc&per_page=250&page=1&sparkline=false&price_change_percentage=24h`,
-    );
-    if (!res.ok) return { change24h: {}, logos: {} };
-    const data: unknown = await res.json();
-    if (!Array.isArray(data)) return { change24h: {}, logos: {} };
-
-    const change24h: WikiChange24hMap = {};
-    const logos: WikiLogoMap = {};
-    for (const row of data) {
-      if (!row || typeof row !== "object") continue;
-      const id = (row as { id?: unknown }).id;
-      if (typeof id !== "string" || !id) continue;
-      const ch = (row as { price_change_percentage_24h?: unknown }).price_change_percentage_24h;
-      change24h[id] = typeof ch === "number" && Number.isFinite(ch) ? ch : null;
-      const image = (row as { image?: unknown }).image;
-      if (typeof image === "string" && /^https?:\/\//i.test(image)) {
-        logos[id] = image;
-      }
-    }
-    return { change24h, logos };
-  } catch {
-    return { change24h: {}, logos: {} };
-  }
+  return { change24h: {}, logos: {} };
 }
 
-export const getWikiMarketMeta = unstable_cache(loadWikiMarketMeta, ["wiki-market-meta-v1"], {
+export const getWikiMarketMeta = unstable_cache(loadWikiMarketMeta, ["wiki-market-meta-v2-nomarkets"], {
   revalidate: 3600,
 });
 

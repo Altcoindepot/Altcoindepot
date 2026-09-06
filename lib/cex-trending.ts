@@ -1,5 +1,3 @@
-import { coinGeckoFetch } from "@/lib/coingecko";
-
 type RawMover = {
   symbol: string;
   last: number;
@@ -97,12 +95,8 @@ async function topBinance(): Promise<RawMover[]> {
       lastError = error instanceof Error ? error : new Error(String(error));
     }
   }
-  // Last resort: CoinGecko exchange tickers + market % change
-  try {
-    return await topFromCoinGeckoExchange("binance");
-  } catch (error) {
-    throw lastError ?? (error instanceof Error ? error : new Error(String(error)));
-  }
+  // Last resort removed — CoinGecko exchange tickers burn Demo quota.
+  throw lastError ?? new Error("Binance 24hr unavailable");
 }
 
 async function momentumBinanceLike(
@@ -184,11 +178,7 @@ async function topCoinbase(): Promise<RawMover[]> {
     // fall through
   }
 
-  try {
-    return await topFromCoinGeckoExchange("gdax");
-  } catch {
-    return topFromCoinGeckoExchange("coinbase_exchange");
-  }
+  return [];
 }
 
 async function momentumCoinbase(symbol: string): Promise<{ h1: number | null; series: number[] | null }> {
@@ -216,80 +206,10 @@ async function momentumCoinbase(symbol: string): Promise<{ h1: number | null; se
 }
 
 /**
- * Fallback when exchange APIs are geo/CDN blocked.
- * Uses CoinGecko exchange tickers + /coins/markets for 24h % change.
+ * Fallback removed — CoinGecko exchange tickers + /coins/markets burned Demo quota.
  */
-async function topFromCoinGeckoExchange(exchangeId: string): Promise<RawMover[]> {
-  const tickersRes = await coinGeckoFetch(
-    `/exchanges/${encodeURIComponent(exchangeId)}/tickers?order=volume_desc&page=1`,
-    { next: { revalidate: 3600 } },
-  );
-  if (!tickersRes.ok) throw new Error(`CoinGecko exchange ${exchangeId}: ${tickersRes.status}`);
-  const tickersJson = (await tickersRes.json()) as {
-    tickers?: Array<{
-      base?: string;
-      target?: string;
-      last?: number;
-      coin_id?: string;
-      converted_volume?: { usd?: number };
-    }>;
-  };
-  const tickers = Array.isArray(tickersJson.tickers) ? tickersJson.tickers : [];
-
-  const byCoin = new Map<
-    string,
-    { symbol: string; last: number; volume24h: number | null }
-  >();
-  for (const t of tickers) {
-    const base = (t.base ?? "").toUpperCase();
-    const target = (t.target ?? "").toUpperCase();
-    const coinId = t.coin_id?.trim();
-    const last = parseNum(t.last);
-    if (!coinId || !base || last == null) continue;
-    if (!(target === "USDT" || target === "USD" || target === "USDC")) continue;
-    if (STABLE_BASES.has(base)) continue;
-    if (byCoin.has(coinId)) continue;
-    byCoin.set(coinId, {
-      symbol: `${base}${target === "USD" ? "USDT" : target}`,
-      last,
-      volume24h: parseNum(t.converted_volume?.usd),
-    });
-  }
-
-  const ids = Array.from(byCoin.keys()).slice(0, 80);
-  if (ids.length === 0) return [];
-
-  const marketsRes = await coinGeckoFetch(
-    `/coins/markets?vs_currency=usd&ids=${encodeURIComponent(ids.join(","))}&order=price_change_percentage_24h_desc&per_page=80&page=1&sparkline=false&price_change_percentage=24h`,
-    { next: { revalidate: 3600 } },
-  );
-  if (!marketsRes.ok) throw new Error(`CoinGecko markets fallback: ${marketsRes.status}`);
-  const markets = (await marketsRes.json()) as Array<{
-    id?: string;
-    current_price?: number | null;
-    price_change_percentage_24h?: number | null;
-    total_volume?: number | null;
-  }>;
-  if (!Array.isArray(markets)) return [];
-
-  const rows: RawMover[] = [];
-  for (const m of markets) {
-    if (!m.id) continue;
-    const meta = byCoin.get(m.id);
-    if (!meta) continue;
-    const change24hPct = parseNum(m.price_change_percentage_24h);
-    if (change24hPct == null) continue;
-    const last = parseNum(m.current_price) ?? meta.last;
-    rows.push({
-      symbol: meta.symbol,
-      last,
-      change24hPct,
-      volume24h: parseNum(m.total_volume) ?? meta.volume24h,
-    });
-  }
-
-  rows.sort((a, b) => b.change24hPct - a.change24hPct);
-  return rows.slice(0, 5);
+async function topFromCoinGeckoExchange(_exchangeId: string): Promise<RawMover[]> {
+  return [];
 }
 
 async function topKucoin(): Promise<RawMover[]> {

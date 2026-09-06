@@ -21,7 +21,7 @@ function chipTone(bucket: DexHeatBucket, selected: boolean, isTop: boolean): str
   if (bucket.status === "LEADING") {
     return `${ring} ${
       isTop
-        ? "border-teal-400/55 bg-teal-500/15 shadow-[0_0_36px_rgba(45,212,191,0.28)] leading-heat-pulse"
+        ? "border-teal-400/55 bg-teal-500/15 shadow-[0_0_36px_rgba(45,212,191,0.28)] max-lg:shadow-none leading-heat-pulse max-lg:animate-none"
         : "border-emerald-400/45 bg-emerald-500/12 shadow-[0_0_22px_rgba(16,185,129,0.18)]"
     }`;
   }

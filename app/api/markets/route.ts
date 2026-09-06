@@ -1,14 +1,6 @@
 import { NextResponse } from "next/server";
-import { loadMarketsBundle } from "@/lib/coingecko";
 
+/** Disabled — `loadMarketsBundle` was a CoinGecko markets fan-out. */
 export async function GET() {
-  try {
-    const data = await loadMarketsBundle({ next: { revalidate: 3600 } });
-    return NextResponse.json(data);
-  } catch {
-    return NextResponse.json(
-      { error: "Failed to load markets" },
-      { status: 502 },
-    );
-  }
+  return NextResponse.json({ disabled: true, error: "Markets API disabled" }, { status: 410 });
 }

@@ -13,7 +13,7 @@ import { Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { StickyRegimeBar } from "@/components/dashboard/sticky-regime-bar";
 import { MarketSentimentWidget } from "@/components/dashboard/market-sentiment-widget";
-import { HomeSearchStrip, HomeTopMovers } from "@/components/dashboard/home-top-movers";
+import { HomeTopMovers } from "@/components/dashboard/home-top-movers";
 import { DexHeatRotation } from "@/components/dashboard/dex-heat-rotation";
 import { HomeNewsFeed } from "@/components/home-news-feed";
 import { DisclaimerNote } from "@/components/disclaimer-note";
@@ -53,8 +53,8 @@ function HomeMoversFiltered({
 }
 
 /**
- * Phone-first: regime → movers → Dex heat chips → search → macros → news.
- * `?chain=` from heat chips filters movers + heat coin list to that chain only.
+ * Phone-first fold: regime → 5 movers → heat → 3 news → macros.
+ * Search lives in the bottom tab. No CoinGecko on this tree.
  */
 export function DashboardHome({
   snapshot,
@@ -83,7 +83,7 @@ export function DashboardHome({
         cycleProgressPct={snapshot.cycleProgressPct}
       />
 
-      <div className="home-fold mx-auto max-w-[90rem] px-3 pb-6 pt-2 sm:px-6 sm:pb-10 sm:pt-4">
+      <div className="home-fold mx-auto max-w-[90rem] space-y-4 px-3 pb-6 pt-2 sm:space-y-5 sm:px-6 sm:pb-10 sm:pt-4">
         {watchlistOnly ? (
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-full border border-teal-400/25 bg-teal-500/10 px-4 py-2">
             <p className="text-xs text-teal-100">Watchlist filter on</p>
@@ -108,12 +108,6 @@ export function DashboardHome({
           <DexHeatRotation snapshot={dexHeat} />
         </Suspense>
 
-        <div className="lg:hidden">
-          <HomeSearchStrip />
-        </div>
-
-        <MarketSentimentWidget pulse={snapshot.pulse} variant="strip" />
-
         <HomeNewsFeed
           initialItems={initialNewsItems}
           initialStale={initialNewsStale}
@@ -121,6 +115,8 @@ export function DashboardHome({
           maxItems={10}
           maxItemsMobile={3}
         />
+
+        <MarketSentimentWidget pulse={snapshot.pulse} variant="strip" />
 
         <DisclaimerNote className="text-[11px]">
           Pair stats from DexScreener · informational only · not financial advice

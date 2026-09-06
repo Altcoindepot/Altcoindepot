@@ -105,17 +105,8 @@ export function MarketSentimentWidget({
         <h2 id="market-sentiment-heading" className="sr-only">
           Market Pulse &amp; Sentiment
         </h2>
+        {/* Compact macros only — no CoinGecko market-cap (home = 0 Gecko calls). */}
         <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 chrome-glass px-2.5 py-2 text-[11px] sm:gap-x-4 sm:px-3 sm:py-2.5">
-          <span className="inline-flex items-baseline gap-1.5">
-            <span className="text-zinc-500">Mcap</span>
-            <span className="font-mono font-semibold tabular-nums text-zinc-100">
-              {formatCompactUsd(pulse.totalMarketCapUsd)}
-            </span>
-            <span className={`font-mono tabular-nums ${mcapUp ? "text-emerald-300" : "text-red-300"}`}>
-              {formatPct(pulse.marketCapChange24h)}
-            </span>
-          </span>
-          <span className="hidden h-3 w-px bg-white/10 sm:block" aria-hidden />
           <span className="inline-flex items-baseline gap-1.5">
             <span className="text-zinc-500">F&amp;G</span>
             <span className={`font-semibold ${fg.textClass}`}>

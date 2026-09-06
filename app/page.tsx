@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site-header";
 import { DashboardHome } from "@/components/dashboard/dashboard-home";
-import { getDashboardSnapshot, type DashboardSnapshot } from "@/lib/dashboard-snapshot";
 import { getMockDashboardSnapshot } from "@/lib/dashboard-mock";
 import { getSiteNewsCached, type SiteNewsResult } from "@/lib/site-news";
 import {
@@ -44,13 +43,12 @@ const EMPTY_NEWS: SiteNewsResult = {
   cachedAt: null,
 };
 
-async function fetchDashboardData(): Promise<DashboardSnapshot> {
-  try {
-    return await getDashboardSnapshot();
-  } catch (error) {
-    console.error("[page] Dashboard fetch failed; using mock data.", error);
-    return getMockDashboardSnapshot();
-  }
+/**
+ * Homepage must make **0 CoinGecko HTTP calls**.
+ * Regime/macros use static mock shell only — live data is Dex movers + heat + RSS.
+ */
+function homeShellSnapshot() {
+  return getMockDashboardSnapshot();
 }
 
 /** Never let a slow/failed news merge delay the homepage past this budget. */
@@ -111,17 +109,18 @@ export default async function Home({
 }) {
   const params = await searchParams;
   const watchlistOnly = params.watchlist === "1" || params.watchlist === "true";
-  const [snapshot, homeNews, movers, dexHeat] = await Promise.all([
-    fetchDashboardData(),
+  // No getDashboardSnapshot — that path fans out CoinGecko.
+  const [homeNews, movers, dexHeat] = await Promise.all([
     fetchHomeNewsSoft(12),
     fetchHomeMoversSoft(),
     fetchDexHeatSoft(),
   ]);
-  const fetchedAt = Date.parse(snapshot.updatedAt);
+  const snapshot = homeShellSnapshot();
+  const fetchedAt = Date.now();
 
   return (
     <>
-      <SiteHeader fetchedAt={Number.isFinite(fetchedAt) ? fetchedAt : Date.now()} />
+      <SiteHeader fetchedAt={fetchedAt} />
       <main id="main-content" className="relative">
         <DashboardHome
           snapshot={snapshot}

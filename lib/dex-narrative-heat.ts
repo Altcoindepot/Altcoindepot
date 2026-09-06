@@ -54,14 +54,10 @@ const CHAIN_BUCKETS: Array<{ id: string; label: string; chains: string[] }> = [
   { id: "solana", label: "Solana", chains: ["solana"] },
   { id: "base", label: "Base", chains: ["base"] },
   { id: "ethereum", label: "Ethereum", chains: ["ethereum"] },
-  { id: "bsc", label: "BSC", chains: ["bsc"] },
+  { id: "injective", label: "INJ", chains: ["injective"] },
 ];
 
-const VENUE_BUCKETS: Array<{ id: string; label: string; dexMatch: RegExp }> = [
-  { id: "raydium", label: "Raydium", dexMatch: /^raydium/i },
-  { id: "pump", label: "Pump", dexMatch: /pump/i },
-  { id: "uniswap", label: "Uniswap", dexMatch: /^uniswap/i },
-];
+/** Venue orbit chips removed — home heat is chain-only (Solana / Base / Ethereum / INJ). */
 
 function median(values: number[]): number | null {
   if (values.length === 0) return null;
@@ -198,32 +194,19 @@ export function buildDexHeatSnapshot(rows: DexLivePairRow[]): DexHeatSnapshot {
     if (bucket) buckets.push(bucket);
   }
 
-  for (const def of VENUE_BUCKETS) {
-    const filterChain =
-      def.id === "uniswap" ? "ethereum" : def.id === "raydium" || def.id === "pump" ? "solana" : "";
-    if (!filterChain) continue;
-    const pairs = rows.filter(
-      (r) => sameDexChain(r.chain, filterChain) && def.dexMatch.test(r.dex || r.dexLabel),
-    );
-    const bucket = buildBucketFromPairs(
-      def.id,
-      def.label,
-      "venue",
-      filterChain,
-      `/pairs?chain=${encodeURIComponent(filterChain)}`,
-      pairs,
-    );
-    if (bucket) buckets.push(bucket);
-  }
+  // Keep chain order Solana → Base → Ethereum → INJ when all present; else by heat.
+  const order = CHAIN_BUCKETS.map((c) => c.id);
+  buckets.sort((a, b) => {
+    const ia = order.indexOf(a.id);
+    const ib = order.indexOf(b.id);
+    if (ia >= 0 && ib >= 0) return ia - ib;
+    return b.heatPct - a.heatPct;
+  });
 
-  // Strongest heat first; empty already excluded
-  buckets.sort((a, b) => b.heatPct - a.heatPct);
-
-  const top = buckets.slice(0, 5);
-  const dominantWindow = top.some((b) => b.window === "1h") ? "1H" : "24H";
+  const dominantWindow = buckets.some((b) => b.window === "1h") ? "1H" : "24H";
 
   return {
-    buckets: top,
+    buckets,
     windowLabel: dominantWindow,
     updatedAt: Date.now(),
   };
@@ -234,7 +217,7 @@ async function loadDexHeatUncached(): Promise<DexHeatSnapshot> {
   return buildDexHeatSnapshot(rows);
 }
 
-const getCachedDexHeat = unstable_cache(loadDexHeatUncached, ["dex-narrative-heat-v2"], {
+const getCachedDexHeat = unstable_cache(loadDexHeatUncached, ["dex-narrative-heat-v3-inj"], {
   revalidate: DEX_EXPLORER_REVALIDATE_SECONDS,
 });
 

@@ -1,7 +1,6 @@
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { isProductionBuild } from "@/lib/build-phase";
-import { PUBLIC_CATEGORIES } from "@/lib/coin-categories";
 
 /**
  * Single control point for all CoinGecko traffic.
@@ -11,6 +10,8 @@ import { PUBLIC_CATEGORIES } from "@/lib/coin-categories";
  * - COINGECKO_API_PLAN — "demo" (default) or "pro"
  * - COINGECKO_LIVE — "true" to allow live calls locally; Production defaults on
  *   when the flag is unset and an API key is present
+ *
+ * `/coins/markets` is HARD-BLOCKED. Allowed: `/coins/{id}` and contract lookups only.
  */
 export type CoinGeckoApiPlan = "demo" | "pro";
 
@@ -92,14 +93,33 @@ function withCoinGeckoApiKey(url: string): string {
 /** Default HTTP cache TTL — CoinGecko Demo/free-tier friendly (1 hour). */
 export const COINGECKO_REVALIDATE_SECONDS = 3600;
 
-/** Fetch a CoinGecko path (e.g. `/coins/markets?...`) with the shared base URL + API key. */
+/** Fetch a CoinGecko path with the shared base URL + API key. */
 export async function coinGeckoFetch(
   path: string,
-  init?: RequestInit & { next?: { revalidate?: number } },
+  init?: RequestInit & { next?: { revalidate?: number }; route?: string },
 ): Promise<Response> {
+  const endpoint = (path.split("?")[0] ?? path).replace(/^https?:\/\/[^/]+\/api\/v3/i, "");
+  const route = init?.route ?? "unknown";
+
+  // HARD BLOCK — Demo quota leak. Never call /coins/markets from runtime.
+  if (/\/coins\/markets\b/i.test(path) || /\/coins\/markets\b/i.test(endpoint)) {
+    console.error("[coingecko] BLOCKED /coins/markets", { route, endpoint, path: path.slice(0, 120) });
+    return new Response("[]", {
+      status: 451,
+      statusText: "CoinGecko /coins/markets disabled",
+      headers: { "content-type": "application/json" },
+    });
+  }
+
   const skip = getCoinGeckoLiveSkipReason();
   if (skip) {
     logCoinGeckoSkip(skip);
+    console.info("[coingecko]", {
+      route,
+      endpoint,
+      cacheHit: false,
+      status: `skipped:${skip}`,
+    });
     return new Response("[]", {
       status: 503,
       statusText: `CoinGecko skipped (${skip})`,
@@ -112,22 +132,29 @@ export async function coinGeckoFetch(
       ? path
       : `${getCoinGeckoApiBase()}${path.startsWith("/") ? path : `/${path}`}`,
   );
-  const { next: nextInit, cache, ...rest } = init ?? {};
+  const { next: nextInit, cache, route: _route, ...rest } = init ?? {};
   const revalidate = nextInit?.revalidate ?? COINGECKO_REVALIDATE_SECONDS;
+  const useForceCache = cache === "force-cache";
 
-  return fetch(normalized, {
+  const res = await fetch(normalized, {
     ...rest,
-    // Never persist 429/5xx into the Data Cache — a cached 429 froze the
-    // homepage on mocks for a full hour. Successful JSON is cached in
-    // `getDashboardSnapshot` (in-process, 3600s).
-    ...(cache === "force-cache"
-      ? { next: { revalidate } }
-      : { cache: "no-store" }),
+    // Never cache: "no-store" on Gecko — use revalidate TTL for encyclopedia only.
+    next: { revalidate },
     headers: {
       ...coinGeckoHeaders(),
       ...(init?.headers as Record<string, string> | undefined),
     },
   });
+
+  console.info("[coingecko]", {
+    route,
+    endpoint,
+    cacheHit: false,
+    status: res.status,
+    forceCache: useForceCache,
+  });
+
+  return res;
 }
 
 /** Thrown when CoinGecko returns HTTP 429 (rate limited). */
@@ -142,7 +169,7 @@ export class CoinGeckoRateLimitError extends Error {
 export const MARKETS_PATH =
   "/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=true&price_change_percentage=24h%2C7d";
 
-/** @deprecated Prefer {@link coinGeckoFetch} with {@link MARKETS_PATH}; kept for any external imports. */
+/** @deprecated Markets API disabled — do not use. */
 export const MARKETS_URL = `https://api.coingecko.com/api/v3${MARKETS_PATH}`;
 
 export type CoinMarket = {
@@ -174,191 +201,50 @@ export type MarketsBundle = {
   stale: boolean;
 };
 
-let lastKnownMarketsBundle: MarketsBundle | null = null;
+const EMPTY_MARKETS_BUNDLE: MarketsBundle = {
+  topMarkets: [],
+  ecosystemMarkets: [],
+  categoryHomeColumns: [],
+  stale: true,
+};
 
-/** Always available for the homepage Featured strip (may sit outside top-100 / category spotlights). */
-const FEATURED_EXTRA_GECKO_IDS = ["ripple", "injective-protocol"] as const;
-
-async function loadMarketsByGeckoIds(
-  ids: readonly string[],
-  init?: RequestInit & { next?: { revalidate?: number } },
-): Promise<CoinMarket[]> {
-  if (ids.length === 0) return [];
-  const path = `/coins/markets?vs_currency=usd&ids=${encodeURIComponent(
-    ids.join(","),
-  )}&order=market_cap_desc&per_page=250&page=1&sparkline=true&price_change_percentage=24h%2C7d`;
-  const res = await coinGeckoFetch(path, init);
-  if (!res.ok) {
-    return [];
-  }
-  const data: unknown = await res.json();
-  if (!Array.isArray(data)) {
-    return [];
-  }
-  return data as CoinMarket[];
-}
-
-function mergeEcosystemWithFeaturedPins(
-  topMarkets: CoinMarket[],
-  baseEcosystem: CoinMarket[],
-  pinned: CoinMarket[],
-): CoinMarket[] {
-  const topIds = new Set(topMarkets.map((c) => c.id));
-  const byId = new Map<string, CoinMarket>();
-  for (const c of baseEcosystem) {
-    if (!topIds.has(c.id)) {
-      byId.set(c.id, c);
-    }
-  }
-  for (const c of pinned) {
-    if (!topIds.has(c.id)) {
-      byId.set(c.id, c);
-    }
-  }
-  return Array.from(byId.values());
-}
-
+/**
+ * DISABLED — never calls CoinGecko `/coins/markets`.
+ * Kept so old imports compile; always returns [].
+ */
 export async function loadMarkets(
-  init?: RequestInit & { next?: { revalidate?: number } },
+  _init?: RequestInit & { next?: { revalidate?: number } },
 ): Promise<CoinMarket[]> {
-  const res = await coinGeckoFetch(MARKETS_PATH, init);
-  if (!res.ok) {
-    throw new Error(`CoinGecko error: ${res.status}`);
-  }
-  const data: unknown = await res.json();
-  if (!Array.isArray(data)) {
-    throw new Error("Invalid CoinGecko response");
-  }
-  return data as CoinMarket[];
+  console.warn("[coingecko] loadMarkets blocked — use Dex lists");
+  return [];
 }
 
+/** DISABLED — never calls `/coins/markets?category=`. */
 export async function loadMarketsByGeckoCategory(
-  categoryId: string,
-  perPage: number,
-  init?: RequestInit & { next?: { revalidate?: number } },
-  opts?: { sparkline?: boolean },
+  _categoryId: string,
+  _perPage: number,
+  _init?: RequestInit & { next?: { revalidate?: number } },
+  _opts?: { sparkline?: boolean },
 ): Promise<CoinMarket[]> {
-  const sparkline = opts?.sparkline !== false;
-  const path = `/coins/markets?vs_currency=usd&category=${encodeURIComponent(
-    categoryId,
-  )}&order=market_cap_desc&per_page=${perPage}&page=1&sparkline=${sparkline ? "true" : "false"}&price_change_percentage=24h%2C7d%2C30d`;
-  const res = await coinGeckoFetch(path, init);
-  if (res.status === 429) {
-    throw new CoinGeckoRateLimitError(`CoinGecko category ${categoryId}: 429`);
-  }
-  if (!res.ok) {
-    throw new Error(`CoinGecko category ${categoryId}: ${res.status}`);
-  }
-  const data: unknown = await res.json();
-  if (!Array.isArray(data)) {
-    return [];
-  }
-  return data as CoinMarket[];
+  console.warn("[coingecko] loadMarketsByGeckoCategory blocked — use Dex lists");
+  return [];
 }
 
-async function loadCategoryPageMarketsUncached(categoryId: string): Promise<CoinMarket[]> {
-  let lastError: Error | null = null;
-  for (let attempt = 0; attempt < 3; attempt++) {
-    if (attempt > 0) {
-      await sleep(450 + attempt * 600);
-    }
-    try {
-      return await loadMarketsByGeckoCategory(categoryId, 100, undefined, { sparkline: false });
-    } catch (err) {
-      lastError = err instanceof Error ? err : new Error(String(err));
-    }
-  }
-  throw lastError ?? new Error(`CoinGecko category ${categoryId}: retries exhausted`);
+/** DISABLED — empty category markets (no Gecko). */
+export async function getCachedCategoryPageMarkets(_categoryId: string): Promise<CoinMarket[]> {
+  return [];
 }
 
-/** Hourly cache for `/category/[slug]` — lighter payload (no sparkline). */
-export const getCachedCategoryPageMarkets = unstable_cache(
-  loadCategoryPageMarketsUncached,
-  ["category-page-markets-v1"],
-  { revalidate: 3600 },
-);
-
-async function loadCategoryHomeColumns(
-  init?: RequestInit & { next?: { revalidate?: number } },
-): Promise<CategoryHomeColumn[]> {
-  const results: CategoryHomeColumn[] = [];
-  for (const def of PUBLIC_CATEGORIES) {
-    const need = Math.min(250, def.spotlightLimit + 8);
-    let rows: CoinMarket[] = [];
-    // CoinGecko free-tier rate limits are strict; sequential fetch + backoff reduces empty categories.
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        rows = await loadMarketsByGeckoCategory(def.coingeckoCategoryId, need, init, {
-          sparkline: false,
-        });
-        break;
-      } catch {
-        if (attempt < 2) {
-          await sleep(350 + attempt * 500);
-        }
-      }
-    }
-    results.push({
-      slug: def.slug,
-      title: def.title,
-      description: def.description,
-      accentClass: def.accentClass,
-      coins: rows.slice(0, def.spotlightLimit),
-    });
-    await sleep(150);
-  }
-  return results;
-}
-
-function buildEcosystemMarketsFromColumns(
-  topMarkets: CoinMarket[],
-  columns: CategoryHomeColumn[],
-): CoinMarket[] {
-  const topIds = new Set(topMarkets.map((c) => c.id));
-  const byId = new Map<string, CoinMarket>();
-  for (const col of columns) {
-    for (const c of col.coins) {
-      if (!topIds.has(c.id)) {
-        byId.set(c.id, c);
-      }
-    }
-  }
-  return Array.from(byId.values());
-}
-
+/** DISABLED — empty markets bundle (no Gecko). */
 export async function loadMarketsBundle(
-  init?: RequestInit & { next?: { revalidate?: number } },
+  _init?: RequestInit & { next?: { revalidate?: number } },
 ): Promise<MarketsBundle> {
-  try {
-    const [topMarkets, categoryHomeColumns, featuredExtra] = await Promise.all([
-      loadMarkets(init),
-      loadCategoryHomeColumns(init),
-      loadMarketsByGeckoIds(FEATURED_EXTRA_GECKO_IDS, init),
-    ]);
-    const ecosystemMarkets = mergeEcosystemWithFeaturedPins(
-      topMarkets,
-      buildEcosystemMarketsFromColumns(topMarkets, categoryHomeColumns),
-      featuredExtra,
-    );
-    const fresh = { topMarkets, ecosystemMarkets, categoryHomeColumns, stale: false };
-    lastKnownMarketsBundle = fresh;
-    return fresh;
-  } catch (error) {
-    if (lastKnownMarketsBundle) {
-      return { ...lastKnownMarketsBundle, stale: true };
-    }
-    throw error;
-  }
+  console.warn("[coingecko] loadMarketsBundle blocked — use Dex lists");
+  return EMPTY_MARKETS_BUNDLE;
 }
-
-const getCachedMarketsBundle = unstable_cache(
-  async () => loadMarketsBundle({ next: { revalidate: COINGECKO_REVALIDATE_SECONDS } }),
-  ["markets-bundle-v2-hourly"],
-  { revalidate: COINGECKO_REVALIDATE_SECONDS },
-);
 
 export const getMarketsBundle = cache(async (): Promise<MarketsBundle> => {
-  return getCachedMarketsBundle();
+  return EMPTY_MARKETS_BUNDLE;
 });
 
 /** CoinGecko `/coins/{id}` — trimmed to fields we render */
@@ -428,43 +314,43 @@ function isTransientCoinGeckoFailure(status: number): boolean {
 }
 
 async function fetchCoinDetailWithRetries(safe: string): Promise<CoinLookupResult> {
-  const maxWaves = 4;
-
-  for (let wave = 0; wave < maxWaves; wave++) {
-    if (wave > 0) {
-      await sleep(Math.min(250 + wave * 500, 3500));
+  // One wave only — no 429 retry storm (Demo quota).
+  for (const lite of [false, true] as const) {
+    const q = lite ? coinDetailParamsLite : coinDetailParams;
+    let res: Response;
+    try {
+      res = await coinGeckoFetch(`/coins/${encodeURIComponent(safe)}?${q}`, {
+        cache: "force-cache",
+        next: { revalidate: 7200 },
+        route: "/coin/[id]",
+      });
+    } catch {
+      continue;
     }
 
-    for (const lite of [false, true] as const) {
-      const q = lite ? coinDetailParamsLite : coinDetailParams;
-      let res: Response;
+    if (res.status === 404) {
+      return { status: "not_found" };
+    }
+
+    if (res.status === 429) {
+      console.warn("[coingecko] coin detail 429 — no retry", { id: safe });
+      return { status: "unavailable" };
+    }
+
+    if (res.ok) {
       try {
-        res = await coinGeckoFetch(`/coins/${encodeURIComponent(safe)}?${q}`, {
-          next: { revalidate: 14400 },
-        });
+        const data: unknown = await res.json();
+        if (typeof data !== "object" || data === null || !("id" in data)) {
+          return { status: "not_found" };
+        }
+        return { status: "ok", coin: data as CoinGeckoDetail };
       } catch {
         continue;
       }
+    }
 
-      if (res.status === 404) {
-        return { status: "not_found" };
-      }
-
-      if (res.ok) {
-        try {
-          const data: unknown = await res.json();
-          if (typeof data !== "object" || data === null || !("id" in data)) {
-            return { status: "not_found" };
-          }
-          return { status: "ok", coin: data as CoinGeckoDetail };
-        } catch {
-          continue;
-        }
-      }
-
-      if (!isTransientCoinGeckoFailure(res.status)) {
-        return { status: "unavailable" };
-      }
+    if (!isTransientCoinGeckoFailure(res.status)) {
+      return { status: "unavailable" };
     }
   }
 
@@ -473,8 +359,8 @@ async function fetchCoinDetailWithRetries(safe: string): Promise<CoinLookupResul
 
 const getCachedCoinDetailLookup = unstable_cache(
   async (safe: string) => fetchCoinDetailWithRetries(safe),
-  ["coingecko-coin-detail"],
-  { revalidate: 14400 },
+  ["coingecko-coin-detail-v2"],
+  { revalidate: 7200 },
 );
 
 /** Result of fetching `/coins/{id}` — never throws; use this when you must distinguish API failure from missing coin. */

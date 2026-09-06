@@ -65,6 +65,13 @@ function numOrNull(v: unknown): number | null {
   return v;
 }
 
+/** ATH/ATL/supply — never surface empty zeros as real stats. */
+function positiveOrNull(v: unknown): number | null {
+  const n = numOrNull(v);
+  if (n == null || n <= 0) return null;
+  return n;
+}
+
 function strOrNull(v: unknown): string | null {
   if (typeof v !== "string") return null;
   const t = v.trim();
@@ -84,7 +91,7 @@ function parseContractCoin(data: unknown, fetchedAtMs: number): GeckoCoinStats |
 
   const ath =
     md && typeof md.ath === "object" && md.ath !== null
-      ? numOrNull((md.ath as Record<string, unknown>).usd)
+      ? positiveOrNull((md.ath as Record<string, unknown>).usd)
       : null;
   const athDate =
     md && typeof md.ath_date === "object" && md.ath_date !== null
@@ -92,7 +99,7 @@ function parseContractCoin(data: unknown, fetchedAtMs: number): GeckoCoinStats |
       : null;
   const atl =
     md && typeof md.atl === "object" && md.atl !== null
-      ? numOrNull((md.atl as Record<string, unknown>).usd)
+      ? positiveOrNull((md.atl as Record<string, unknown>).usd)
       : null;
   const atlDate =
     md && typeof md.atl_date === "object" && md.atl_date !== null
@@ -161,6 +168,8 @@ function logStatsCall(fields: {
   key?: string;
 }) {
   console.info("[gecko-coin-stats]", {
+    route: "/token/[chain]/[address]",
+    endpoint: "/coins/{platform}/contract/{address}",
     hasApiKey: fields.hasApiKey,
     plan: fields.plan,
     geckoId: fields.geckoId,
@@ -251,6 +260,7 @@ export async function getGeckoCoinStats(input: {
     res = await coinGeckoFetch(path, {
       cache: "force-cache",
       next: { revalidate: Math.floor(GECKO_STATS_TTL_MS / 1000) },
+      route: "/token/[chain]/[address]",
     });
   } catch (err) {
     console.warn("[gecko-coin-stats] fetch threw", err);

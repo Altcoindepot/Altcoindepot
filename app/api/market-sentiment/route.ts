@@ -1,17 +1,5 @@
 import { NextResponse } from "next/server";
-import { coinGeckoFetch } from "@/lib/coingecko";
-
-async function fetchCoinGeckoGlobal() {
-  const res = await coinGeckoFetch("/global", {
-    next: { revalidate: 3600 },
-  });
-  if (!res.ok) throw new Error(`CoinGecko global failed (${res.status})`);
-  const data = await res.json();
-  return {
-    totalMarketCapUsd: Number(data?.data?.total_market_cap?.usd ?? 0),
-    marketCap24hChangePct: Number(data?.data?.market_cap_change_percentage_24h_usd ?? 0),
-  };
-}
+import { MARKET_SENTIMENT_SNAPSHOT } from "@/lib/market-sentiment";
 
 async function fetchFearGreed() {
   const res = await fetch("https://api.alternative.me/fng/?limit=1&format=json", {
@@ -22,23 +10,42 @@ async function fetchFearGreed() {
   const data = await res.json();
   const first = Array.isArray(data?.data) ? data.data[0] : null;
   return {
-    value: Number(first?.value ?? 0),
-    label: typeof first?.value_classification === "string" ? first.value_classification : "Unknown",
+    value: Number(first?.value ?? MARKET_SENTIMENT_SNAPSHOT.fearAndGreedValue),
+    label:
+      typeof first?.value_classification === "string"
+        ? first.value_classification
+        : "Unknown",
     timestamp: Number(first?.timestamp ?? 0),
     timeUntilUpdateSec: Number(first?.time_until_update ?? 0),
   };
 }
 
+/**
+ * Sentiment strip — Alternative.me Fear & Greed only.
+ * No CoinGecko /global (home + this route must not burn Demo quota).
+ */
 export async function GET() {
   try {
-    const [global, fearGreed] = await Promise.all([fetchCoinGeckoGlobal(), fetchFearGreed()]);
-    return NextResponse.json({ ...global, fearGreed });
-  } catch (error) {
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : "Failed to load sentiment trackers",
+    const fearGreed = await fetchFearGreed();
+    return NextResponse.json({
+      fearGreed,
+      altseasonProgress: MARKET_SENTIMENT_SNAPSHOT.altseasonProgress,
+      totalMarketCapUsd: null,
+      marketCap24hChangePct: null,
+      gecko: false,
+    });
+  } catch {
+    return NextResponse.json({
+      fearGreed: {
+        value: MARKET_SENTIMENT_SNAPSHOT.fearAndGreedValue,
+        label: "Unknown",
+        timestamp: 0,
+        timeUntilUpdateSec: 0,
       },
-      { status: 502 },
-    );
+      altseasonProgress: MARKET_SENTIMENT_SNAPSHOT.altseasonProgress,
+      totalMarketCapUsd: null,
+      marketCap24hChangePct: null,
+      gecko: false,
+    });
   }
 }
