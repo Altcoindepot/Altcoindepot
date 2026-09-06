@@ -150,11 +150,11 @@ export function SiteHeaderClient({ fetchedAt }: { fetchedAt?: number | null }) {
                   href={item.href}
                   className={`inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium transition-colors xl:px-3 ${
                     active
-                      ? "bg-teal-500/20 text-teal-200 shadow-[0_0_16px_rgba(45,212,191,0.12)]"
+                      ? "nav-pill-active"
                       : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
                   }`}
                 >
-                  <span className={active ? "text-teal-300" : "text-zinc-500"}>{item.icon}</span>
+                  <span className={active ? "text-[#5dffd0]" : "text-zinc-500"}>{item.icon}</span>
                   <span className="whitespace-nowrap">{item.label}</span>
                 </Link>
               );

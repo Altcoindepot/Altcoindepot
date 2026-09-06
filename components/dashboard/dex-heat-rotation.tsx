@@ -19,16 +19,12 @@ function formatHeat(n: number): string {
 function chipTone(bucket: DexHeatBucket, selected: boolean, isTop: boolean): string {
   const ring = selected ? "ring-2 ring-teal-300/70" : "";
   if (bucket.status === "LEADING") {
-    return `${ring} ${
-      isTop
-        ? "border-teal-400/55 bg-teal-500/15 shadow-[0_0_36px_rgba(45,212,191,0.28)] max-lg:shadow-none leading-heat-pulse max-lg:animate-none"
-        : "border-emerald-400/45 bg-emerald-500/12 shadow-[0_0_22px_rgba(16,185,129,0.18)]"
-    }`;
+    return `${ring} heat-chip-leading ${isTop ? "leading-heat-pulse max-lg:animate-none" : ""}`;
   }
   if (bucket.status === "FADING") {
-    return `${ring} border-rose-400/40 bg-rose-500/[0.08] opacity-95 shadow-[0_8px_24px_rgba(0,0,0,0.4)]`;
+    return `${ring} heat-chip-fading`;
   }
-  return `${ring} border-teal-400/25 bg-[#0c0e14] shadow-[0_8px_24px_rgba(0,0,0,0.4)]`;
+  return ring;
 }
 
 function statusLabel(bucket: DexHeatBucket): string {
@@ -53,7 +49,7 @@ function HeatChip({
   const preview = bucket.children.slice(0, 2);
 
   return (
-    <article className={`rounded-2xl border p-3.5 sm:p-4 ${chipTone(bucket, selected, isTop)}`}>
+    <article className={`glass-card rounded-2xl p-3.5 sm:p-4 ${chipTone(bucket, selected, isTop)}`}>
       <button
         type="button"
         onClick={() => onSelect(bucket.filterChain)}
@@ -72,9 +68,7 @@ function HeatChip({
           </div>
           <span
             className={`shrink-0 rounded-xl px-2.5 py-1.5 font-mono text-2xl font-black tabular-nums leading-none sm:text-3xl ${
-              up
-                ? "bg-emerald-500/20 text-emerald-200 ring-1 ring-emerald-400/35"
-                : "bg-rose-500/20 text-rose-200 ring-1 ring-rose-400/35"
+              up ? "glass-chip-gain" : "glass-chip-loss"
             }`}
           >
             {formatHeat(bucket.heatPct)}
@@ -100,7 +94,7 @@ function HeatChip({
                 </span>
                 <span
                   className={`shrink-0 rounded-md px-1.5 py-0.5 font-mono text-[11px] font-bold tabular-nums ${
-                    childUp ? "bg-emerald-500/15 text-emerald-300" : "bg-rose-500/15 text-rose-300"
+                    childUp ? "glass-chip-gain" : "glass-chip-loss"
                   }`}
                 >
                   {formatDexPct(child.changePct)}
@@ -161,7 +155,7 @@ export function DexHeatRotation({
     return (
       <section
         aria-labelledby="dex-heat-heading"
-        className={`rounded-2xl border border-white/10 bg-[#0c0e14] px-3 py-4 ${className}`.trim()}
+        className={`glass-panel rounded-2xl px-3 py-4 ${className}`.trim()}
       >
         <h2 id="dex-heat-heading" className="text-base font-bold text-zinc-50">
           What&apos;s rotating
@@ -224,7 +218,7 @@ export function DexHeatRotation({
             </div>
             <Link
               href={selectedBucket.href}
-              className="inline-flex min-h-9 items-center rounded-full border border-teal-400/35 bg-teal-500/15 px-3 text-[11px] font-semibold text-teal-200"
+              className="inline-flex min-h-9 items-center rounded-full nav-pill-active px-3 text-[11px] font-semibold"
             >
               All {formatChainLabel(selectedBucket.filterChain)} pairs →
             </Link>

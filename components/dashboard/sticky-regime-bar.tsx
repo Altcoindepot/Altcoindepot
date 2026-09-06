@@ -19,7 +19,7 @@ export function StickyRegimeBar({
           text="Tracks whether capital is flowing heavily into a single sector or rotating rapidly across multiple narratives."
         >
           <span
-            className={`${ds.badge} max-w-[42%] shrink truncate border-teal-400/45 bg-teal-500/10 text-[9px] font-semibold uppercase tracking-wide text-teal-200 sm:max-w-none sm:text-[10px]`}
+            className={`${ds.badge} max-w-[42%] shrink truncate nav-pill-active text-[9px] font-semibold uppercase tracking-wide sm:max-w-none sm:text-[10px]`}
           >
             {regimeLabel}
           </span>

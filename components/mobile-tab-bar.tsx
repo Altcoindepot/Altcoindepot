@@ -105,7 +105,7 @@ export function MobileTabBar() {
   return (
     <nav
       aria-label="Primary"
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-teal-400/20 bg-[#0a0a0a]/98 pb-[env(safe-area-inset-bottom)] lg:hidden"
+      className="mobile-tab-bar fixed inset-x-0 bottom-0 z-50 pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
       <ul className="grid grid-cols-4">
         {TABS.map((tab) => {
@@ -115,10 +115,16 @@ export function MobileTabBar() {
               <Link
                 href={tab.href}
                 className={`flex min-h-12 flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[10px] font-semibold ${
-                  active ? "text-teal-300" : "text-zinc-500"
+                  active ? "tab-active" : "text-zinc-500"
                 }`}
               >
-                {tab.icon(active)}
+                <span
+                  className={`inline-flex size-8 items-center justify-center ${
+                    active ? "tab-active-icon" : ""
+                  }`}
+                >
+                  {tab.icon(active)}
+                </span>
                 <span className="leading-none">{tab.label}</span>
               </Link>
             </li>

@@ -39,7 +39,7 @@ export default async function PodcastsPage() {
         </p>
 
         {!hasEpisodes ? (
-          <p className="mt-8 rounded-xl border border-white/10 bg-[#0c0e14] px-4 py-8 text-center text-sm text-zinc-500">
+          <p className="mt-8 glass-panel rounded-xl px-4 py-8 text-center text-sm text-zinc-500">
             Episodes could not be loaded right now. Check back shortly, or open the shows on YouTube /
             Spotify from Resources.
           </p>

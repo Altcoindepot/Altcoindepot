@@ -45,7 +45,7 @@ export function PodcastsGrid({ podcasts }: { podcasts: PodcastWithEpisodes[] }) 
       {podcasts.map((podcast) => (
         <article
           key={podcast.slug}
-          className="flex flex-col rounded-2xl border border-white/10 bg-[#0c0e14]/90 p-4 shadow-[0_0_0_1px_rgba(0,255,159,0.04)] sm:rounded-lg sm:p-6"
+          className="glass-panel flex flex-col rounded-2xl p-4 sm:rounded-lg sm:p-6"
         >
           <div className="border-b border-white/10 pb-3 sm:pb-4">
             <h2 className="text-lg font-bold tracking-tight text-white sm:text-2xl">

@@ -101,9 +101,7 @@ export function MarketRow({
         {hasChange ? (
           <span
             className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 font-mono text-[12px] font-bold tabular-nums ${
-              up
-                ? "bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400/30"
-                : "bg-red-500/15 text-red-300 ring-1 ring-red-400/30"
+              up ? "glass-chip-gain" : "glass-chip-loss"
             }`}
           >
             {formatDexPct(changePct)}
