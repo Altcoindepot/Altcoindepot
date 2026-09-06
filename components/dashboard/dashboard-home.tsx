@@ -11,7 +11,6 @@ import type { SiteNewsItem } from "@/lib/site-news";
 import Link from "next/link";
 import { Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { StickyRegimeBar } from "@/components/dashboard/sticky-regime-bar";
 import { MarketSentimentWidget } from "@/components/dashboard/market-sentiment-widget";
 import { HomeTopMovers } from "@/components/dashboard/home-top-movers";
 import { DexHeatRotation } from "@/components/dashboard/dex-heat-rotation";
@@ -131,13 +130,6 @@ export function DashboardHome({
           <div className="col-span-2 min-w-0">{news}</div>
         </div>
 
-        {/* Below the mock fold — keep regime / sentiment without crowding the composition */}
-        <StickyRegimeBar
-          regimeLabel={snapshot.regimeLabel}
-          cycleDay={snapshot.cycleDay}
-          cycleProgressPct={snapshot.cycleProgressPct}
-          sticky={false}
-        />
         <MarketSentimentWidget pulse={snapshot.pulse} variant="strip" />
 
         <DisclaimerNote className="text-[11px]">
