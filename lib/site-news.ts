@@ -1,6 +1,12 @@
 /**
  * Site-wide headlines from official outlet RSS/Atom feeds.
  * Not CoinGecko. Used by homepage + /news + /api/news only.
+ *
+ * Freshness rules:
+ * - Merge all sources, sort by pubDate descending (never feed/source order)
+ * - Dedupe by canonical URL
+ * - Cache 15–30 min; never treat empty/error as a successful cache write
+ * - On per-feed failure, keep lastGood for that source; re-sort when any feed returns newer items
  */
 
 export type SiteNewsItem = {
@@ -21,10 +27,16 @@ export type SiteNewsResult = {
   cachedAt: string | null;
 };
 
-/** Merged feed cache — near-live (5–10 min). */
-export const SITE_NEWS_TTL_MS = 7 * 60_000;
-const FEED_TIMEOUT_MS = 4_000;
-const PER_FEED_CAP = 12;
+/** In-process merge cache — 20 minutes (within 15–30). */
+export const SITE_NEWS_TTL_MS = 20 * 60_000;
+/** /news serves this many newest headlines (25–50). */
+export const SITE_NEWS_PAGE_LIMIT = 50;
+/** Homepage strip uses the first N of the same newest-first list. */
+export const SITE_NEWS_HOME_LIMIT = 4;
+const FEED_TIMEOUT_MS = 5_000;
+/** Parse this many raw entries per feed, then keep the newest after pubDate sort. */
+const PER_FEED_PARSE_CAP = 40;
+const PER_FEED_KEEP = 20;
 
 type FeedSource = {
   name: string;
@@ -32,8 +44,8 @@ type FeedSource = {
 };
 
 /**
- * Official publisher feeds (verified Aug 2026).
- * Blockworks serves Atom at blockworks.com/feed after redirect from .co.
+ * Publisher RSS/Atom feeds. Runtime drops any source that 404s or returns 0 items.
+ * Do not rebalance / pin by source — merge then sort by pubDate only.
  */
 export const SITE_NEWS_FEEDS: readonly FeedSource[] = [
   { name: "CoinDesk", url: "https://www.coindesk.com/arc/outboundfeeds/rss" },
@@ -41,6 +53,10 @@ export const SITE_NEWS_FEEDS: readonly FeedSource[] = [
   { name: "Decrypt", url: "https://decrypt.co/feed" },
   { name: "Blockworks", url: "https://blockworks.com/feed" },
   { name: "The Defiant", url: "https://thedefiant.io/feed/" },
+  { name: "Cointelegraph", url: "https://cointelegraph.com/rss" },
+  { name: "The Daily Hodl", url: "https://dailyhodl.com/feed/" },
+  { name: "Bitcoin Magazine", url: "https://bitcoinmagazine.com/feed" },
+  { name: "DL News", url: "https://www.dlnews.com/arc/outboundfeeds/rss/" },
 ] as const;
 
 type CacheEntry = {
@@ -49,8 +65,16 @@ type CacheEntry = {
   fetchedAt: number;
 };
 
+type FeedFetchResult = {
+  name: string;
+  items: SiteNewsItem[];
+  ok: boolean;
+  fetchedCount: number;
+  newestPubDate: string | null;
+};
+
 let cache: CacheEntry | null = null;
-let inflight: Promise<CacheEntry> | null = null;
+let inflight: Promise<CacheEntry | null> | null = null;
 
 function decodeEntities(input: string): string {
   return input
@@ -88,9 +112,14 @@ function atomLink(block: string): string {
   return tagText(block, "link");
 }
 
-function toIsoDate(raw: string): string {
+function pubMs(iso: string): number {
+  const t = Date.parse(iso);
+  return Number.isFinite(t) ? t : 0;
+}
+
+function toIsoDate(raw: string): string | null {
   const t = Date.parse(raw);
-  if (!Number.isFinite(t)) return new Date(0).toISOString();
+  if (!Number.isFinite(t) || t <= 0) return null;
   return new Date(t).toISOString();
 }
 
@@ -102,27 +131,43 @@ export function normalizeNewsUrl(href: string): string {
     u.hostname = u.hostname.toLowerCase();
     const drop = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "utm_id"];
     for (const k of drop) u.searchParams.delete(k);
-    let path = u.pathname.replace(/\/+$/, "") || "/";
-    u.pathname = path;
+    u.pathname = u.pathname.replace(/\/+$/, "") || "/";
     return u.toString();
   } catch {
     return href.trim().toLowerCase().replace(/\/+$/, "");
   }
 }
 
-function parseRssOrAtom(xml: string, source: string, limit: number): SiteNewsItem[] {
-  const out: SiteNewsItem[] = [];
+export function sortNewsByPubDateDesc(items: SiteNewsItem[]): SiteNewsItem[] {
+  return [...items].sort((a, b) => {
+    const vb = pubMs(b.publishedAt);
+    const va = pubMs(a.publishedAt);
+    if (vb !== va) return vb - va;
+    return normalizeNewsUrl(a.href).localeCompare(normalizeNewsUrl(b.href));
+  });
+}
+
+function newestPubDateOf(items: SiteNewsItem[]): string | null {
+  if (items.length === 0) return null;
+  return sortNewsByPubDateDesc(items)[0]?.publishedAt ?? null;
+}
+
+function parseRssOrAtom(xml: string, source: string): SiteNewsItem[] {
+  const raw: SiteNewsItem[] = [];
   const seen = new Set<string>();
 
   const push = (title: string, hrefRaw: string, publishedRaw: string) => {
+    if (raw.length >= PER_FEED_PARSE_CAP) return;
     const titleClean = cleanText(title);
     const href = hrefRaw.trim();
     if (!titleClean || !href || !/^https?:\/\//i.test(href)) return;
+    const publishedAt = toIsoDate(publishedRaw);
+    // Skip undated items so they cannot pin slot 1 via epoch-0 / "now" fallbacks.
+    if (!publishedAt) return;
     const norm = normalizeNewsUrl(href);
     if (seen.has(norm)) return;
     seen.add(norm);
-    const publishedAt = toIsoDate(publishedRaw);
-    out.push({
+    raw.push({
       id: `${source}::${norm}`,
       title: titleClean,
       href,
@@ -132,8 +177,8 @@ function parseRssOrAtom(xml: string, source: string, limit: number): SiteNewsIte
   };
 
   for (const m of xml.matchAll(/<item\b[^>]*>([\s\S]*?)<\/item>/gi)) {
-    if (out.length >= limit) break;
-    const block = m[1];
+    if (raw.length >= PER_FEED_PARSE_CAP) break;
+    const block = m[1]!;
     push(
       tagText(block, "title"),
       tagText(block, "link") ||
@@ -143,22 +188,23 @@ function parseRssOrAtom(xml: string, source: string, limit: number): SiteNewsIte
     );
   }
 
-  if (out.length < limit) {
+  if (raw.length < PER_FEED_PARSE_CAP) {
     for (const m of xml.matchAll(/<entry\b[^>]*>([\s\S]*?)<\/entry>/gi)) {
-      if (out.length >= limit) break;
-      const block = m[1];
+      if (raw.length >= PER_FEED_PARSE_CAP) break;
+      const block = m[1]!;
       push(
         tagText(block, "title"),
         atomLink(block),
-        tagText(block, "published") || tagText(block, "updated"),
+        tagText(block, "published") || tagText(block, "updated") || tagText(block, "dc:date"),
       );
     }
   }
 
-  return out;
+  // Per-feed: newest by pubDate, then keep a slice — never keep feed document order.
+  return sortNewsByPubDateDesc(raw).slice(0, PER_FEED_KEEP);
 }
 
-async function fetchOneFeed(feed: FeedSource): Promise<{ name: string; items: SiteNewsItem[] }> {
+async function fetchOneFeed(feed: FeedSource): Promise<FeedFetchResult> {
   const ac = new AbortController();
   const timer = setTimeout(() => ac.abort(), FEED_TIMEOUT_MS);
   try {
@@ -169,38 +215,52 @@ async function fetchOneFeed(feed: FeedSource): Promise<{ name: string; items: Si
         Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml, */*",
         "User-Agent": "AltCoinDepotNewsBot/1.0 (+https://altcoindepot.com)",
       },
-      // Freshness owned by SITE_NEWS_TTL_MS in-process cache.
       cache: "no-store",
     });
     if (!res.ok) {
-      console.info("[site-news] feed status", { source: feed.name, status: res.status });
-      return { name: feed.name, items: [] };
+      console.info("[site-news] feed status", {
+        source: feed.name,
+        status: res.status,
+        fetchedCount: 0,
+        newestPubDate: null,
+      });
+      return { name: feed.name, items: [], ok: false, fetchedCount: 0, newestPubDate: null };
     }
     const xml = await res.text();
     if (!xml || xml.length < 40) {
-      console.info("[site-news] feed empty body", { source: feed.name });
-      return { name: feed.name, items: [] };
+      console.info("[site-news] feed empty body", {
+        source: feed.name,
+        fetchedCount: 0,
+        newestPubDate: null,
+      });
+      return { name: feed.name, items: [], ok: false, fetchedCount: 0, newestPubDate: null };
     }
-    const items = parseRssOrAtom(xml, feed.name, PER_FEED_CAP);
-    return { name: feed.name, items };
+    const items = parseRssOrAtom(xml, feed.name);
+    const newestPubDate = newestPubDateOf(items);
+    console.info("[site-news] feed ok", {
+      source: feed.name,
+      fetchedCount: items.length,
+      newestPubDate,
+    });
+    return {
+      name: feed.name,
+      items,
+      ok: items.length > 0,
+      fetchedCount: items.length,
+      newestPubDate,
+    };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.info("[site-news] feed failed", { source: feed.name, error: msg });
-    return { name: feed.name, items: [] };
+    console.info("[site-news] feed failed", {
+      source: feed.name,
+      error: msg,
+      fetchedCount: 0,
+      newestPubDate: null,
+    });
+    return { name: feed.name, items: [], ok: false, fetchedCount: 0, newestPubDate: null };
   } finally {
     clearTimeout(timer);
   }
-}
-
-function sortNewest(items: SiteNewsItem[]): SiteNewsItem[] {
-  return [...items].sort((a, b) => {
-    const tb = Date.parse(b.publishedAt);
-    const ta = Date.parse(a.publishedAt);
-    const vb = Number.isFinite(tb) ? tb : 0;
-    const va = Number.isFinite(ta) ? ta : 0;
-    if (vb !== va) return vb - va;
-    return a.href.localeCompare(b.href);
-  });
 }
 
 function sourcesLabel(names: string[]): string {
@@ -211,44 +271,98 @@ function sourcesLabel(names: string[]): string {
   return `Headlines from ${head}, and ${names[names.length - 1]}`;
 }
 
-async function refreshSiteNews(): Promise<CacheEntry> {
-  const results = await Promise.all(SITE_NEWS_FEEDS.map((f) => fetchOneFeed(f)));
-  const sourcesSucceeded = results.filter((r) => r.items.length > 0).map((r) => r.name);
-  const failed = results.filter((r) => r.items.length === 0).map((r) => r.name);
+/**
+ * Merge successful fetches onto lastGood.
+ * Failed/empty feeds keep their previous articles; any newer pubDate wins on URL collide.
+ * Final list is always pubDate-desc.
+ */
+function mergeWithLastGood(
+  results: FeedFetchResult[],
+  lastGood: SiteNewsItem[] | null,
+): SiteNewsItem[] {
+  const byUrl = new Map<string, SiteNewsItem>();
 
-  console.info("[site-news] merge", {
-    succeeded: sourcesSucceeded,
-    failedOrEmpty: failed,
-    counts: Object.fromEntries(results.map((r) => [r.name, r.items.length])),
-  });
-
-  const seen = new Set<string>();
-  const merged: SiteNewsItem[] = [];
-  for (const r of results) {
-    for (const item of r.items) {
-      const key = normalizeNewsUrl(item.href);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      merged.push(item);
+  if (lastGood) {
+    for (const item of lastGood) {
+      byUrl.set(normalizeNewsUrl(item.href), item);
     }
   }
 
+  for (const r of results) {
+    if (!r.ok || r.items.length === 0) continue;
+    for (const item of r.items) {
+      const key = normalizeNewsUrl(item.href);
+      const prev = byUrl.get(key);
+      if (!prev || pubMs(item.publishedAt) >= pubMs(prev.publishedAt)) {
+        byUrl.set(key, { ...item, href: item.href, id: `${item.source}::${key}` });
+      }
+    }
+  }
+
+  return sortNewsByPubDateDesc([...byUrl.values()]);
+}
+
+async function refreshSiteNews(): Promise<CacheEntry | null> {
+  const results = await Promise.all(SITE_NEWS_FEEDS.map((f) => fetchOneFeed(f)));
+  const okFeeds = results.filter((r) => r.ok);
+  const fetchedCount = Object.fromEntries(results.map((r) => [r.name, r.fetchedCount]));
+
+  // Never treat total failure / all-empty as a successful cache write.
+  if (okFeeds.length === 0) {
+    console.info("[site-news] merge skipped — no successful feeds", {
+      fetchedCount,
+      newestPubDate: newestPubDateOf(cache?.items ?? []),
+      keptLastGood: Boolean(cache?.items.length),
+    });
+    return null;
+  }
+
+  const merged = mergeWithLastGood(results, cache?.items ?? null).slice(
+    0,
+    SITE_NEWS_PAGE_LIMIT,
+  );
+  if (merged.length === 0) {
+    console.info("[site-news] merge empty after ok feeds — not caching", { fetchedCount });
+    return null;
+  }
+
+  const newestPubDate = newestPubDateOf(merged);
+  // Label = feeds that returned items this refresh (even if older than the top 50).
+  const sourcesSucceeded = SITE_NEWS_FEEDS.map((f) => f.name).filter((n) =>
+    okFeeds.some((r) => r.name === n),
+  );
+  const dropped = results.filter((r) => !r.ok).map((r) => r.name);
+
+  console.info("[site-news] merge", {
+    fetchedCount,
+    newestPubDate,
+    mergedCount: merged.length,
+    sourcesSucceeded,
+    dropped,
+    top: merged.slice(0, 4).map((i) => ({
+      source: i.source,
+      publishedAt: i.publishedAt,
+      title: i.title.slice(0, 72),
+    })),
+  });
+
   return {
-    items: sortNewest(merged),
+    items: merged,
     sourcesSucceeded,
     fetchedAt: Date.now(),
   };
 }
 
 /**
- * Merged official RSS/Atom headlines. Never throws.
- * Partial success is fine — returns whatever feeds responded.
+ * Merged publisher RSS/Atom headlines. Never throws.
+ * Partial success merges onto lastGood and re-sorts by pubDate — no source balancing.
  */
-export async function getSiteNewsCached(limit = 12): Promise<SiteNewsResult> {
+export async function getSiteNewsCached(limit = SITE_NEWS_HOME_LIMIT): Promise<SiteNewsResult> {
+  const capped = Math.min(SITE_NEWS_PAGE_LIMIT, Math.max(1, Math.floor(limit)));
   const now = Date.now();
-  if (cache && now - cache.fetchedAt < SITE_NEWS_TTL_MS) {
+  if (cache && cache.items.length > 0 && now - cache.fetchedAt < SITE_NEWS_TTL_MS) {
     return {
-      items: cache.items.slice(0, limit),
+      items: sortNewsByPubDateDesc(cache.items).slice(0, capped),
       sourcesSucceeded: cache.sourcesSucceeded,
       sourcesLabel: sourcesLabel(cache.sourcesSucceeded),
       stale: false,
@@ -263,10 +377,10 @@ export async function getSiteNewsCached(limit = 12): Promise<SiteNewsResult> {
       });
     }
     const next = await inflight;
-    if (next.items.length > 0) {
+    if (next && next.items.length > 0) {
       cache = next;
       return {
-        items: next.items.slice(0, limit),
+        items: next.items.slice(0, capped),
         sourcesSucceeded: next.sourcesSucceeded,
         sourcesLabel: sourcesLabel(next.sourcesSucceeded),
         stale: false,
@@ -277,9 +391,9 @@ export async function getSiteNewsCached(limit = 12): Promise<SiteNewsResult> {
     console.warn("[site-news] refresh failed", err);
   }
 
-  if (cache) {
+  if (cache && cache.items.length > 0) {
     return {
-      items: cache.items.slice(0, limit),
+      items: sortNewsByPubDateDesc(cache.items).slice(0, capped),
       sourcesSucceeded: cache.sourcesSucceeded,
       sourcesLabel: sourcesLabel(cache.sourcesSucceeded),
       stale: true,
@@ -291,7 +405,7 @@ export async function getSiteNewsCached(limit = 12): Promise<SiteNewsResult> {
     items: [],
     sourcesSucceeded: [],
     sourcesLabel: sourcesLabel([]),
-    stale: false,
+    stale: true,
     cachedAt: null,
   };
 }

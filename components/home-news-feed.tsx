@@ -6,8 +6,8 @@ import type { SiteNewsItem } from "@/lib/site-news";
 import { formatTimeAgo } from "@/lib/format-date";
 import { readResponseJsonSafely } from "@/lib/read-response-json";
 
-/** Poll under the ~7m server TTL so home stays near-live. */
-const POLL_MS = 6 * 60_000;
+/** Poll inside the 15–30m server cache window so slot 1 can flip when feeds update. */
+const POLL_MS = 10 * 60_000;
 
 function cleanDisplayText(input: string) {
   return input
@@ -24,16 +24,27 @@ function cleanDisplayText(input: string) {
     .trim();
 }
 
+function sortByPubDateDesc(items: SiteNewsItem[]): SiteNewsItem[] {
+  return [...items].sort((a, b) => {
+    const tb = Date.parse(b.publishedAt);
+    const ta = Date.parse(a.publishedAt);
+    const vb = Number.isFinite(tb) ? tb : 0;
+    const va = Number.isFinite(ta) ? ta : 0;
+    if (vb !== va) return vb - va;
+    return a.href.localeCompare(b.href);
+  });
+}
+
 /**
  * Market News — desktop horizontal strip (mock composition);
- * mobile keeps a short stacked list.
+ * mobile keeps a short stacked list. Always newest-first by pubDate.
  */
 export function HomeNewsFeed({
   initialItems,
   initialStale,
   initialSourcesLabel,
   maxItems = 4,
-  maxItemsMobile = 3,
+  maxItemsMobile = 4,
 }: {
   initialItems?: SiteNewsItem[];
   initialStale?: boolean;
@@ -41,7 +52,9 @@ export function HomeNewsFeed({
   maxItems?: number;
   maxItemsMobile?: number;
 }) {
-  const [items, setItems] = useState<SiteNewsItem[]>(initialItems ?? []);
+  const [items, setItems] = useState<SiteNewsItem[]>(() =>
+    sortByPubDateDesc(initialItems ?? []),
+  );
   const [stale, setStale] = useState(Boolean(initialStale));
   const [sourcesLabel, setSourcesLabel] = useState(
     initialSourcesLabel ?? "Headlines from major crypto outlets",
@@ -51,14 +64,17 @@ export function HomeNewsFeed({
     let mounted = true;
     async function refresh() {
       try {
-        const res = await fetch(`/api/news?limit=12&_=${Date.now()}`, {
+        const res = await fetch(`/api/news?limit=4&_=${Date.now()}`, {
           cache: "no-store",
         });
         if (!res.ok) return;
         const data = await readResponseJsonSafely(res);
         if (!mounted || !data || typeof data !== "object") return;
         if ("items" in data && Array.isArray((data as { items: unknown }).items)) {
-          setItems((data as { items: SiteNewsItem[] }).items);
+          const next = (data as { items: SiteNewsItem[] }).items;
+          // Never wipe a good strip with an empty/error payload.
+          if (next.length === 0) return;
+          setItems(sortByPubDateDesc(next));
           setStale(Boolean((data as { stale?: unknown }).stale));
           const label = (data as { sourcesLabel?: unknown }).sourcesLabel;
           if (typeof label === "string" && label.trim()) setSourcesLabel(label);

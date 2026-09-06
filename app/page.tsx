@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site-header";
 import { DashboardHome } from "@/components/dashboard/dashboard-home";
 import { getMockDashboardSnapshot } from "@/lib/dashboard-mock";
-import { getSiteNewsCached, type SiteNewsResult } from "@/lib/site-news";
+import { getSiteNewsCached, SITE_NEWS_HOME_LIMIT, type SiteNewsResult } from "@/lib/site-news";
 import {
   getChainMovers,
   pickHomeTopMovers,
@@ -165,7 +165,7 @@ export default async function Home({
   const watchlistOnly = params.watchlist === "1" || params.watchlist === "true";
   // No getDashboardSnapshot — that path fans out CoinGecko.
   const [homeNews, movers, dexHeat] = await Promise.all([
-    fetchHomeNewsSoft(12),
+    fetchHomeNewsSoft(SITE_NEWS_HOME_LIMIT),
     fetchHomeMoversSoft(),
     fetchDexHeatSoft(),
   ]);

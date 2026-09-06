@@ -105,7 +105,7 @@ export function DashboardHome({
       initialStale={initialNewsStale}
       initialSourcesLabel={initialNewsSourcesLabel}
       maxItems={4}
-      maxItemsMobile={3}
+      maxItemsMobile={4}
     />
   );
 
