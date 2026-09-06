@@ -12,6 +12,7 @@ const SECONDARY = [
   { href: "/gainers-losers", label: "Gainers & Losers" },
   { href: "/pairs", label: "Pairs" },
   { href: "/news", label: "News" },
+  { href: "/contact", label: "Feedback" },
   { href: "/sectors", label: "Sectors" },
   { href: "/just-launched", label: "Just Launched" },
   { href: "/new-low-caps", label: "New & Low Caps" },

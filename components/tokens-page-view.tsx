@@ -9,6 +9,7 @@ import { finalizeDexListRows } from "@/lib/dex-majors-list-dedupe";
 import {
   applyDexListQuery,
   dexListQuerySearchParams,
+  DEX_VENUE_FILTERS,
   MAJOR_DEX_CHAIN_FILTERS,
   PAIRS_DEFAULT_QUERY,
   parseDexListQuery,
@@ -39,12 +40,14 @@ const SORT_OPTIONS: Array<{ id: DexListSort; label: string }> = [
   { id: "newest", label: "Newest" },
 ];
 
-const CHAIN_CHIPS = [
-  { id: "all", label: "All" },
+/** All | chains… | Raydium — ARB removed; Raydium is a DEX filter, not a chain. */
+const FILTER_CHIPS = [
+  { id: "all", kind: "all" as const, label: "All" },
   ...MAJOR_DEX_CHAIN_FILTERS.filter((c) =>
-    ["solana", "ethereum", "base", "bsc", "arbitrum"].includes(c.id),
-  ).map((c) => ({ id: c.id, label: c.label })),
-] as const;
+    ["solana", "ethereum", "base", "bsc", "injective"].includes(c.id),
+  ).map((c) => ({ id: c.id, kind: "chain" as const, label: c.label })),
+  ...DEX_VENUE_FILTERS.map((d) => ({ id: d.id, kind: "dex" as const, label: d.label })),
+];
 
 function tokenHref(row: DexLivePairRow): string {
   return (
@@ -367,6 +370,7 @@ export function TokensPageView({
   const query = parseDexListQuery(searchParams, {
     ...PAIRS_DEFAULT_QUERY,
     sort: "liquidity",
+    dex: "all",
   });
   const [visible, setVisible] = useState(INITIAL_VISIBLE);
 
@@ -381,22 +385,49 @@ export function TokensPageView({
       liquidity: r.liquidityUsd,
       change24h: r.change24h,
     }));
-    const deduped = finalizeDexListRows(mapped as DexLivePairRow[], {
-      includeStableBases: includeStables,
+    // Chain/DEX filter first, then one row per ticker (so Solana keeps its own PEPE).
+    const scoped = applyDexListQuery(mapped, {
+      ...query,
+      pulse: "all",
+      age: "all",
+      dex: query.dex || "all",
     });
-    const sorted = applyDexListQuery(deduped, { ...query, pulse: "all", age: "all" });
-    return sorted as DexLivePairRow[];
+    const deduped = finalizeDexListRows(scoped as DexLivePairRow[], {
+      includeStableBases: includeStables,
+      sortByVolume: false,
+    });
+    return applyDexListQuery(deduped, {
+      ...query,
+      pulse: "all",
+      age: "all",
+      dex: query.dex || "all",
+    }) as DexLivePairRow[];
   }, [rows, query, searchParams]);
 
   const shown = filtered.slice(0, Math.min(visible, DEX_EXPLORER_MAX_ROWS));
 
+  const tokensDefaults = {
+    ...PAIRS_DEFAULT_QUERY,
+    sort: "liquidity" as const,
+    dex: "all" as const,
+  };
+
   const pushQuery = (next: typeof query) => {
     setVisible(INITIAL_VISIBLE);
-    const href = `${pathname}${dexListQuerySearchParams(next, null, {
-      ...PAIRS_DEFAULT_QUERY,
-      sort: "liquidity",
-    })}`;
+    const href = `${pathname}${dexListQuerySearchParams(next, null, tokensDefaults)}`;
     router.replace(href, { scroll: false });
+  };
+
+  const selectFilterChip = (chip: (typeof FILTER_CHIPS)[number]) => {
+    if (chip.kind === "all") {
+      pushQuery({ ...query, chain: "all", dex: "all" });
+      return;
+    }
+    if (chip.kind === "dex") {
+      pushQuery({ ...query, chain: "all", dex: chip.id });
+      return;
+    }
+    pushQuery({ ...query, chain: chip.id, dex: "all" });
   };
 
   const chipClass = (active: boolean) =>
@@ -406,19 +437,19 @@ export function TokensPageView({
         : "border border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200"
     }`;
 
-  const dominantDex = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const r of shown.slice(0, 30)) {
-      const key = r.dexLabel || r.dex || "DEX";
-      counts.set(key, (counts.get(key) ?? 0) + 1);
-    }
-    return [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "DEX";
-  }, [shown]);
+  const activeChipId =
+    query.dex && query.dex !== "all"
+      ? query.dex
+      : query.chain && query.chain !== "all"
+        ? query.chain
+        : "all";
 
   const tableTitle =
-    query.chain !== "all"
-      ? `Top ${formatChainLabel(query.chain)} pairs`
-      : `Top ${dominantDex} pairs`;
+    query.dex && query.dex !== "all"
+      ? `Top ${query.dex === "raydium" ? "Raydium" : query.dex} pairs`
+      : query.chain !== "all"
+        ? `Top ${formatChainLabel(query.chain)} pairs`
+        : "Top pairs · all chains";
 
   const sortLabel =
     SORT_OPTIONS.find((s) => s.id === query.sort)?.label.toLowerCase() ?? "liquidity";
@@ -430,14 +461,14 @@ export function TokensPageView({
 
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div className="-mx-0.5 flex gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {CHAIN_CHIPS.map((chip) => {
-            const active = query.chain === chip.id || (chip.id === "all" && query.chain === "all");
+          {FILTER_CHIPS.map((chip) => {
+            const active = activeChipId === chip.id;
             return (
               <button
-                key={chip.id}
+                key={`${chip.kind}-${chip.id}`}
                 type="button"
                 className={chipClass(active)}
-                onClick={() => pushQuery({ ...query, chain: chip.id })}
+                onClick={() => selectFilterChip(chip)}
               >
                 {chip.label}
               </button>

@@ -13,6 +13,10 @@ import {
   type CexPadRow,
   CEX_PAD_REVALIDATE_SECONDS,
 } from "@/lib/cex-board-pad";
+import {
+  compareTickerListPreference,
+  majorQuoteRank,
+} from "@/lib/dex-majors-list-dedupe";
 
 const DEX_BASE = "https://api.dexscreener.com";
 /** Dex cache 2–5 min (3 min). */
@@ -91,6 +95,7 @@ export type ChainMoverRow = {
   window: MoverWindow;
   imageUrl?: string | null;
   liquidityUsd: number | null;
+  volume24h?: number | null;
   /** Quote side when known (for SOL/USDC-style labels). */
   quoteSymbol?: string | null;
   /** Dex rows = "dex" (or omit); CEX pads = "cex". */
@@ -131,6 +136,7 @@ type Candidate = {
   change1h: number | null;
   change24h: number | null;
   liquidityUsd: number;
+  volume24h: number;
   imageUrl: string | null;
 };
 
@@ -164,10 +170,18 @@ function asPairs(data: unknown): DexPair[] {
 function pickBestPair(pairs: DexPair[]): DexPair | null {
   if (pairs.length === 0) return null;
   return (
-    [...pairs].sort(
-      (a, b) =>
-        (parseDexUsdNumber(b.liquidity?.usd) ?? 0) - (parseDexUsdNumber(a.liquidity?.usd) ?? 0),
-    )[0] ?? null
+    [...pairs].sort((a, b) => {
+      const vol =
+        (parseDexUsdNumber(b.volume?.h24) ?? 0) - (parseDexUsdNumber(a.volume?.h24) ?? 0);
+      if (vol !== 0) return vol;
+      const liq =
+        (parseDexUsdNumber(b.liquidity?.usd) ?? 0) -
+        (parseDexUsdNumber(a.liquidity?.usd) ?? 0);
+      if (liq !== 0) return liq;
+      const qa = majorQuoteRank(a.quoteToken?.symbol);
+      const qb = majorQuoteRank(b.quoteToken?.symbol);
+      return qa - qb;
+    })[0] ?? null
   );
 }
 
@@ -219,6 +233,8 @@ function pairToCandidate(pair: DexPair, expectChain: string): Candidate | null {
     return null;
   }
 
+  const volume24h = parseDexUsdNumber(pair.volume?.h24) ?? 0;
+
   return {
     chain: expectChain === "injective" ? "injective" : chain,
     address: base.address,
@@ -231,6 +247,7 @@ function pairToCandidate(pair: DexPair, expectChain: string): Candidate | null {
     change1h: change1h != null && Number.isFinite(change1h) ? change1h : null,
     change24h: change24h != null && Number.isFinite(change24h) ? change24h : null,
     liquidityUsd,
+    volume24h,
     imageUrl: typeof pair.info?.imageUrl === "string" ? pair.info.imageUrl : null,
   };
 }
@@ -261,7 +278,31 @@ function dedupeByAddress(pairs: DexPair[], expectChain: string): Candidate[] {
     const row = pairToCandidate(best, expectChain);
     if (row) out.push(row);
   }
-  return out;
+  return dedupeCandidatesByTicker(out);
+}
+
+/** One row per ticker within a chain board — highest volume wins. */
+function dedupeCandidatesByTicker(rows: Candidate[]): Candidate[] {
+  const byTicker = new Map<string, Candidate>();
+  for (const row of rows) {
+    const sym = row.symbol.trim().toUpperCase();
+    if (!sym) continue;
+    const prev = byTicker.get(sym);
+    if (
+      !prev ||
+      compareTickerListPreference(
+        { volume24h: row.volume24h, liquidityUsd: row.liquidityUsd, quoteSymbol: row.quoteSymbol },
+        {
+          volume24h: prev.volume24h,
+          liquidityUsd: prev.liquidityUsd,
+          quoteSymbol: prev.quoteSymbol,
+        },
+      ) < 0
+    ) {
+      byTicker.set(sym, row);
+    }
+  }
+  return [...byTicker.values()];
 }
 
 async function fetchBoostPairsForChain(chainId: string): Promise<DexPair[]> {
@@ -330,6 +371,7 @@ function toMoverRow(c: Candidate, window: MoverWindow, changePct: number): Chain
     window,
     imageUrl: c.imageUrl,
     liquidityUsd: c.liquidityUsd,
+    volume24h: c.volume24h,
     quoteSymbol: c.quoteSymbol,
     venue: "dex",
   };
@@ -512,7 +554,7 @@ async function loadChainMoversUncached(): Promise<ChainMoversBoard[]> {
   return dexBoards.map((board) => padBoardWithCex(board, cexPool.rows));
 }
 
-const loadCached = unstable_cache(loadChainMoversUncached, ["dex-chain-movers-v4-eth-sol-base-inj"], {
+const loadCached = unstable_cache(loadChainMoversUncached, ["dex-chain-movers-v5-ticker-dedupe"], {
   revalidate: CHAIN_MOVERS_REVALIDATE_SECONDS,
 });
 
@@ -571,16 +613,39 @@ export function pickHomeTopMovers(
   for (const board of scoped) {
     scored.push(...board.gainers, ...board.losers);
   }
-  const seen = new Set<string>();
-  const unique = scored.filter((row) => {
-    if (want && row.chain !== want && !sameDexChain(row.chain, want)) return false;
-    const key = row.id;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-  // Prefer Dex on the home fold when mixing
-  return unique
+  const byTicker = new Map<string, ChainMoverRow>();
+  for (const row of scored) {
+    if (want && row.chain !== want && !sameDexChain(row.chain, want)) continue;
+    const sym = row.symbol.trim().toUpperCase();
+    if (!sym) continue;
+    const prev = byTicker.get(sym);
+    if (!prev) {
+      byTicker.set(sym, row);
+      continue;
+    }
+    // Prefer Dex over CEX when mixing; else highest volume → liq → quote.
+    if (row.venue !== prev.venue) {
+      if (row.venue === "dex") byTicker.set(sym, row);
+      continue;
+    }
+    if (
+      compareTickerListPreference(
+        {
+          volume24h: row.volume24h,
+          liquidityUsd: row.liquidityUsd,
+          quoteSymbol: row.quoteSymbol,
+        },
+        {
+          volume24h: prev.volume24h,
+          liquidityUsd: prev.liquidityUsd,
+          quoteSymbol: prev.quoteSymbol,
+        },
+      ) < 0
+    ) {
+      byTicker.set(sym, row);
+    }
+  }
+  return [...byTicker.values()]
     .sort((a, b) => {
       if (a.venue !== b.venue) return a.venue === "dex" ? -1 : 1;
       return Math.abs(b.changePct) - Math.abs(a.changePct);

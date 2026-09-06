@@ -108,23 +108,20 @@ async function dexFetch(path: string): Promise<unknown> {
   return res.json();
 }
 
-/** Prefer USDT → USDC → other stables → else highest liquidity (for majors). */
+/** Prefer highest volume → liquidity → USDT/USDC quote (same address). */
 function pickBestScannerPair(pairs: DexPair[]): DexPair | null {
   if (pairs.length === 0) return null;
-  const baseSym = pairs[0]?.baseToken?.symbol ?? "";
-  const major = isMajorSymbol(baseSym);
 
   return (
     [...pairs].sort((a, b) => {
-      if (major) {
-        const qa = quotePreference(a.quoteToken?.symbol);
-        const qb = quotePreference(b.quoteToken?.symbol);
-        if (qa !== qb) return qa - qb;
-      }
-      const liqA = parseDexUsdNumber(a.liquidity?.usd) ?? 0;
-      const liqB = parseDexUsdNumber(b.liquidity?.usd) ?? 0;
-      if (liqB !== liqA) return liqB - liqA;
-      return (parseDexUsdNumber(b.volume?.h24) ?? 0) - (parseDexUsdNumber(a.volume?.h24) ?? 0);
+      const vol =
+        (parseDexUsdNumber(b.volume?.h24) ?? 0) - (parseDexUsdNumber(a.volume?.h24) ?? 0);
+      if (vol !== 0) return vol;
+      const liq =
+        (parseDexUsdNumber(b.liquidity?.usd) ?? 0) -
+        (parseDexUsdNumber(a.liquidity?.usd) ?? 0);
+      if (liq !== 0) return liq;
+      return quotePreference(a.quoteToken?.symbol) - quotePreference(b.quoteToken?.symbol);
     })[0] ?? null
   );
 }
@@ -265,8 +262,8 @@ function dedupeScannerRows(pairs: DexPair[]): DexScannerRow[] {
     const row = mapPairToScannerRow(best);
     if (row) rows.push(row);
   }
-  // Keep stables in the cache; applyDexScannerQuery hides them unless q asks for stables.
-  return finalizeDexListRows(rows, { includeStableBases: true });
+  // Keep all chains' tickers in cache; ticker collapse runs after chain filter in applyDexScannerQuery.
+  return finalizeDexListRows(rows, { includeStableBases: true, dedupeTickers: false });
 }
 
 async function loadScannerUncached(): Promise<DexScannerRow[]> {
@@ -299,7 +296,7 @@ async function loadScannerUncached(): Promise<DexScannerRow[]> {
   return rows;
 }
 
-const loadCached = unstable_cache(loadScannerUncached, ["dex-scanner-rows-v2-major-ticker-dedupe"], {
+const loadCached = unstable_cache(loadScannerUncached, ["dex-scanner-rows-v3-ticker-dedupe-query"], {
   revalidate: DEX_SCANNER_REVALIDATE_SECONDS,
 });
 
@@ -344,9 +341,14 @@ export function applyDexScannerQuery(
     return true;
   });
 
+  const deduped = finalizeDexListRows(filtered, {
+    includeStableBases: includeStables,
+    sortByVolume: false,
+  });
+
   const missing = Number.NEGATIVE_INFINITY;
   const dirMul = query.dir === "asc" ? -1 : 1;
-  const copy = [...filtered];
+  const copy = [...deduped];
   copy.sort((a, b) => {
     let cmp = 0;
     if (query.sort === "volume") {

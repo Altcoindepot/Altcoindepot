@@ -10,7 +10,6 @@ import { normalizeDexChainId } from "@/lib/dex-token-path";
 import { parseDexUsdNumber } from "@/lib/dex-pair-fields";
 import {
   finalizeDexListRows,
-  isDexListMajorTicker,
   majorQuoteRank,
 } from "@/lib/dex-majors-list-dedupe";
 
@@ -139,23 +138,18 @@ function quotePreference(quote: string | undefined): number {
   return majorQuoteRank(quote);
 }
 
-function isMajorBase(symbol: string | undefined): boolean {
-  return isDexListMajorTicker(symbol ?? "");
-}
-
 function pickBestPair(pairs: DexPair[]): DexPair | null {
   if (pairs.length === 0) return null;
-  const major = isMajorBase(pairs[0]?.baseToken?.symbol);
   return (
     [...pairs].sort((a, b) => {
-      if (major) {
-        const qa = quotePreference(a.quoteToken?.symbol);
-        const qb = quotePreference(b.quoteToken?.symbol);
-        if (qa !== qb) return qa - qb;
-      }
-      return (
-        (parseDexUsdNumber(b.volume?.h24) ?? 0) - (parseDexUsdNumber(a.volume?.h24) ?? 0)
-      );
+      const vol =
+        (parseDexUsdNumber(b.volume?.h24) ?? 0) - (parseDexUsdNumber(a.volume?.h24) ?? 0);
+      if (vol !== 0) return vol;
+      const liq =
+        (parseDexUsdNumber(b.liquidity?.usd) ?? 0) -
+        (parseDexUsdNumber(a.liquidity?.usd) ?? 0);
+      if (liq !== 0) return liq;
+      return quotePreference(a.quoteToken?.symbol) - quotePreference(b.quoteToken?.symbol);
     })[0] ?? null
   );
 }
@@ -198,20 +192,27 @@ async function fetchPairsFromTopBoosts(): Promise<DexPair[]> {
 }
 
 async function fetchPairsFromSearch(): Promise<DexPair[]> {
-  // No USDT/USDC queries — stable bases are hidden on list pages by default.
+  // Multi-chain seeds — avoid Solana/Raydium-only "All" lists.
   const queries = [
-    "SOL",
     "ETH",
-    "BASE",
-    "BNB",
+    "WETH",
+    "UNI",
+    "LINK",
+    "AAVE",
+    "WBTC",
     "BTC",
-    "PEPE",
-    "WIF",
+    "SOL",
     "BONK",
+    "WIF",
+    "BASE",
+    "BRETT",
+    "BNB",
+    "CAKE",
+    "INJ",
+    "AVAX",
+    "PEPE",
     "AI",
     "meme",
-    "INJ",
-    "SUI",
   ];
   const out: DexPair[] = [];
   await Promise.all(
@@ -245,6 +246,42 @@ async function collectExplorerRawPairs(): Promise<DexPair[]> {
 }
 
 /**
+ * Cap any single chain so "All" stays a mixed multi-chain list (not Raydium/Solana-only).
+ * Majors already collapsed upstream — this only balances the remaining rows.
+ */
+function balanceExplorerByChain(
+  rows: DexLivePairRow[],
+  maxRows: number,
+  maxShare = 0.38,
+): DexLivePairRow[] {
+  const sorted = [...rows].sort(
+    (a, b) => (b.volume24h ?? b.liquidityUsd ?? 0) - (a.volume24h ?? a.liquidityUsd ?? 0),
+  );
+  const cap = Math.max(12, Math.floor(maxRows * maxShare));
+  const counts = new Map<string, number>();
+  const out: DexLivePairRow[] = [];
+  const deferred: DexLivePairRow[] = [];
+
+  for (const row of sorted) {
+    const chain = normalizeDexChainId(row.chain) ?? (row.chain.trim().toLowerCase() || "other");
+    const n = counts.get(chain) ?? 0;
+    if (n >= cap) {
+      deferred.push(row);
+      continue;
+    }
+    counts.set(chain, n + 1);
+    out.push(row);
+    if (out.length >= maxRows) return out;
+  }
+
+  for (const row of deferred) {
+    if (out.length >= maxRows) break;
+    out.push(row);
+  }
+  return out;
+}
+
+/**
  * Broader Dex pair set for /pairs explorer.
  * Reuses the same price mapping as list pages; does not change Just Launched / Low Caps rules.
  */
@@ -252,20 +289,22 @@ export async function getDexExplorerPairs(
   maxRows = DEX_EXPLORER_MAX_ROWS,
 ): Promise<DexLivePairRow[]> {
   const pairs = await collectExplorerRawPairs();
-  const rows = dedupeLiveRows(pairs)
-    .filter((r) => (r.liquidityUsd ?? 0) >= DEX_EXPLORER_MIN_LIQ_USD)
-    .sort((a, b) => {
-      const av = a.volume24h ?? a.liquidityUsd ?? 0;
-      const bv = b.volume24h ?? b.liquidityUsd ?? 0;
-      return bv - av;
-    })
-    .slice(0, Math.min(maxRows, DEX_EXPLORER_MAX_ROWS));
+  const mapped = dedupeLiveRows(pairs).filter(
+    (r) => (r.liquidityUsd ?? 0) >= DEX_EXPLORER_MIN_LIQ_USD,
+  );
+  const rows = balanceExplorerByChain(mapped, Math.min(maxRows, DEX_EXPLORER_MAX_ROWS));
 
   logDexLivePairSamples(rows, "dex-explorer-pairs");
+  const chainCounts: Record<string, number> = {};
+  for (const r of rows) {
+    const c = normalizeDexChainId(r.chain) ?? r.chain;
+    chainCounts[c] = (chainCounts[c] ?? 0) + 1;
+  }
   console.info("[dex-explorer-pairs] summary", {
     raw: pairs.length,
     mapped: rows.length,
     withPrice: rows.filter((r) => r.priceUsd != null).length,
+    chains: chainCounts,
   });
 
   return rows;
@@ -292,8 +331,11 @@ function dedupeLiveRows(pairs: DexPair[]): DexLivePairRow[] {
     if (row) byKey.set(key, row);
   }
 
-  // Address-level first, then collapse majors to one ticker and hide stable bases.
-  return finalizeDexListRows([...byKey.values()], { includeStableBases: false });
+  // Address-level only here — ticker collapse runs after chain filters on Tokens/Pairs.
+  return finalizeDexListRows([...byKey.values()], {
+    includeStableBases: false,
+    dedupeTickers: false,
+  });
 }
 
 /** Fetch live Dex pairs with prices. Throws DexScreenerFetchError if unusable. */
@@ -341,7 +383,7 @@ export async function getLiveDexPairs(limit = 30): Promise<DexLivePairRow[]> {
 
 const loadExplorerCached = unstable_cache(
   async () => getDexExplorerPairs(DEX_EXPLORER_MAX_ROWS),
-  ["dex-explorer-pairs-v3-major-ticker-dedupe"],
+  ["dex-explorer-pairs-v5-ticker-dedupe-client"],
   { revalidate: DEX_EXPLORER_REVALIDATE_SECONDS },
 );
 

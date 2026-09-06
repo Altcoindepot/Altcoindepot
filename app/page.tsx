@@ -129,7 +129,7 @@ async function fetchDexHeatSoft(): Promise<DexHeatSnapshot> {
       {
         id: "injective",
         label: "INJ",
-        kind: "chain",
+        kind: "token",
         filterChain: "injective",
         href: "/pairs?chain=injective",
         heatPct: 0,

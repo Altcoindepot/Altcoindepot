@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { DexHeatBucket, DexHeatSnapshot } from "@/lib/dex-narrative-heat";
-import { formatDexPct } from "@/lib/dex-pair-fields";
+import { formatDexPct, formatDexPriceUsd } from "@/lib/dex-pair-fields";
 import { sameDexChain, normalizeDexChainId } from "@/lib/dex-token-path";
 import { MarketRow } from "@/components/market-row";
 import { ChainIcon } from "@/components/chain-icon";
@@ -47,34 +47,49 @@ function HeatChip({
   const preview = bucket.children.slice(0, 2);
   const windowLabel = `${bucket.window.toUpperCase()} momentum`;
   const empty = bucket.sampleSize === 0;
+  const isTokenCard = bucket.kind === "token";
+  const headerClass =
+    "block w-full min-h-10 flex-1 text-left active:opacity-90 sm:min-h-11";
+
+  const headerBody = (
+    <>
+      <div className="flex items-center gap-1.5 sm:gap-2.5">
+        <ChainIcon chainId={bucket.filterChain} size={24} />
+        <p className="truncate text-[13px] font-bold tracking-tight text-zinc-50 sm:text-lg">
+          {bucket.label}
+        </p>
+      </div>
+      <p
+        className={`mt-2 font-mono text-2xl font-black tabular-nums leading-none sm:mt-3 sm:text-4xl ${
+          empty ? "text-zinc-600" : up ? "text-teal-300" : "text-rose-300"
+        }`}
+      >
+        {empty ? "—" : formatHeat(bucket.heatPct)}
+      </p>
+      <p className="mt-1 text-[9px] font-semibold uppercase tracking-wider text-zinc-500 sm:mt-1.5 sm:text-[10px]">
+        {empty ? "Waiting for liquid pairs" : windowLabel}
+      </p>
+    </>
+  );
 
   return (
     <article
       className={`glass-card flex min-h-[8.25rem] flex-col rounded-xl p-2.5 sm:min-h-[12rem] sm:rounded-2xl sm:p-5 ${chipTone(bucket, selected, isTop)}`}
     >
-      <button
-        type="button"
-        onClick={() => onSelect(bucket.filterChain)}
-        aria-pressed={selected}
-        className="block w-full min-h-10 flex-1 text-left active:opacity-90 sm:min-h-11"
-      >
-        <div className="flex items-center gap-1.5 sm:gap-2.5">
-          <ChainIcon chainId={bucket.filterChain} size={24} />
-          <p className="truncate text-[13px] font-bold tracking-tight text-zinc-50 sm:text-lg">
-            {bucket.label}
-          </p>
-        </div>
-        <p
-          className={`mt-2 font-mono text-2xl font-black tabular-nums leading-none sm:mt-3 sm:text-4xl ${
-            empty ? "text-zinc-600" : up ? "text-teal-300" : "text-rose-300"
-          }`}
+      {isTokenCard && !empty ? (
+        <Link href={bucket.href} className={headerClass}>
+          {headerBody}
+        </Link>
+      ) : (
+        <button
+          type="button"
+          onClick={() => onSelect(bucket.filterChain)}
+          aria-pressed={selected}
+          className={headerClass}
         >
-          {empty ? "—" : formatHeat(bucket.heatPct)}
-        </p>
-        <p className="mt-1 text-[9px] font-semibold uppercase tracking-wider text-zinc-500 sm:mt-1.5 sm:text-[10px]">
-          {empty ? "Waiting for liquid pairs" : windowLabel}
-        </p>
-      </button>
+          {headerBody}
+        </button>
+      )}
 
       {preview.length > 0 ? (
         <div className="mt-2 flex flex-wrap gap-1 border-t border-white/10 pt-2 sm:mt-3 sm:gap-1.5 sm:pt-3">
@@ -91,6 +106,9 @@ function HeatChip({
                 }`}
               >
                 <span className="truncate uppercase text-zinc-100">{child.pairLabel}</span>
+                {child.priceUsd != null ? (
+                  <span className="text-zinc-400">{formatDexPriceUsd(child.priceUsd)}</span>
+                ) : null}
                 <span>{formatDexPct(child.changePct)}</span>
               </Link>
             );

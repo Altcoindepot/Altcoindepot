@@ -20,6 +20,8 @@ export type DexListQuery = {
   sort: DexListSort;
   dir: DexListDir;
   chain: string;
+  /** Venue filter — "all" or a dex id family like "raydium". Never implied by chain=all. */
+  dex: string;
   minLiq: DexListMinLiq;
   age: DexListAge;
   pulse: DexListPulse;
@@ -29,6 +31,7 @@ export const DEFAULT_DEX_LIST_QUERY: DexListQuery = {
   sort: "newest",
   dir: "desc",
   chain: "all",
+  dex: "all",
   minLiq: "all",
   age: "all",
   pulse: "all",
@@ -39,6 +42,7 @@ export const LOW_CAPS_DEFAULT_QUERY: DexListQuery = {
   sort: "newest",
   dir: "desc",
   chain: "all",
+  dex: "all",
   minLiq: "25k",
   age: "all",
   pulse: "all",
@@ -49,6 +53,7 @@ export const JUST_LAUNCHED_DEFAULT_QUERY: DexListQuery = {
   sort: "newest",
   dir: "desc",
   chain: "all",
+  dex: "all",
   minLiq: "all",
   age: "15m",
   pulse: "all",
@@ -59,6 +64,7 @@ export const PAIRS_DEFAULT_QUERY: DexListQuery = {
   sort: "volume",
   dir: "desc",
   chain: "all",
+  dex: "all",
   minLiq: "25k",
   age: "all",
   pulse: "all",
@@ -126,10 +132,15 @@ export const MAJOR_DEX_CHAIN_FILTERS = [
   { id: "ethereum", label: "ETH" },
   { id: "base", label: "BASE" },
   { id: "bsc", label: "BSC" },
-  { id: "arbitrum", label: "ARB" },
+  { id: "injective", label: "INJ" },
   { id: "polygon", label: "POL" },
   { id: "avalanche", label: "AVAX" },
 ] as const;
+
+/** Tokens page venue chips (not chains). */
+export const DEX_VENUE_FILTERS = [{ id: "raydium", label: "Raydium" }] as const;
+
+const KNOWN_DEX_FILTERS = new Set<string>(DEX_VENUE_FILTERS.map((d) => d.id));
 
 const MIN_LIQ_USD: Record<DexListMinLiq, number> = {
   all: 0,
@@ -140,6 +151,7 @@ const MIN_LIQ_USD: Record<DexListMinLiq, number> = {
 export type DexListSortable = {
   id?: string;
   chain?: string;
+  dex?: string;
   liquidity?: number | null;
   volume?: number | null;
   change24h?: number | null;
@@ -166,6 +178,27 @@ function isPulse(value: string | null): value is DexListPulse {
   return DEX_LIST_PULSES.includes(value as DexListPulse);
 }
 
+function normalizeDexFilter(raw: string): string {
+  const v = raw.trim().toLowerCase();
+  if (!v || v === "all") return "all";
+  if (KNOWN_DEX_FILTERS.has(v)) return v;
+  return "all";
+}
+
+/** True when a pair's dexId belongs to the Raydium family. */
+export function matchesDexVenueFilter(
+  rowDex: string | null | undefined,
+  filter: string,
+): boolean {
+  if (!filter || filter === "all") return true;
+  const d = (rowDex ?? "").trim().toLowerCase();
+  if (!d) return false;
+  if (filter === "raydium") {
+    return d === "raydium" || d.startsWith("raydium");
+  }
+  return d === filter || d.startsWith(filter);
+}
+
 export function parseDexListQuery(
   sp: { get(name: string): string | null },
   defaults: DexListQuery = DEFAULT_DEX_LIST_QUERY,
@@ -175,6 +208,7 @@ export function parseDexListQuery(
   const chainRaw = sp.get("chain")?.trim().toLowerCase() ?? "";
   const chainCanonical =
     chainRaw && chainRaw !== "all" ? (normalizeDexChainId(chainRaw) ?? chainRaw) : "";
+  const dexRaw = sp.get("dex")?.trim().toLowerCase() ?? "";
   const minLiqRaw = sp.get("minLiq");
   const ageRaw = sp.get("age");
   const pulseRaw = sp.get("pulse");
@@ -183,6 +217,7 @@ export function parseDexListQuery(
     sort,
     dir: sortUsesDir(sort) && isDir(dirRaw) ? dirRaw : defaults.dir,
     chain: chainCanonical || defaults.chain,
+    dex: dexRaw ? normalizeDexFilter(dexRaw) : defaults.dex || "all",
     minLiq: isMinLiq(minLiqRaw) ? minLiqRaw : defaults.minLiq,
     age: isAge(ageRaw) ? ageRaw : defaults.age,
     pulse: isPulse(pulseRaw) ? pulseRaw : defaults.pulse,
@@ -233,8 +268,10 @@ export function applyDexListQuery<T extends DexListSortable>(
 ): T[] {
   const minUsd = MIN_LIQ_USD[query.minLiq];
   const maxAge = AGE_MS[query.age];
+  const dexFilter = query.dex || "all";
   const filtered = rows.filter((row) => {
     if (!chainMatches(row.chain, query.chain)) return false;
+    if (!matchesDexVenueFilter(row.dex, dexFilter)) return false;
     if (minUsd > 0 && (row.liquidity ?? 0) < minUsd) return false;
     if (maxAge < Number.POSITIVE_INFINITY) {
       const created = row.pairCreatedAt;
@@ -274,7 +311,11 @@ export function dexListQuerySummary(query: DexListQuery, chainLabel: string): st
   if (sortUsesDir(query.sort) && query.dir === "asc" && query.sort !== "newest") {
     parts.push("Low→high");
   }
-  parts.push(query.chain === "all" ? "All" : chainLabel);
+  if (query.dex && query.dex !== "all") {
+    parts.push(query.dex === "raydium" ? "Raydium" : query.dex);
+  } else {
+    parts.push(query.chain === "all" ? "All" : chainLabel);
+  }
   if (query.age !== "all") parts.push(DEX_LIST_AGE_LABELS[query.age]);
   if (query.minLiq !== "all") parts.push(DEX_LIST_MIN_LIQ_LABELS[query.minLiq]);
   if (query.pulse !== "all") parts.push(DEX_LIST_PULSE_LABELS[query.pulse]);
@@ -290,13 +331,17 @@ export function dexListQuerySearchParams(
   params.delete("sort");
   params.delete("dir");
   params.delete("chain");
+  params.delete("dex");
   params.delete("minLiq");
   params.delete("age");
   params.delete("pulse");
+  const dex = query.dex || "all";
+  const defaultDex = defaults.dex || "all";
   const custom =
     query.sort !== defaults.sort ||
     (sortUsesDir(query.sort) && query.dir !== defaults.dir) ||
     query.chain !== defaults.chain ||
+    dex !== defaultDex ||
     query.minLiq !== defaults.minLiq ||
     query.age !== defaults.age ||
     query.pulse !== defaults.pulse;
@@ -304,6 +349,7 @@ export function dexListQuerySearchParams(
     if (query.sort !== defaults.sort) params.set("sort", query.sort);
     if (sortUsesDir(query.sort) && query.dir !== defaults.dir) params.set("dir", query.dir);
     if (query.chain !== "all" && query.chain !== defaults.chain) params.set("chain", query.chain);
+    if (dex !== "all" && dex !== defaultDex) params.set("dex", dex);
     if (query.minLiq !== defaults.minLiq) params.set("minLiq", query.minLiq);
     if (query.age !== defaults.age) params.set("age", query.age);
     if (query.pulse !== defaults.pulse) params.set("pulse", query.pulse);

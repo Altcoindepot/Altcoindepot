@@ -180,6 +180,15 @@ export function HomeNewsFeed({
           </span>
         </Link>
       </div>
+      <p className="border-t border-white/[0.06] px-3 py-2 text-[10px] text-zinc-600 sm:px-4 sm:text-[11px]">
+        Something off?{" "}
+        <Link
+          href="/contact"
+          className="font-medium text-teal-300/90 underline-offset-2 hover:text-teal-200 hover:underline"
+        >
+          Send feedback
+        </Link>
+      </p>
     </section>
   );
 }

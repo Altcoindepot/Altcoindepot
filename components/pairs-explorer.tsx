@@ -67,16 +67,22 @@ export function PairsExplorer({
       searchParams.get("stable") === "1" ||
       searchParams.get("stables") === "1" ||
       searchParams.get("stable") === "true";
-    const deduped = finalizeDexListRows(toSortable(rows) as DexLivePairRow[], {
-      includeStableBases: includeStables,
-    });
-    const sorted = applyDexListQuery(deduped, {
+    const sortable = toSortable(rows) as DexLivePairRow[];
+    // Chain/DEX filter first, then one row per ticker within that scope.
+    const scoped = applyDexListQuery(sortable, {
       ...query,
-      // Explorer is not pulse-driven
       pulse: "all",
       age: "all",
     });
-    return sorted as DexLivePairRow[];
+    const deduped = finalizeDexListRows(scoped, {
+      includeStableBases: includeStables,
+      sortByVolume: false,
+    });
+    return applyDexListQuery(deduped, {
+      ...query,
+      pulse: "all",
+      age: "all",
+    }) as DexLivePairRow[];
   }, [rows, query, searchParams]);
 
   const shown = filtered.slice(0, Math.min(visible, DEX_EXPLORER_MAX_ROWS));

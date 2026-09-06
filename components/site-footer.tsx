@@ -20,7 +20,7 @@ const PRIMARY_LINKS = [
   { href: "/market-overview", label: "Market overview" },
   { href: "/podcasts", label: "Podcasts" },
   { href: "/ecosystem", label: "Ecosystem Research" },
-  { href: "/contact", label: "Contact" },
+  { href: "/contact", label: "Feedback" },
   { href: "/affiliate-disclosure", label: "Affiliate disclosure" },
 ] as const;
 
