@@ -12,41 +12,18 @@ import {
   type DexScannerQuery,
   DEX_SCANNER_DEFAULT_QUERY,
 } from "@/lib/dex-scanner-query";
+import {
+  finalizeDexListRows,
+  isDexListMajorTicker,
+  majorQuoteRank,
+  wantsDexStableBases,
+} from "@/lib/dex-majors-list-dedupe";
 
 const DEX_BASE = "https://api.dexscreener.com";
 export const DEX_SCANNER_REVALIDATE_SECONDS = 180;
 export const DEX_SCANNER_MAX_ROWS = 300;
 export const DEX_SCANNER_INITIAL_ROWS = 100;
 export const DEX_SCANNER_PAGE_STEP = 50;
-
-const MAJOR_SYMBOLS = new Set([
-  "BTC",
-  "WBTC",
-  "ETH",
-  "WETH",
-  "SOL",
-  "WSOL",
-  "BNB",
-  "WBNB",
-  "AVAX",
-  "WAVAX",
-  "MATIC",
-  "WMATIC",
-  "POL",
-  "ARB",
-  "OP",
-  "SUI",
-  "HYPE",
-  "TON",
-  "TRX",
-  "XRP",
-  "DOGE",
-  "ADA",
-  "DOT",
-  "LINK",
-  "UNI",
-  "AAVE",
-]);
 
 const STABLE_QUOTES = new Set([
   "USDT",
@@ -109,10 +86,7 @@ function ageLabelFromCreated(createdAt: number | null): string {
 }
 
 function isMajorSymbol(symbol: string): boolean {
-  const s = symbol.trim().toUpperCase();
-  if (MAJOR_SYMBOLS.has(s)) return true;
-  if (s.startsWith("W") && MAJOR_SYMBOLS.has(s.slice(1))) return true;
-  return false;
+  return isDexListMajorTicker(symbol);
 }
 
 function quotePreference(quote: string | undefined): number {
@@ -120,7 +94,7 @@ function quotePreference(quote: string | undefined): number {
   if (q === "USDT") return 0;
   if (q === "USDC") return 1;
   if (STABLE_QUOTES.has(q)) return 2;
-  return 3;
+  return majorQuoteRank(q) + 2;
 }
 
 async function dexFetch(path: string): Promise<unknown> {
@@ -245,8 +219,6 @@ async function fetchSearchPairs(): Promise<DexPair[]> {
     "BASE",
     "BNB",
     "BTC",
-    "USDT",
-    "USDC",
     "PEPE",
     "WIF",
     "BONK",
@@ -254,6 +226,8 @@ async function fetchSearchPairs(): Promise<DexPair[]> {
     "meme",
     "ARB",
     "AVAX",
+    "INJ",
+    "SUI",
   ];
   const out: DexPair[] = [];
   await Promise.all(
@@ -291,7 +265,8 @@ function dedupeScannerRows(pairs: DexPair[]): DexScannerRow[] {
     const row = mapPairToScannerRow(best);
     if (row) rows.push(row);
   }
-  return rows;
+  // Keep stables in the cache; applyDexScannerQuery hides them unless q asks for stables.
+  return finalizeDexListRows(rows, { includeStableBases: true });
 }
 
 async function loadScannerUncached(): Promise<DexScannerRow[]> {
@@ -324,7 +299,7 @@ async function loadScannerUncached(): Promise<DexScannerRow[]> {
   return rows;
 }
 
-const loadCached = unstable_cache(loadScannerUncached, ["dex-scanner-rows-v1"], {
+const loadCached = unstable_cache(loadScannerUncached, ["dex-scanner-rows-v2-major-ticker-dedupe"], {
   revalidate: DEX_SCANNER_REVALIDATE_SECONDS,
 });
 
@@ -350,6 +325,7 @@ export function applyDexScannerQuery(
   query: DexScannerQuery = DEX_SCANNER_DEFAULT_QUERY,
 ): DexScannerRow[] {
   const q = query.q.trim().toLowerCase();
+  const includeStables = wantsDexStableBases(query.q);
   const filtered = rows.filter((row) => {
     const liq = row.liquidityUsd ?? 0;
     const vol = row.volume24h ?? 0;
@@ -357,6 +333,7 @@ export function applyDexScannerQuery(
     if (liq === 0 && vol === 0) return false;
     if (!chainOk(row.chain, query.chain)) return false;
     if (!query.includeMajors && row.isMajor) return false;
+    if (!includeStables && (row.symbol === "USDT" || row.symbol === "USDC")) return false;
     if (!inRange(row.liquidityUsd, query.minLiq, query.maxLiq)) return false;
     if (!inRange(row.volume24h, query.minVol, query.maxVol)) return false;
     if (!inRange(row.marketCap, query.minMcap, query.maxMcap)) return false;

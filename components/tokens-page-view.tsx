@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { DexLivePairRow } from "@/lib/dexscreener-live-pairs";
 import { DEX_EXPLORER_MAX_ROWS } from "@/lib/dexscreener-live-pairs";
+import { finalizeDexListRows } from "@/lib/dex-majors-list-dedupe";
 import {
   applyDexListQuery,
   dexListQuerySearchParams,
@@ -370,17 +371,22 @@ export function TokensPageView({
   const [visible, setVisible] = useState(INITIAL_VISIBLE);
 
   const filtered = useMemo(() => {
-    const sorted = applyDexListQuery(
-      rows.map((r) => ({
-        ...r,
-        volume: r.volume24h,
-        liquidity: r.liquidityUsd,
-        change24h: r.change24h,
-      })),
-      { ...query, pulse: "all", age: "all" },
-    );
+    const includeStables =
+      searchParams.get("stable") === "1" ||
+      searchParams.get("stables") === "1" ||
+      searchParams.get("stable") === "true";
+    const mapped = rows.map((r) => ({
+      ...r,
+      volume: r.volume24h,
+      liquidity: r.liquidityUsd,
+      change24h: r.change24h,
+    }));
+    const deduped = finalizeDexListRows(mapped as DexLivePairRow[], {
+      includeStableBases: includeStables,
+    });
+    const sorted = applyDexListQuery(deduped, { ...query, pulse: "all", age: "all" });
     return sorted as DexLivePairRow[];
-  }, [rows, query]);
+  }, [rows, query, searchParams]);
 
   const shown = filtered.slice(0, Math.min(visible, DEX_EXPLORER_MAX_ROWS));
 

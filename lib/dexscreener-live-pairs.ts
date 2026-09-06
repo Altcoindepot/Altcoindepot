@@ -8,6 +8,11 @@ import { unstable_cache } from "next/cache";
 import { dexVenueLabel } from "@/lib/dex-venue";
 import { normalizeDexChainId } from "@/lib/dex-token-path";
 import { parseDexUsdNumber } from "@/lib/dex-pair-fields";
+import {
+  finalizeDexListRows,
+  isDexListMajorTicker,
+  majorQuoteRank,
+} from "@/lib/dex-majors-list-dedupe";
 
 const DEX_BASE = "https://api.dexscreener.com";
 export const LIVE_PAIRS_REVALIDATE_SECONDS = 120;
@@ -131,43 +136,11 @@ async function dexFetch(path: string): Promise<unknown> {
 }
 
 function quotePreference(quote: string | undefined): number {
-  const q = (quote ?? "").trim().toUpperCase();
-  if (q === "USDT") return 0;
-  if (q === "USDC") return 1;
-  if (
-    q === "USD1" ||
-    q === "DAI" ||
-    q === "FDUSD" ||
-    q === "TUSD" ||
-    q === "USDE" ||
-    q === "BUSD" ||
-    q === "USD"
-  ) {
-    return 2;
-  }
-  return 3;
+  return majorQuoteRank(quote);
 }
 
 function isMajorBase(symbol: string | undefined): boolean {
-  const s = (symbol ?? "").trim().toUpperCase();
-  const majors = new Set([
-    "BTC",
-    "WBTC",
-    "ETH",
-    "WETH",
-    "SOL",
-    "WSOL",
-    "BNB",
-    "WBNB",
-    "AVAX",
-    "WAVAX",
-    "MATIC",
-    "WMATIC",
-    "POL",
-  ]);
-  if (majors.has(s)) return true;
-  if (s.startsWith("W") && majors.has(s.slice(1))) return true;
-  return false;
+  return isDexListMajorTicker(symbol ?? "");
 }
 
 function pickBestPair(pairs: DexPair[]): DexPair | null {
@@ -225,18 +198,20 @@ async function fetchPairsFromTopBoosts(): Promise<DexPair[]> {
 }
 
 async function fetchPairsFromSearch(): Promise<DexPair[]> {
+  // No USDT/USDC queries — stable bases are hidden on list pages by default.
   const queries = [
     "SOL",
     "ETH",
     "BASE",
     "BNB",
+    "BTC",
     "PEPE",
     "WIF",
     "BONK",
-    "USDT",
-    "USDC",
     "AI",
     "meme",
+    "INJ",
+    "SUI",
   ];
   const out: DexPair[] = [];
   await Promise.all(
@@ -317,9 +292,8 @@ function dedupeLiveRows(pairs: DexPair[]): DexLivePairRow[] {
     if (row) byKey.set(key, row);
   }
 
-  return [...byKey.values()].sort(
-    (a, b) => (b.volume24h ?? 0) - (a.volume24h ?? 0),
-  );
+  // Address-level first, then collapse majors to one ticker and hide stable bases.
+  return finalizeDexListRows([...byKey.values()], { includeStableBases: false });
 }
 
 /** Fetch live Dex pairs with prices. Throws DexScreenerFetchError if unusable. */
@@ -367,7 +341,7 @@ export async function getLiveDexPairs(limit = 30): Promise<DexLivePairRow[]> {
 
 const loadExplorerCached = unstable_cache(
   async () => getDexExplorerPairs(DEX_EXPLORER_MAX_ROWS),
-  ["dex-explorer-pairs-v2"],
+  ["dex-explorer-pairs-v3-major-ticker-dedupe"],
   { revalidate: DEX_EXPLORER_REVALIDATE_SECONDS },
 );
 

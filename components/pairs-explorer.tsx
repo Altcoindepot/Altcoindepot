@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { DexLivePairRow } from "@/lib/dexscreener-live-pairs";
 import { DEX_EXPLORER_MAX_ROWS } from "@/lib/dexscreener-live-pairs";
+import { finalizeDexListRows } from "@/lib/dex-majors-list-dedupe";
 import {
   applyDexListQuery,
   dexListQuerySearchParams,
@@ -62,14 +63,21 @@ export function PairsExplorer({
   const [visible, setVisible] = useState(INITIAL_VISIBLE);
 
   const filtered = useMemo(() => {
-    const sorted = applyDexListQuery(toSortable(rows), {
+    const includeStables =
+      searchParams.get("stable") === "1" ||
+      searchParams.get("stables") === "1" ||
+      searchParams.get("stable") === "true";
+    const deduped = finalizeDexListRows(toSortable(rows) as DexLivePairRow[], {
+      includeStableBases: includeStables,
+    });
+    const sorted = applyDexListQuery(deduped, {
       ...query,
       // Explorer is not pulse-driven
       pulse: "all",
       age: "all",
     });
     return sorted as DexLivePairRow[];
-  }, [rows, query]);
+  }, [rows, query, searchParams]);
 
   const shown = filtered.slice(0, Math.min(visible, DEX_EXPLORER_MAX_ROWS));
 
