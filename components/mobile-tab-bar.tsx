@@ -98,14 +98,14 @@ const TABS: Array<{
   },
 ];
 
-/** Mobile IA — icon + label, teal active, safe-area. Content uses layout pb. */
+/** Mobile IA — floating wet-glass capsule matching the desktop header chrome. */
 export function MobileTabBar() {
   const pathname = usePathname() || "/";
 
   return (
     <nav
       aria-label="Primary"
-      className="mobile-tab-bar fixed inset-x-0 bottom-0 z-50 pb-[env(safe-area-inset-bottom)] lg:hidden"
+      className="mobile-tab-bar fixed inset-x-2.5 bottom-[max(0.55rem,env(safe-area-inset-bottom))] z-50 overflow-hidden lg:hidden sm:inset-x-4"
     >
       <ul className="grid grid-cols-4">
         {TABS.map((tab) => {
@@ -115,7 +115,7 @@ export function MobileTabBar() {
               <Link
                 href={tab.href}
                 className={`flex min-h-12 flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[10px] font-semibold ${
-                  active ? "tab-active" : "text-zinc-500"
+                  active ? "tab-active" : "text-zinc-400"
                 }`}
               >
                 <span

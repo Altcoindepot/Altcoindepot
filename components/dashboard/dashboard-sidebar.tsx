@@ -169,7 +169,7 @@ export function DashboardSidebar({
       <aside
         aria-label="Site navigation"
         data-sidebar-nav
-        className="fixed bottom-0 left-0 top-[4.25rem] z-30 hidden w-52 flex-col border-r border-white/10 bg-[#0b0d11]/78 py-4 backdrop-blur-xl sm:top-[4.75rem] lg:flex xl:w-56"
+        className="fixed bottom-0 left-0 top-[4.25rem] z-30 hidden w-52 flex-col border-r border-white/10 chrome-glass rounded-none border-y-0 border-l-0 py-4 sm:top-[4.75rem] lg:flex xl:w-56"
       >
         <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2">
           <NavLinks pathname={pathname} watchlistOn={watchlistOn} />
@@ -182,7 +182,7 @@ export function DashboardSidebar({
       {/* Mobile / tablet: horizontal strip (replaces header menu button) */}
       <nav
         aria-label="Site navigation"
-        className="sticky top-[4.25rem] z-40 border-b border-white/10 bg-[#0b0d11]/78 backdrop-blur-xl sm:top-[4.75rem] lg:hidden"
+        className="sticky top-[4.25rem] z-40 border-b border-white/10 chrome-glass rounded-none sm:top-[4.75rem] lg:hidden"
       >
         <div className="flex gap-1 overflow-x-auto px-2 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {[...PRIMARY_NAV, ...MORE_NAV].map((item) => {
@@ -196,7 +196,7 @@ export function DashboardSidebar({
                 href={item.href}
                 className={`inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-full px-3 py-3 text-xs font-semibold whitespace-nowrap ${
                   active
-                    ? "bg-teal-500/15 text-teal-200"
+                    ? "nav-pill-active"
                     : "bg-white/5 text-zinc-400 hover:text-zinc-200"
                 }`}
               >

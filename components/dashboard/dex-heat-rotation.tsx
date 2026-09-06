@@ -19,7 +19,7 @@ function formatHeat(n: number): string {
 function chipTone(bucket: DexHeatBucket, selected: boolean, isTop: boolean): string {
   const ring = selected ? "ring-2 ring-teal-300/70" : "";
   if (bucket.status === "LEADING") {
-    return `${ring} heat-chip-leading ${isTop ? "leading-heat-pulse max-lg:animate-none" : ""}`;
+    return `${ring} heat-chip-leading ${isTop ? "leading-heat-pulse" : ""}`;
   }
   if (bucket.status === "FADING") {
     return `${ring} heat-chip-fading`;
@@ -50,41 +50,41 @@ function HeatChip({
 
   return (
     <article
-      className={`glass-card flex min-h-[11rem] flex-col rounded-2xl p-4 sm:min-h-[12rem] sm:p-5 ${chipTone(bucket, selected, isTop)}`}
+      className={`glass-card flex min-h-[8.25rem] flex-col rounded-xl p-2.5 sm:min-h-[12rem] sm:rounded-2xl sm:p-5 ${chipTone(bucket, selected, isTop)}`}
     >
       <button
         type="button"
         onClick={() => onSelect(bucket.filterChain)}
         aria-pressed={selected}
-        className="block w-full min-h-11 flex-1 text-left active:opacity-90"
+        className="block w-full min-h-10 flex-1 text-left active:opacity-90 sm:min-h-11"
       >
-        <div className="flex items-center gap-2.5">
-          <ChainIcon chainId={bucket.filterChain} size={28} />
-          <p className="truncate text-base font-bold tracking-tight text-zinc-50 sm:text-lg">
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
+          <ChainIcon chainId={bucket.filterChain} size={24} />
+          <p className="truncate text-[13px] font-bold tracking-tight text-zinc-50 sm:text-lg">
             {bucket.label}
           </p>
         </div>
         <p
-          className={`mt-3 font-mono text-3xl font-black tabular-nums leading-none sm:text-4xl ${
+          className={`mt-2 font-mono text-2xl font-black tabular-nums leading-none sm:mt-3 sm:text-4xl ${
             empty ? "text-zinc-600" : up ? "text-teal-300" : "text-rose-300"
           }`}
         >
           {empty ? "—" : formatHeat(bucket.heatPct)}
         </p>
-        <p className="mt-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+        <p className="mt-1 text-[9px] font-semibold uppercase tracking-wider text-zinc-500 sm:mt-1.5 sm:text-[10px]">
           {empty ? "Waiting for liquid pairs" : windowLabel}
         </p>
       </button>
 
       {preview.length > 0 ? (
-        <div className="mt-3 flex flex-wrap gap-1.5 border-t border-white/10 pt-3">
+        <div className="mt-2 flex flex-wrap gap-1 border-t border-white/10 pt-2 sm:mt-3 sm:gap-1.5 sm:pt-3">
           {preview.map((child) => {
             const childUp = child.changePct >= 0;
             return (
               <Link
                 key={child.id}
                 href={child.href}
-                className={`inline-flex max-w-full items-center gap-1 truncate rounded-full border px-2.5 py-1 font-mono text-[10px] font-semibold tabular-nums sm:text-[11px] ${
+                className={`inline-flex max-w-full items-center gap-1 truncate rounded-full border px-1.5 py-0.5 font-mono text-[9px] font-semibold tabular-nums sm:px-2.5 sm:py-1 sm:text-[11px] ${
                   childUp
                     ? "border-teal-400/30 bg-teal-500/10 text-teal-200"
                     : "border-rose-400/30 bg-rose-500/10 text-rose-200"
@@ -97,8 +97,8 @@ function HeatChip({
           })}
         </div>
       ) : (
-        <div className="mt-3 border-t border-white/10 pt-3">
-          <p className="text-[10px] text-zinc-600">No pair previews yet</p>
+        <div className="mt-2 border-t border-white/10 pt-2 sm:mt-3 sm:pt-3">
+          <p className="text-[9px] text-zinc-600 sm:text-[10px]">No pair previews yet</p>
         </div>
       )}
     </article>
@@ -106,12 +106,12 @@ function HeatChip({
 }
 
 /**
- * Home What’s rotating — fixed 2×2 on desktop, stacked on phone.
+ * Home What’s rotating — 2×2 heat chips on all breakpoints (smaller on phone).
  */
 export function DexHeatRotation({
   snapshot,
   className = "",
-  chipGridClassName = "grid grid-cols-1 gap-3 sm:grid-cols-2",
+  chipGridClassName = "grid grid-cols-2 gap-2 sm:gap-3",
 }: {
   snapshot: DexHeatSnapshot;
   className?: string;
@@ -155,7 +155,7 @@ export function DexHeatRotation({
         aria-labelledby="dex-heat-heading"
         className={`glass-panel rounded-2xl px-3 py-4 ${className}`.trim()}
       >
-        <h2 id="dex-heat-heading" className="text-xl font-bold text-zinc-50 sm:text-2xl">
+        <h2 id="dex-heat-heading" className="text-base font-bold text-zinc-50 sm:text-2xl">
           What&apos;s rotating
         </h2>
         <p className="mt-1 text-[11px] text-zinc-500">
@@ -171,11 +171,11 @@ export function DexHeatRotation({
         <div>
           <h2
             id="dex-heat-heading"
-            className="text-xl font-bold tracking-tight text-zinc-50 sm:text-2xl"
+            className="text-base font-bold tracking-tight text-zinc-50 sm:text-2xl"
           >
             What&apos;s rotating
           </h2>
-          <p className="mt-1 flex items-center gap-1.5 text-[11px] leading-snug text-zinc-500 sm:text-xs">
+          <p className="mt-0.5 flex items-center gap-1.5 text-[10px] leading-snug text-zinc-500 sm:mt-1 sm:text-xs">
             <span className="inline-block size-1.5 shrink-0 rounded-full bg-teal-400" aria-hidden />
             Real-time momentum across key ecosystems
           </p>

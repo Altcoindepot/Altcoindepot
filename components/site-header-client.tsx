@@ -123,24 +123,12 @@ export function SiteHeaderClient({ fetchedAt }: { fetchedAt?: number | null }) {
     <>
       <header className="site-header-shell">
         <div className="site-header-capsule">
-          {/* Mobile: hamburger + brand only */}
-          <button
-            type="button"
-            className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full text-zinc-300 hover:bg-white/5 lg:hidden"
-            aria-label="Open menu"
-            onClick={() => setMenuOpen(true)}
-          >
-            <svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-              <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
-            </svg>
-          </button>
-
           <BrandHomeLink className="shrink-0" showTagline={false} />
 
-          {/* Desktop icon + label nav */}
+          {/* Same primary nav chrome on all breakpoints — scrollable pills on phone */}
           <nav
             aria-label="Primary"
-            className="ml-1 hidden min-w-0 flex-1 items-center gap-0.5 overflow-x-auto overflow-y-visible [scrollbar-width:none] lg:flex xl:ml-3 [&::-webkit-scrollbar]:hidden"
+            className="ml-0.5 flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto overflow-y-visible [scrollbar-width:none] xl:ml-3 [&::-webkit-scrollbar]:hidden"
           >
             {DESKTOP_NAV.map((item) => {
               const active = item.match(pathname);
@@ -148,7 +136,7 @@ export function SiteHeaderClient({ fetchedAt }: { fetchedAt?: number | null }) {
                 <Link
                   key={item.label}
                   href={item.href}
-                  className={`inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium transition-colors xl:px-3 ${
+                  className={`inline-flex min-h-9 shrink-0 items-center gap-1 rounded-full px-2 text-[11px] font-medium transition-colors sm:min-h-10 sm:gap-1.5 sm:px-2.5 sm:text-[13px] xl:px-3 ${
                     active
                       ? "nav-pill-active"
                       : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
@@ -162,8 +150,7 @@ export function SiteHeaderClient({ fetchedAt }: { fetchedAt?: number | null }) {
           </nav>
 
           <div className="ml-auto flex shrink-0 items-center gap-1.5">
-            {/* Desktop search only — mobile uses bottom Search tab */}
-            <div className="hidden lg:block">
+            <div className="hidden min-w-[12rem] lg:block lg:min-w-[14rem]">
               <CoinSearchBar
                 inputId="header-coin-search"
                 placeholder="Search ticker or contract"
@@ -172,7 +159,7 @@ export function SiteHeaderClient({ fetchedAt }: { fetchedAt?: number | null }) {
             </div>
             <button
               type="button"
-              className="hidden min-h-10 min-w-10 shrink-0 items-center justify-center rounded-full text-zinc-400 hover:bg-white/5 hover:text-zinc-200 lg:inline-flex"
+              className="inline-flex min-h-10 min-w-10 shrink-0 items-center justify-center rounded-full text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
               aria-label="More"
               onClick={() => setMenuOpen(true)}
             >

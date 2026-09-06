@@ -1,6 +1,10 @@
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { isProductionBuild } from "@/lib/build-phase";
+import {
+  blockCoinGeckoMarkets,
+  isCoinGeckoMarketsUrl,
+} from "@/lib/coingecko-markets-block";
 
 /**
  * Single control point for all CoinGecko traffic.
@@ -11,7 +15,8 @@ import { isProductionBuild } from "@/lib/build-phase";
  * - COINGECKO_LIVE — "true" to allow live calls locally; Production defaults on
  *   when the flag is unset and an API key is present
  *
- * `/coins/markets` is HARD-BLOCKED. Allowed: `/coins/{id}` and contract lookups only.
+ * `/coins/markets` is HARD-BLOCKED (coinGeckoFetch + global fetch patch).
+ * Allowed: `/coins/{id}` and contract lookups only.
  */
 export type CoinGeckoApiPlan = "demo" | "pro";
 
@@ -101,14 +106,9 @@ export async function coinGeckoFetch(
   const endpoint = (path.split("?")[0] ?? path).replace(/^https?:\/\/[^/]+\/api\/v3/i, "");
   const route = init?.route ?? "unknown";
 
-  // HARD BLOCK — Demo quota leak. Never call /coins/markets from runtime.
-  if (/\/coins\/markets\b/i.test(path) || /\/coins\/markets\b/i.test(endpoint)) {
-    console.error("[coingecko] BLOCKED /coins/markets", { route, endpoint, path: path.slice(0, 120) });
-    return new Response("[]", {
-      status: 451,
-      statusText: "CoinGecko /coins/markets disabled",
-      headers: { "content-type": "application/json" },
-    });
+  // HARD BLOCK — before URL build / network. Covers path and absolute forms.
+  if (isCoinGeckoMarketsUrl(path) || isCoinGeckoMarketsUrl(endpoint)) {
+    return blockCoinGeckoMarkets({ route, urlOrPath: path, via: "coinGeckoFetch" });
   }
 
   const skip = getCoinGeckoLiveSkipReason();
@@ -132,6 +132,12 @@ export async function coinGeckoFetch(
       ? path
       : `${getCoinGeckoApiBase()}${path.startsWith("/") ? path : `/${path}`}`,
   );
+
+  // Second gate — final URL must never contain /coins/markets (no leading-slash misses).
+  if (isCoinGeckoMarketsUrl(normalized)) {
+    return blockCoinGeckoMarkets({ route, urlOrPath: normalized, via: "coinGeckoFetch" });
+  }
+
   const { next: nextInit, cache, route: _route, ...rest } = init ?? {};
   const revalidate = nextInit?.revalidate ?? COINGECKO_REVALIDATE_SECONDS;
   const useForceCache = cache === "force-cache";
@@ -166,11 +172,10 @@ export class CoinGeckoRateLimitError extends Error {
   }
 }
 
-export const MARKETS_PATH =
-  "/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=true&price_change_percentage=24h%2C7d";
-
-/** @deprecated Markets API disabled — do not use. */
-export const MARKETS_URL = `https://api.coingecko.com/api/v3${MARKETS_PATH}`;
+/** @deprecated Removed — referencing this must not rebuild a markets URL. */
+export const MARKETS_PATH = "/coins/markets-DISABLED" as const;
+/** @deprecated Removed — do not fetch. */
+export const MARKETS_URL = "https://api.coingecko.com/api/v3/coins/markets-DISABLED" as const;
 
 export type CoinMarket = {
   id: string;
@@ -210,12 +215,15 @@ const EMPTY_MARKETS_BUNDLE: MarketsBundle = {
 
 /**
  * DISABLED — never calls CoinGecko `/coins/markets`.
- * Kept so old imports compile; always returns [].
+ * Kept so old imports compile; always returns [] before any fetch.
  */
 export async function loadMarkets(
   _init?: RequestInit & { next?: { revalidate?: number } },
 ): Promise<CoinMarket[]> {
-  console.warn("[coingecko] loadMarkets blocked — use Dex lists");
+  console.error("[coingecko] BLOCKED /coins/markets", {
+    route: "loadMarkets",
+    via: "hard-return",
+  });
   return [];
 }
 
@@ -226,12 +234,21 @@ export async function loadMarketsByGeckoCategory(
   _init?: RequestInit & { next?: { revalidate?: number } },
   _opts?: { sparkline?: boolean },
 ): Promise<CoinMarket[]> {
-  console.warn("[coingecko] loadMarketsByGeckoCategory blocked — use Dex lists");
+  console.error("[coingecko] BLOCKED /coins/markets", {
+    route: "loadMarketsByGeckoCategory",
+    via: "hard-return",
+    categoryId: _categoryId,
+  });
   return [];
 }
 
 /** DISABLED — empty category markets (no Gecko). */
 export async function getCachedCategoryPageMarkets(_categoryId: string): Promise<CoinMarket[]> {
+  console.error("[coingecko] BLOCKED /coins/markets", {
+    route: "getCachedCategoryPageMarkets",
+    via: "hard-return",
+    categoryId: _categoryId,
+  });
   return [];
 }
 
@@ -239,7 +256,10 @@ export async function getCachedCategoryPageMarkets(_categoryId: string): Promise
 export async function loadMarketsBundle(
   _init?: RequestInit & { next?: { revalidate?: number } },
 ): Promise<MarketsBundle> {
-  console.warn("[coingecko] loadMarketsBundle blocked — use Dex lists");
+  console.error("[coingecko] BLOCKED /coins/markets", {
+    route: "loadMarketsBundle",
+    via: "hard-return",
+  });
   return EMPTY_MARKETS_BUNDLE;
 }
 

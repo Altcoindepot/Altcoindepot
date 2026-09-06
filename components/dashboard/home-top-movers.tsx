@@ -17,14 +17,14 @@ export function HomeTopMovers({
       aria-labelledby="home-top-movers-heading"
       className={`ds-list-shell ${className}`.trim()}
     >
-      <div className="flex items-center justify-between gap-2 border-b border-teal-400/15 px-3 py-2.5 sm:px-4 sm:py-3">
+      <div className="flex items-center justify-between gap-1 border-b border-teal-400/15 px-2 py-2 sm:gap-2 sm:px-4 sm:py-3">
         <h2
           id="home-top-movers-heading"
-          className="flex items-center gap-2 text-sm font-bold tracking-tight text-zinc-50 sm:text-base"
+          className="flex items-center gap-1 text-[11px] font-bold tracking-tight text-zinc-50 sm:gap-2 sm:text-base"
         >
           Top movers
           <svg
-            className="size-3.5 text-teal-300/80"
+            className="hidden size-3.5 text-teal-300/80 sm:block"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -35,13 +35,13 @@ export function HomeTopMovers({
             <path d="M14 7h6v6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </h2>
-        <div className="flex items-center gap-2">
-          <span className="rounded-md border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] text-zinc-400">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <span className="hidden rounded-md border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] text-zinc-400 sm:inline">
             24h
           </span>
           <Link
             href="/gainers-losers"
-            className="inline-flex min-h-9 shrink-0 items-center rounded-full px-2.5 text-[11px] font-semibold text-teal-300/90 active:bg-teal-500/10"
+            className="inline-flex min-h-8 shrink-0 items-center rounded-full px-1.5 text-[10px] font-semibold text-teal-300/90 active:bg-teal-500/10 sm:min-h-9 sm:px-2.5 sm:text-[11px]"
           >
             All →
           </Link>
@@ -49,7 +49,7 @@ export function HomeTopMovers({
       </div>
 
       {rows.length === 0 ? (
-        <p className="px-3 py-4 text-center text-sm text-zinc-500 sm:px-4">
+        <p className="px-2 py-3 text-center text-[11px] text-zinc-500 sm:px-4 sm:py-4 sm:text-sm">
           Movers loading — open{" "}
           <Link href="/gainers-losers" className="text-teal-300 underline-offset-2 hover:underline">
             Gainers
@@ -67,22 +67,24 @@ export function HomeTopMovers({
               <li key={row.id}>
                 <Link
                   href={chainMoverHref(row)}
-                  className="flex min-h-12 items-center gap-2.5 px-3 py-2.5 transition-colors active:bg-white/[0.05] sm:px-4 sm:hover:bg-white/[0.035]"
+                  className="flex min-h-10 items-center gap-1.5 px-2 py-1.5 transition-colors active:bg-white/[0.05] sm:min-h-12 sm:gap-2.5 sm:px-4 sm:py-2.5 sm:hover:bg-white/[0.035]"
                 >
-                  <span className="w-4 shrink-0 text-center font-mono text-[11px] tabular-nums text-zinc-600">
+                  <span className="w-3 shrink-0 text-center font-mono text-[10px] tabular-nums text-zinc-600 sm:w-4 sm:text-[11px]">
                     {index + 1}
                   </span>
-                  <TokenAvatar symbol={row.symbol} imageUrl={row.imageUrl} size={28} />
+                  <span className="hidden sm:inline-flex">
+                    <TokenAvatar symbol={row.symbol} imageUrl={row.imageUrl} size={28} />
+                  </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[13px] font-semibold text-zinc-50">
+                    <span className="block truncate text-[11px] font-semibold text-zinc-50 sm:text-[13px]">
                       {row.name}
                     </span>
-                    <span className="mt-0.5 block truncate font-mono text-[10px] uppercase tracking-wide text-zinc-500">
+                    <span className="mt-0.5 block truncate font-mono text-[9px] uppercase tracking-wide text-zinc-500 sm:text-[10px]">
                       {pairHint}
                     </span>
                   </span>
                   <span
-                    className={`shrink-0 font-mono text-[13px] font-bold tabular-nums ${
+                    className={`shrink-0 font-mono text-[11px] font-bold tabular-nums sm:text-[13px] ${
                       up ? "text-teal-300" : "text-rose-300"
                     }`}
                   >

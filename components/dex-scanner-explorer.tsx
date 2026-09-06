@@ -313,14 +313,14 @@ export function DexScannerExplorer({
   return (
     <div className="space-y-3 overflow-x-hidden">
       {/* Mobile: sticky summary + chain chips + Filters CTA */}
-      <div className="sticky top-[4.35rem] z-30 -mx-3 space-y-2 border-b border-teal-400/20 bg-[#05080c]/90 px-3 py-2.5 shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-xl sm:top-[4.85rem] md:hidden">
+      <div className="sticky top-[4.35rem] z-30 -mx-3 space-y-2 chrome-glass rounded-none border-x-0 px-3 py-2.5 sm:top-[4.85rem] md:hidden">
         <div className="flex items-center gap-2">
           <p className="min-w-0 flex-1 truncate text-[11px] tabular-nums text-zinc-400">
             {summary}
           </p>
           <button
             type="button"
-            className="inline-flex min-h-11 shrink-0 items-center rounded-full border border-teal-400/30 bg-teal-500/10 px-4 text-xs font-semibold text-teal-200"
+            className="inline-flex min-h-11 shrink-0 items-center rounded-full nav-pill-active px-4 text-xs font-semibold"
             onClick={() => setFiltersOpen(true)}
             aria-haspopup="dialog"
             aria-expanded={filtersOpen}

@@ -6,7 +6,7 @@ import { PriceMarquee } from "@/components/price-marquee";
 export function SiteHeader({ fetchedAt }: { fetchedAt?: number | null }) {
   return (
     <>
-      <Suspense fallback={<div className="h-12 border-b border-white/10 bg-[#0a0a0a]" />}>
+      <Suspense fallback={<div className="site-header-shell"><div className="site-header-capsule min-h-12" /></div>}>
         <SiteHeaderClient fetchedAt={fetchedAt} />
       </Suspense>
       <PriceMarquee />

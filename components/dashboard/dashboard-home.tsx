@@ -58,8 +58,8 @@ function HomeMoversFiltered({
 
 /**
  * Home composition matching the product mock (existing theme tokens only):
- * Desktop ≥1024: What’s rotating 2×2 (≈⅔) | Top movers (≈⅓), Market News strip below
- * Mobile: movers → heat stacked → news
+ * All breakpoints: What’s rotating 2×2 | Top movers, Market News strip below
+ * (Mobile uses the same side-by-side fold with smaller tiles — avoid stacking.)
  */
 export function DashboardHome({
   snapshot,
@@ -89,12 +89,12 @@ export function DashboardHome({
   const heat = (
     <Suspense
       fallback={
-        <div className="h-56 rounded-2xl border border-white/10 bg-[#0c0e14] animate-pulse" />
+        <div className="h-40 rounded-2xl border border-white/10 bg-[#0c0e14] animate-pulse sm:h-56" />
       }
     >
       <DexHeatRotation
         snapshot={dexHeat}
-        chipGridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-2 lg:gap-4"
+        chipGridClassName="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4"
       />
     </Suspense>
   );
@@ -111,7 +111,7 @@ export function DashboardHome({
 
   return (
     <div className="w-full">
-      <div className="home-fold mx-auto max-w-[90rem] space-y-4 px-3 pb-6 pt-3 sm:space-y-5 sm:px-6 sm:pb-10 sm:pt-4">
+      <div className="home-fold mx-auto max-w-[90rem] space-y-3 px-2.5 pb-5 pt-2.5 sm:space-y-5 sm:px-6 sm:pb-10 sm:pt-4">
         {watchlistOnly ? (
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-full border border-teal-400/25 bg-teal-500/10 px-4 py-2">
             <p className="text-xs text-teal-100">Watchlist filter on</p>
@@ -124,14 +124,11 @@ export function DashboardHome({
           </div>
         ) : null}
 
-        {/*
-          mobile: movers → heat → news
-          lg+:    heat (2×2) | movers , news full-width strip
-        */}
-        <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(18rem,0.85fr)] lg:items-start lg:gap-6">
-          <div className="order-2 lg:order-none lg:col-start-1 lg:row-start-1">{heat}</div>
-          <div className="order-1 lg:order-none lg:col-start-2 lg:row-start-1">{movers}</div>
-          <div className="order-3 lg:col-span-2 lg:row-start-2">{news}</div>
+        {/* Same fold as desktop: heat 2×2 | movers, news full-width */}
+        <div className="grid grid-cols-[minmax(0,1.55fr)_minmax(7.75rem,0.85fr)] items-start gap-2 sm:gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(18rem,0.85fr)] lg:gap-6">
+          <div className="min-w-0">{heat}</div>
+          <div className="min-w-0">{movers}</div>
+          <div className="col-span-2 min-w-0">{news}</div>
         </div>
 
         {/* Below the mock fold — keep regime / sentiment without crowding the composition */}

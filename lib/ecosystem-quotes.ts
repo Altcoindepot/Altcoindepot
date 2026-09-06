@@ -1,5 +1,4 @@
 import { unstable_cache } from "next/cache";
-import { isProductionBuild } from "@/lib/build-phase";
 
 /** CoinGecko id → 24h price change %. */
 export type WikiChange24hMap = Record<string, number | null>;
@@ -17,7 +16,10 @@ export type WikiMarketMeta = {
  * Never call CoinGecko markets. Logos stay static from ecosystem-wiki.
  */
 async function loadWikiMarketMeta(): Promise<WikiMarketMeta> {
-  if (isProductionBuild()) return { change24h: {}, logos: {} };
+  console.error("[coingecko] BLOCKED /coins/markets", {
+    route: "loadWikiMarketMeta",
+    via: "hard-return",
+  });
   return { change24h: {}, logos: {} };
 }
 
