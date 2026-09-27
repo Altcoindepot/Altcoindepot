@@ -3,6 +3,11 @@
 :root {
   --background: #05080c;
   --foreground: #f4f7f6;
+  /* Semantic theme tokens — same names in light + dark */
+  --bg: #05080c;
+  --fg: #f4f7f6;
+  --muted: #a1a1aa;
+  --card: #0c0e14;
   /* Legacy bronze aliases → home mint (kill cream/gold leftovers sitewide) */
   --bronze: #10ffc4;
   --bronze-soft: #5dffd0;
@@ -162,8 +167,8 @@
 body {
   position: relative;
   min-height: 100%;
-  background-color: #05080c;
-  color: var(--foreground);
+  background-color: var(--bg);
+  color: var(--fg);
 }
 
 /* Soft mint + cyan orbs behind header / first fold only */
@@ -320,6 +325,54 @@ a.text-metallic:active {
 .header-home-link:active {
   text-decoration: none;
   color: inherit;
+}
+
+/* Header lockup wordmark — theme tokens (dark: silver/teal; light: near-black) */
+.brand-wordmark-altcoin,
+.brand-wordmark-depot {
+  display: inline-block;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+}
+
+.brand-wordmark-altcoin {
+  background-image: linear-gradient(
+    118deg,
+    #f8fafc 0%,
+    #d4d4d8 28%,
+    #a1a1aa 52%,
+    #e4e4e7 78%,
+    #fafafa 100%
+  );
+}
+
+.brand-wordmark-depot {
+  background-image: linear-gradient(
+    118deg,
+    #99f6e4 0%,
+    #2dd4bf 32%,
+    #0f766e 62%,
+    #5eead4 100%
+  );
+}
+
+html[data-theme="light"] .brand-wordmark-altcoin,
+html[data-theme="light"] .brand-wordmark-depot {
+  background-image: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  color: #0a0a0a !important;
+  -webkit-text-fill-color: #0a0a0a !important;
+}
+
+html[data-theme="light"] .brand-wordmark-depot {
+  color: #0f766e !important;
+  -webkit-text-fill-color: #0f766e !important;
 }
 
 /* ——— Wet smoked glass (shiny / top-lip highlight) ——— */
@@ -591,6 +644,21 @@ a.text-metallic:active {
   border-radius: 0.75rem;
 }
 
+html[data-theme="light"] .mobile-tab-bar .tab-active {
+  color: #0f766e;
+}
+
+html[data-theme="light"] .mobile-tab-bar .tab-active-icon {
+  border-color: rgba(13, 148, 136, 0.35);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(13, 148, 136, 0.14) 55%,
+    rgba(204, 251, 241, 0.55) 100%
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 0 10px rgba(13, 148, 136, 0.12);
+}
+
 .bronze-ring {
   box-shadow: 0 0 0 1px rgba(16, 255, 196, 0.18), 0 0 24px rgba(16, 255, 196, 0.1);
 }
@@ -850,45 +918,54 @@ html[data-theme="light"] .ds-card,
 html[data-theme="light"] .glass-panel,
 html[data-theme="light"] .glass-card,
 html[data-theme="light"] .site-header-capsule {
-  background: rgba(255, 255, 255, 0.82);
-  border-color: rgba(13, 148, 136, 0.22);
-  box-shadow: 0 8px 28px rgba(28, 25, 23, 0.08), 0 0 16px rgba(13, 148, 136, 0.05);
+  background: var(--card);
+  border-color: rgba(13, 148, 136, 0.28);
+  box-shadow: 0 8px 28px rgba(24, 24, 27, 0.06), 0 0 12px rgba(13, 148, 136, 0.04);
 }
 
 html[data-theme="light"] .ds-label,
 html[data-theme="light"] .ds-disclaimer {
-  color: rgb(120 113 108);
+  color: var(--muted);
 }
 
 html[data-theme="light"] .ds-subtitle {
-  color: rgb(87 83 78);
+  color: #3f3f46;
 }
 
 html[data-theme="light"] .ds-badge-info {
-  border-color: rgba(28, 25, 23, 0.14);
-  background: rgba(255, 255, 255, 0.7);
-  color: rgb(68 64 60);
+  border-color: rgba(24, 24, 27, 0.14);
+  background: #ffffff;
+  color: #3f3f46;
 }
 
 html[data-theme="light"] .ds-stat {
-  background: rgba(255, 255, 255, 0.75);
-  border-color: rgba(28, 25, 23, 0.1);
+  background: #ffffff;
+  border-color: rgba(24, 24, 27, 0.1);
 }
 
 /* ——— Light theme ——— */
 html[data-theme="light"] {
   color-scheme: light;
-  --background: #f5f1eb;
-  --foreground: #1c1917;
-  --glass: rgba(255, 255, 255, 0.78);
-  --glass-border: rgba(28, 25, 23, 0.14);
+  --background: #f4f4f5;
+  --foreground: #0a0a0a;
+  --bg: #f4f4f5;
+  --fg: #0a0a0a;
+  --muted: #52525b;
+  --card: #ffffff;
+  --surface-inset: #f4f4f5;
+  --surface-input: #ffffff;
+  --glass: #ffffff;
+  --glass-fallback: #ffffff;
+  --glass-border: rgba(13, 148, 136, 0.28);
+  --glass-lift:
+    0 8px 28px rgba(24, 24, 27, 0.06),
+    0 0 0 1px rgba(13, 148, 136, 0.08);
 }
 
 html[data-theme="light"] body {
-  background-color: #f5f1eb;
-  background-image: radial-gradient(circle at 12% -10%, rgba(185, 129, 82, 0.14), transparent 42%),
-    radial-gradient(circle at 88% 0%, rgba(126, 93, 69, 0.1), transparent 36%),
-    linear-gradient(180deg, #faf7f2 0%, #f5f1eb 58%, #f5f1eb 100%);
+  color: var(--fg);
+  background-color: var(--bg);
+  background-image: linear-gradient(180deg, #fafafa 0%, #f4f4f5 55%, #f4f4f5 100%);
 }
 
 html[data-theme="light"] body::before,
@@ -897,39 +974,39 @@ html[data-theme="light"] body::after {
 }
 
 html[data-theme="light"] .glass-panel {
-  background: rgba(255, 255, 255, 0.88);
-  border-color: rgba(13, 148, 136, 0.2);
-  box-shadow: 0 12px 32px rgba(28, 25, 23, 0.08), 0 0 16px rgba(13, 148, 136, 0.04);
+  background: var(--card);
+  border-color: rgba(13, 148, 136, 0.24);
+  box-shadow: 0 10px 28px rgba(24, 24, 27, 0.06);
 }
 
 html[data-theme="light"] .glass-card {
-  background: rgba(255, 255, 255, 0.85);
-  border-color: rgba(13, 148, 136, 0.16);
-  box-shadow: 0 8px 24px rgba(28, 25, 23, 0.06);
+  background: var(--card);
+  border-color: rgba(13, 148, 136, 0.2);
+  box-shadow: 0 6px 20px rgba(24, 24, 27, 0.05);
 }
 
 html[data-theme="light"] .text-metallic {
   background-image: linear-gradient(
     165deg,
-    #44403c 0%,
-    #78716c 18%,
-    #292524 38%,
-    #a8a29e 48%,
-    #57534e 58%,
-    #1c1917 72%,
-    #78716c 86%,
-    #44403c 100%
+    #27272a 0%,
+    #52525b 18%,
+    #0a0a0a 38%,
+    #3f3f46 48%,
+    #18181b 58%,
+    #0a0a0a 72%,
+    #52525b 86%,
+    #27272a 100%
   ) !important;
 }
 
 html[data-theme="light"] .text-metallic:hover {
   background-image: linear-gradient(
     165deg,
-    #292524 0%,
-    #57534e 30%,
-    #1c1917 52%,
-    #78716c 72%,
-    #44403c 100%
+    #0a0a0a 0%,
+    #3f3f46 30%,
+    #18181b 52%,
+    #52525b 72%,
+    #27272a 100%
   ) !important;
 }
 
@@ -937,137 +1014,197 @@ html[data-theme="light"] .text-brand-altcoindepot,
 html[data-theme="light"] .text-dashboard-hero,
 html[data-theme="light"] .text-metallic-hero,
 html[data-theme="light"] .text-page-title {
-  background-image: linear-gradient(
-    118deg,
-    #44403c 0%,
-    #78716c 8%,
-    #a8a29e 16%,
-    #57534e 24%,
-    #292524 32%,
-    #78716c 40%,
-    #1c1917 48%,
-    #57534e 56%,
-    #44403c 64%,
-    #78716c 72%,
-    #292524 80%,
-    #57534e 88%,
-    #1c1917 100%
-  ) !important;
-  background-size: 160% 160% !important;
+  background-image: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  color: #0a0a0a !important;
+  -webkit-text-fill-color: #0a0a0a !important;
 }
 
-html[data-theme="light"] .text-zinc-100:not(.text-metallic):not(.text-metallic-hero):not(.text-brand-altcoindepot) {
-  color: #1c1917 !important;
+/* Primary copy — never white-on-white */
+html[data-theme="light"] .text-zinc-50:not(.text-metallic):not(.text-metallic-hero):not(.text-brand-altcoindepot),
+html[data-theme="light"] .text-zinc-100:not(.text-metallic):not(.text-metallic-hero):not(.text-brand-altcoindepot),
+html[data-theme="light"] .text-white:not(.text-metallic):not(.text-metallic-hero):not(.text-brand-altcoindepot) {
+  color: #0a0a0a !important;
 }
 
 html[data-theme="light"] .text-zinc-200:not(.text-metallic):not(.text-metallic-hero):not(.text-brand-altcoindepot) {
-  color: #292524 !important;
+  color: #18181b !important;
 }
 
 html[data-theme="light"] .text-zinc-300:not(.text-metallic):not(.text-metallic-hero):not(.text-brand-altcoindepot) {
-  color: #44403c !important;
+  color: #27272a !important;
 }
 
-html[data-theme="light"] .text-zinc-400:not(.text-metallic):not(.text-metallic-hero):not(.text-brand-altcoindepot) {
-  color: #57534e !important;
-}
-
+/* Muted — zinc-600 range on light cards */
+html[data-theme="light"] .text-zinc-400:not(.text-metallic):not(.text-metallic-hero):not(.text-brand-altcoindepot),
 html[data-theme="light"] .text-zinc-500:not(.text-metallic):not(.text-metallic-hero):not(.text-brand-altcoindepot) {
-  color: #78716c !important;
+  color: #52525b !important;
 }
 
 html[data-theme="light"] .text-zinc-600:not(.text-metallic):not(.text-metallic-hero):not(.text-brand-altcoindepot) {
-  color: #a8a29e !important;
-}
-
-html[data-theme="light"] .text-white:not(.text-metallic):not(.text-metallic-hero):not(.text-brand-altcoindepot) {
-  color: #1c1917 !important;
+  color: #3f3f46 !important;
 }
 
 html[data-theme="light"] .hover\:text-zinc-300:hover {
-  color: #44403c !important;
+  color: #18181b !important;
 }
 
-html[data-theme="light"] .bg-\[\#0a0a0a\] {
-  background-color: #f5f1eb !important;
+html[data-theme="light"] .hover\:text-zinc-100:hover,
+html[data-theme="light"] .hover\:text-teal-100:hover,
+html[data-theme="light"] .hover\:text-teal-50:hover {
+  color: #0f766e !important;
+}
+
+/* Teal links / pills — readable on white cards */
+html[data-theme="light"] .text-teal-50,
+html[data-theme="light"] .text-teal-100,
+html[data-theme="light"] .text-teal-200,
+html[data-theme="light"] .text-teal-200\/90,
+html[data-theme="light"] .text-teal-300,
+html[data-theme="light"] .text-teal-300\/90 {
+  color: #0f766e !important;
+}
+
+html[data-theme="light"] .hover\:text-teal-200:hover,
+html[data-theme="light"] .hover\:text-teal-300:hover {
+  color: #0d9488 !important;
+}
+
+html[data-theme="light"] .bg-teal-500\/10,
+html[data-theme="light"] .bg-teal-500\/15,
+html[data-theme="light"] .bg-teal-500\/20 {
+  background-color: rgba(13, 148, 136, 0.12) !important;
+}
+
+html[data-theme="light"] .hover\:bg-teal-500\/30:hover,
+html[data-theme="light"] .active\:bg-teal-500\/35:active {
+  background-color: rgba(13, 148, 136, 0.2) !important;
+}
+
+/* Page / sticky chrome / cards — invert near-black fills */
+html[data-theme="light"] .bg-\[\#05080c\],
+html[data-theme="light"] .bg-\[\#06070a\],
+html[data-theme="light"] .bg-\[\#07080c\],
+html[data-theme="light"] .bg-\[\#07080c\]\/95,
+html[data-theme="light"] .bg-\[\#0a0a0a\],
+html[data-theme="light"] .bg-\[\#0a0a0a\]\/95,
+html[data-theme="light"] .bg-\[\#0a1218\] {
+  background-color: var(--bg) !important;
 }
 
 html[data-theme="light"] .bg-\[\#0b0d11\]\/78,
 html[data-theme="light"] .bg-\[\#0b0d11\] {
-  background-color: rgba(250, 247, 242, 0.92) !important;
+  background-color: rgba(244, 244, 245, 0.95) !important;
 }
 
+html[data-theme="light"] .bg-\[\#0c0e14\],
+html[data-theme="light"] .bg-\[\#0c0e14\]\/40,
+html[data-theme="light"] .bg-\[\#0c0e14\]\/50,
+html[data-theme="light"] .bg-\[\#0c0e14\]\/60,
+html[data-theme="light"] .bg-\[\#0c0e14\]\/80,
+html[data-theme="light"] .bg-\[\#0f131b\]\/50,
+html[data-theme="light"] .bg-\[\#0f131b\]\/55,
+html[data-theme="light"] .bg-\[\#0f131b\]\/58,
 html[data-theme="light"] .bg-\[\#0f131b\]\/60,
 html[data-theme="light"] .bg-\[\#0f131b\]\/65,
 html[data-theme="light"] .bg-\[\#0f131b\]\/70,
-html[data-theme="light"] .bg-\[\#0f131b\] {
-  background-color: rgba(237, 232, 225, 0.88) !important;
-}
-
+html[data-theme="light"] .bg-\[\#0f131b\],
 html[data-theme="light"] .bg-\[\#0f1116\],
 html[data-theme="light"] .bg-\[\#101217\],
+html[data-theme="light"] .bg-\[\#10131a\],
 html[data-theme="light"] .bg-\[\#111111\],
 html[data-theme="light"] .bg-\[\#111217\],
 html[data-theme="light"] .bg-\[\#141218\] {
-  background-color: #ffffff !important;
+  background-color: var(--card) !important;
+}
+
+html[data-theme="light"] .bg-white\/\[0\.02\],
+html[data-theme="light"] .bg-white\/\[0\.03\],
+html[data-theme="light"] .bg-white\/\[0\.04\] {
+  background-color: #fafafa !important;
+}
+
+html[data-theme="light"] .from-\[\#05080c\],
+html[data-theme="light"] .via-\[\#0a1218\],
+html[data-theme="light"] .to-\[\#05080c\] {
+  --tw-gradient-from: #f4f4f5 !important;
+  --tw-gradient-to: #f4f4f5 !important;
+  --tw-gradient-stops: var(--tw-gradient-from), #fafafa, var(--tw-gradient-to) !important;
 }
 
 html[data-theme="light"] .border-white\/5 {
-  border-color: rgba(28, 25, 23, 0.08) !important;
+  border-color: rgba(24, 24, 27, 0.08) !important;
 }
 
+html[data-theme="light"] .border-white\/8,
 html[data-theme="light"] .border-white\/10 {
-  border-color: rgba(28, 25, 23, 0.12) !important;
+  border-color: rgba(24, 24, 27, 0.12) !important;
 }
 
 html[data-theme="light"] .border-white\/15 {
-  border-color: rgba(28, 25, 23, 0.16) !important;
+  border-color: rgba(24, 24, 27, 0.16) !important;
 }
 
 html[data-theme="light"] .divide-white\/10 > :not(:last-child) {
-  border-color: rgba(28, 25, 23, 0.1) !important;
+  border-color: rgba(24, 24, 27, 0.1) !important;
 }
 
 html[data-theme="light"] .divide-white\/\[0\.06\] > :not(:last-child) {
-  border-color: rgba(28, 25, 23, 0.08) !important;
+  border-color: rgba(24, 24, 27, 0.08) !important;
 }
 
 html[data-theme="light"] .hover\:bg-white\/5:hover,
 html[data-theme="light"] .hover\:bg-white\/\[0\.03\]:hover,
-html[data-theme="light"] .hover\:bg-white\/\[0\.04\]:hover {
-  background-color: rgba(28, 25, 23, 0.05) !important;
+html[data-theme="light"] .hover\:bg-white\/\[0\.04\]:hover,
+html[data-theme="light"] .hover\:bg-white\/\[0\.035\]:hover,
+html[data-theme="light"] .active\:bg-white\/\[0\.05\]:active,
+html[data-theme="light"] .active\:bg-white\/\[0\.08\]:active {
+  background-color: rgba(24, 24, 27, 0.05) !important;
 }
 
+html[data-theme="light"] .bg-zinc-800,
 html[data-theme="light"] .bg-zinc-800\/50 {
-  background-color: rgba(28, 25, 23, 0.08) !important;
+  background-color: #e4e4e7 !important;
 }
 
 html[data-theme="light"] .bg-black\/20 {
-  background-color: rgba(255, 255, 255, 0.55) !important;
+  background-color: rgba(255, 255, 255, 0.7) !important;
 }
 
-html[data-theme="light"] .ring-white\/10 {
-  --tw-ring-color: rgba(28, 25, 23, 0.12) !important;
+html[data-theme="light"] .ring-white\/10,
+html[data-theme="light"] .ring-white\/15 {
+  --tw-ring-color: rgba(24, 24, 27, 0.14) !important;
 }
 
 html[data-theme="light"] [class*="bg-[rgba(20,18,22"] {
-  background-color: rgba(255, 255, 255, 0.82) !important;
+  background-color: rgba(255, 255, 255, 0.92) !important;
 }
 
 html[data-theme="light"] [class*="bg-[rgba(11,12,16"] {
-  background-color: rgba(255, 255, 255, 0.94) !important;
+  background-color: rgba(255, 255, 255, 0.96) !important;
 }
 
 html[data-theme="light"] [class*="bg-[rgba(20,22,30"] {
-  background-color: rgba(255, 255, 255, 0.75) !important;
+  background-color: rgba(255, 255, 255, 0.9) !important;
 }
 
-/* Ensure metallic gradients always win over theme utility overrides */
-html[data-theme="light"] .text-metallic,
-html[data-theme="light"] .text-metallic-hero,
-html[data-theme="light"] .text-brand-altcoindepot,
-html[data-theme="light"] .text-dashboard-hero,
-html[data-theme="light"] .text-page-title,
+/* Sticky home search chrome — dark + light */
+.home-sticky-search {
+  background-color: rgba(7, 8, 12, 0.95);
+}
+
+html[data-theme="light"] .home-sticky-search {
+  background-color: rgba(244, 244, 245, 0.95) !important;
+}
+
+@media (min-width: 768px) {
+  .home-sticky-search {
+    background-color: transparent;
+  }
+}
+
+/* Dark metallic titles keep clipped gradients; light uses solid --fg (set above). */
 html[data-theme="dark"] .text-metallic,
 html[data-theme="dark"] .text-metallic-hero,
 html[data-theme="dark"] .text-brand-altcoindepot,
@@ -1078,6 +1215,13 @@ html:not([data-theme="light"]) .text-metallic-hero,
 html:not([data-theme="light"]) .text-brand-altcoindepot,
 html:not([data-theme="light"]) .text-dashboard-hero,
 html:not([data-theme="light"]) .text-page-title {
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+}
+
+html[data-theme="light"] .text-metallic {
   color: transparent !important;
   -webkit-text-fill-color: transparent !important;
   -webkit-background-clip: text !important;
@@ -1100,7 +1244,7 @@ html:not([data-theme="light"]) .text-page-title {
   html[data-theme="light"] .text-brand-altcoindepot,
   html[data-theme="light"] .text-dashboard-hero,
   html[data-theme="light"] .text-page-title {
-    color: #292524 !important;
-    -webkit-text-fill-color: #292524 !important;
+    color: #0a0a0a !important;
+    -webkit-text-fill-color: #0a0a0a !important;
   }
 }

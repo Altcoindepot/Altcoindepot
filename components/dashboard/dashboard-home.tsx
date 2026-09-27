@@ -109,7 +109,7 @@ export function DashboardHome({
   );
 
   const search = (
-    <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-30 -mx-0.5 bg-[#07080c]/95 px-0.5 py-1.5 backdrop-blur-md md:static md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-none">
+    <div className="home-sticky-search sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-30 -mx-0.5 px-0.5 py-1.5 backdrop-blur-md md:static md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-none">
       <HomeSearchStrip />
     </div>
   );

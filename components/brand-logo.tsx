@@ -15,7 +15,6 @@ function BrandMark({ className = "" }: { className?: string }) {
         d="M32 2.5 61.5 62H49.2L41.4 44.2H22.6L14.8 62H2.5L32 2.5Zm0 16.2 6.6 14.8H25.4L32 18.7Z"
       />
       <circle cx="32" cy="50.2" r="8.1" fill="#2dd4bf" />
-      <circle cx="32" cy="50.2" r="8.1" fill="none" stroke="#0a0a0a" strokeWidth="1.6" />
     </svg>
   );
 }
@@ -25,19 +24,14 @@ function Wordmark({ className = "" }: { className?: string }) {
     <span
       className={`flex items-baseline whitespace-nowrap text-[1.05rem] font-extrabold leading-none tracking-[-0.04em] sm:text-[1.35rem] ${className}`.trim()}
     >
-      <span className="bg-[linear-gradient(118deg,#f8fafc_0%,#d4d4d8_28%,#a1a1aa_52%,#e4e4e7_78%,#fafafa_100%)] bg-clip-text text-transparent">
-        AltCoin
-      </span>
-      <span className="bg-[linear-gradient(118deg,#99f6e4_0%,#2dd4bf_32%,#0f766e_62%,#5eead4_100%)] bg-clip-text text-transparent">
-        Depot
-      </span>
+      <span className="brand-wordmark-altcoin">AltCoin</span>
+      <span className="brand-wordmark-depot">Depot</span>
     </span>
   );
 }
 
 /**
- * Full lockup rendered inline so the wordmark always paints (SVG-as-<img> often drops <text>).
- * Metallic silver AltCoin + metallic teal Depot beside the A+coin mark.
+ * Full lockup: A+coin mark + theme-aware wordmark (silver/teal in dark, near-black in light).
  */
 export function BrandLockup({
   className = "",

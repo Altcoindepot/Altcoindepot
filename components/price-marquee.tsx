@@ -91,7 +91,7 @@ export function PriceMarquee() {
   if (items.length === 0) {
     return (
       <div
-        className="border-b border-teal-400/15 bg-gradient-to-r from-[#05080c] via-[#0a1218] to-[#05080c] py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+        className="border-b border-teal-400/15 bg-[var(--bg)] py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
         aria-hidden
       />
     );
@@ -102,7 +102,7 @@ export function PriceMarquee() {
 
   return (
     <div
-      className="border-b border-teal-400/15 bg-gradient-to-r from-[#05080c] via-[#0a1218] to-[#05080c] py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:py-2.5"
+      className="border-b border-teal-400/15 bg-[var(--bg)] py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:py-2.5"
       aria-label="Live Dex movers ticker"
     >
       <div className="group/marquee relative overflow-hidden">
