@@ -50,7 +50,7 @@ function IconLowCaps({ active }: { active: boolean }) {
   );
 }
 
-function IconSearch({ active }: { active: boolean }) {
+function IconNews({ active }: { active: boolean }) {
   return (
     <svg
       className="size-5"
@@ -60,8 +60,9 @@ function IconSearch({ active }: { active: boolean }) {
       strokeWidth={active ? 2.25 : 1.75}
       aria-hidden
     >
-      <circle cx="11" cy="11" r="6.5" />
-      <path d="m16.2 16.2 3.8 3.8" strokeLinecap="round" />
+      <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H16v14.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 4 18.5V5.5Z" />
+      <path d="M16 6h2.5A1.5 1.5 0 0 1 20 7.5v11A1.5 1.5 0 0 1 18.5 20H16" strokeLinecap="round" />
+      <path d="M7 8h6M7 11h6M7 14h4" strokeLinecap="round" />
     </svg>
   );
 }
@@ -79,6 +80,12 @@ const TABS: Array<{
     icon: (a) => <IconHome active={a} />,
   },
   {
+    href: "/news",
+    label: "News",
+    match: (p) => p.startsWith("/news"),
+    icon: (a) => <IconNews active={a} />,
+  },
+  {
     href: "/dex-scanner",
     label: "Scanner",
     match: (p) => p.startsWith("/dex-scanner"),
@@ -89,12 +96,6 @@ const TABS: Array<{
     label: "Low Caps",
     match: (p) => p.startsWith("/new-low-caps"),
     icon: (a) => <IconLowCaps active={a} />,
-  },
-  {
-    href: "/coin",
-    label: "Search",
-    match: (p) => p.startsWith("/coin") || p.startsWith("/token"),
-    icon: (a) => <IconSearch active={a} />,
   },
 ];
 

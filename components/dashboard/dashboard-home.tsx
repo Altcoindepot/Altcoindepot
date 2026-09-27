@@ -56,9 +56,9 @@ function HomeMoversFiltered({
 }
 
 /**
- * Home composition matching the product mock (existing theme tokens only):
- * All breakpoints: What’s rotating 2×2 | Top movers, Market News strip below
- * (Mobile uses the same side-by-side fold with smaller tiles — avoid stacking.)
+ * Home composition (existing theme tokens only).
+ * Mobile (&lt;md): search → news → movers → heat/pulse.
+ * Desktop (md+): heat | movers, news full-width — unchanged fold order.
  */
 export function DashboardHome({
   snapshot,
@@ -108,6 +108,12 @@ export function DashboardHome({
     />
   );
 
+  const search = (
+    <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-30 -mx-0.5 bg-[#07080c]/95 px-0.5 py-1.5 backdrop-blur-md md:static md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-none">
+      <HomeSearchStrip />
+    </div>
+  );
+
   return (
     <div className="w-full">
       <div className="home-fold mx-auto max-w-[90rem] space-y-3 px-2.5 pb-5 pt-2.5 sm:space-y-5 sm:px-6 sm:pb-10 sm:pt-4">
@@ -123,18 +129,25 @@ export function DashboardHome({
           </div>
         ) : null}
 
-        <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-30 -mx-0.5 bg-[#07080c]/95 px-0.5 py-1.5 backdrop-blur-md sm:top-[calc(4rem+env(safe-area-inset-top))] lg:static lg:bg-transparent lg:px-0 lg:py-0 lg:backdrop-blur-none">
-          <HomeSearchStrip />
+        {/* Mobile only (&lt;768): search → news → movers → heat */}
+        <div className="flex flex-col gap-3 md:hidden">
+          {search}
+          {news}
+          {movers}
+          {heat}
+          <MarketSentimentWidget pulse={snapshot.pulse} variant="strip" />
         </div>
 
-        {/* Same fold as desktop: heat 2×2 | movers, news full-width */}
-        <div className="grid grid-cols-[minmax(0,1.55fr)_minmax(7.75rem,0.85fr)] items-start gap-2 sm:gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(18rem,0.85fr)] lg:gap-6">
-          <div className="min-w-0">{heat}</div>
-          <div className="min-w-0">{movers}</div>
-          <div className="col-span-2 min-w-0">{news}</div>
+        {/* Desktop / tablet (md+): heat | movers, then news — do not reorder */}
+        <div className="hidden md:block space-y-5">
+          {search}
+          <div className="grid grid-cols-[minmax(0,1.55fr)_minmax(7.75rem,0.85fr)] items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(18rem,0.85fr)] lg:gap-6">
+            <div className="min-w-0">{heat}</div>
+            <div className="min-w-0">{movers}</div>
+            <div className="col-span-2 min-w-0">{news}</div>
+          </div>
+          <MarketSentimentWidget pulse={snapshot.pulse} variant="strip" />
         </div>
-
-        <MarketSentimentWidget pulse={snapshot.pulse} variant="strip" />
 
         <DisclaimerNote className="text-[11px]">
           Pair stats from DexScreener · informational only · not financial advice
