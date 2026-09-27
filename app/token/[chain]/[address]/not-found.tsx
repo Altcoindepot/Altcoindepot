@@ -2,10 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 
+/**
+ * Real HTTP 404 responses: Next.js injects noindex automatically.
+ * Do not set robots noindex here — that conflicted with soft-404 / 200 pages in GSC.
+ */
 export const metadata: Metadata = {
   title: "Token not found",
   description: "This DEX token page could not be loaded on AltCoin Depot.",
-  robots: { index: false, follow: true },
 };
 
 export default function DexTokenNotFound() {

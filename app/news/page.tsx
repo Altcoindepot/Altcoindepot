@@ -7,6 +7,8 @@ import {
   getChainMovers,
   pickHomeTopMovers,
 } from "@/lib/dex-chain-movers";
+import { getDexScreenerLowCaps } from "@/lib/dexscreener-low-caps";
+import type { NewsTickerCandidate } from "@/lib/news-tickers";
 
 export const metadata: Metadata = {
   title: { absolute: "Crypto News – Latest Headlines | AltCoin Depot" },
@@ -17,6 +19,9 @@ export const metadata: Metadata = {
 };
 
 export const dynamic = "force-dynamic";
+
+/** High-volume floor for low-cap chip candidates (24h USD). */
+const LOW_CAP_CHIP_MIN_VOLUME = 50_000;
 
 async function loadDexMoversForNews(limit: number): Promise<NewsDexMover[]> {
   try {
@@ -40,6 +45,42 @@ async function loadDexMoversForNews(limit: number): Promise<NewsDexMover[]> {
   }
 }
 
+async function loadListedTickersForChips(
+  movers: NewsDexMover[],
+): Promise<NewsTickerCandidate[]> {
+  const out: NewsTickerCandidate[] = [];
+  const seen = new Set<string>();
+
+  const push = (symbol: string, chain: string | undefined, address: string | undefined) => {
+    const sym = symbol.trim().toUpperCase();
+    const c = chain?.trim();
+    const a = address?.trim();
+    if (!sym || !c || !a) return;
+    if (seen.has(sym)) return;
+    seen.add(sym);
+    out.push({ symbol: sym, chain: c, address: a });
+  };
+
+  for (const m of movers) {
+    push(m.symbol, m.chain, m.address);
+  }
+
+  try {
+    const lowCaps = await getDexScreenerLowCaps();
+    const highVol = lowCaps
+      .filter((r) => (r.volume ?? 0) >= LOW_CAP_CHIP_MIN_VOLUME && r.contractAddress && r.chain)
+      .sort((a, b) => (b.volume ?? 0) - (a.volume ?? 0))
+      .slice(0, 40);
+    for (const r of highVol) {
+      push(r.symbol, r.chain, r.contractAddress);
+    }
+  } catch {
+    // Movers-only chips still work.
+  }
+
+  return out;
+}
+
 export default async function NewsPage() {
   const [news, movers] = await Promise.all([
     getSiteNewsCached(SITE_NEWS_PAGE_LIMIT).catch(() => ({
@@ -49,8 +90,10 @@ export default async function NewsPage() {
       stale: true,
       cachedAt: null as string | null,
     })),
-    loadDexMoversForNews(5),
+    // Fat list feeds chips; Moving on Dex / pulse still slice top 3–5 in the view.
+    loadDexMoversForNews(40),
   ]);
+  const listedTickers = await loadListedTickersForChips(movers);
 
   return (
     <>
@@ -61,6 +104,7 @@ export default async function NewsPage() {
           sourcesLabel={news.sourcesLabel}
           stale={news.stale}
           movers={movers}
+          listedTickers={listedTickers}
         />
       </main>
     </>

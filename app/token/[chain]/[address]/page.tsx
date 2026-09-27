@@ -77,65 +77,72 @@ function sameChainMovers(
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { chain, address } = await params;
   const preferPair = pairParam(await searchParams);
+
+  // Never emit robots noindex here — HTTP 200 token pages must stay indexable.
+  // Real misses use notFound() (Next injects noindex on the 404). Do not catch
+  // permanentRedirect / notFound digests.
+  let token: Awaited<ReturnType<typeof getDexScreenerTokenPage>> = null;
   try {
-    const token = await getDexScreenerTokenPage(chain, address, preferPair);
-    if (!token) {
-      return {
-        title: { absolute: "Token not found | AltCoin Depot" },
-        description: "This DEX token page could not be found on AltCoin Depot.",
-        robots: { index: false, follow: true },
-      };
-    }
+    token = await getDexScreenerTokenPage(chain, address, preferPair);
+  } catch (err) {
+    console.warn("[token] metadata Dex lookup failed", err);
+  }
 
-    redirectAliasToCanonical(chain, address, token, preferPair);
-
-    const path = dexTokenPath(token.chain, token.address);
-    if (!path) {
-      return {
-        title: { absolute: "Token not found | AltCoin Depot" },
-        description: "This DEX token page could not be found on AltCoin Depot.",
-        robots: { index: false, follow: true },
-      };
-    }
-
-    const geckoStats = peekGeckoCoinStatsCached({
-      chain: token.chain,
-      address: token.address,
-    });
-
-    const seo = buildTokenSeoCopy({
-      name: token.name,
-      symbol: token.symbol,
-      chainLabel: seoChainLabel(token.chain),
-      chainId: token.chain,
-      contractAddress: token.address,
-      listedOnGecko: Boolean(geckoStats),
-    });
-    return {
-      title: { absolute: seo.title },
-      description: seo.description,
-      alternates: { canonical: path },
-      robots: { index: true, follow: true },
-      openGraph: {
-        title: seo.title,
-        description: seo.description,
-        url: `https://altcoindepot.com${path}`,
-        siteName: "AltCoin Depot",
-        type: "website",
-      },
-      twitter: {
-        card: "summary_large_image",
-        title: seo.title,
-        description: seo.description,
-      },
-    };
-  } catch {
+  if (!token) {
+    const fallbackPath = dexTokenPath(chain, address);
     return {
       title: { absolute: "Live Dex token | AltCoin Depot" },
-      description: "Live DEX pair page on AltCoin Depot. Informational only — not financial advice.",
-      robots: { index: false, follow: true },
+      description:
+        "Live DEX pair page on AltCoin Depot. Informational only — not financial advice.",
+      ...(fallbackPath
+        ? { alternates: { canonical: fallbackPath }, robots: { index: true, follow: true } }
+        : { robots: { index: true, follow: true } }),
     };
   }
+
+  redirectAliasToCanonical(chain, address, token, preferPair);
+
+  const path = dexTokenPath(token.chain, token.address);
+  if (!path) {
+    return {
+      title: { absolute: "Live Dex token | AltCoin Depot" },
+      description:
+        "Live DEX pair page on AltCoin Depot. Informational only — not financial advice.",
+      robots: { index: true, follow: true },
+    };
+  }
+
+  const geckoStats = peekGeckoCoinStatsCached({
+    chain: token.chain,
+    address: token.address,
+  });
+
+  const seo = buildTokenSeoCopy({
+    name: token.name,
+    symbol: token.symbol,
+    chainLabel: seoChainLabel(token.chain),
+    chainId: token.chain,
+    contractAddress: token.address,
+    listedOnGecko: Boolean(geckoStats),
+  });
+  return {
+    title: { absolute: seo.title },
+    description: seo.description,
+    alternates: { canonical: path },
+    robots: { index: true, follow: true },
+    openGraph: {
+      title: seo.title,
+      description: seo.description,
+      url: `https://altcoindepot.com${path}`,
+      siteName: "AltCoin Depot",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: seo.title,
+      description: seo.description,
+    },
+  };
 }
 
 function softTimeout<T>(promise: Promise<T>, ms: number, fallback: T, label: string): Promise<T> {

@@ -53,11 +53,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
 
     if (result.status === "not_found") {
+      // Real miss → page calls notFound() (Next auto-noindex on HTTP 404).
+      // Never emit noindex here — it leaked onto soft/200 responses in GSC.
       return {
         title: { absolute: "Coin not found | AltCoin Depot" },
         description:
           "This coin page could not be found. Browse live markets and narrative data on AltCoin Depot.",
-        robots: { index: false, follow: true },
       };
     }
 

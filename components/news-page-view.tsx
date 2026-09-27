@@ -133,20 +133,22 @@ export function NewsPageView({
   sourcesLabel,
   stale,
   movers,
+  listedTickers,
 }: {
   items: SiteNewsItem[];
   sourcesLabel: string;
   stale: boolean;
   movers: NewsDexMover[];
+  /** High-volume Dex movers + low-caps for headline ticker chips. */
+  listedTickers?: NewsTickerCandidate[];
 }) {
   const [tab, setTab] = useState<TabId>("headlines");
-  const listed: NewsTickerCandidate[] = useMemo(
-    () =>
-      movers
-        .filter((m) => m.address)
-        .map((m) => ({ symbol: m.symbol, chain: m.chain, address: m.address })),
-    [movers],
-  );
+  const listed: NewsTickerCandidate[] = useMemo(() => {
+    if (listedTickers && listedTickers.length > 0) return listedTickers;
+    return movers
+      .filter((m) => m.address)
+      .map((m) => ({ symbol: m.symbol, chain: m.chain, address: m.address }));
+  }, [listedTickers, movers]);
   const movingTop = movers.slice(0, 3);
   const pulseMovers = movers.slice(0, 5);
 
