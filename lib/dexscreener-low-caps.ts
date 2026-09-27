@@ -7,6 +7,7 @@ import { dexVenueId, dexVenueLabel } from "@/lib/dex-venue";
 import { logDexSampleRow, parseDexUsdNumber } from "@/lib/dex-pair-fields";
 import { isNewLowCapAge } from "@/lib/pair-age-split";
 import { finalizeDexListRows } from "@/lib/dex-majors-list-dedupe";
+import { resolveTokenImageUrl } from "@/lib/token-image";
 
 const DEX_BASE = "https://api.dexscreener.com";
 /** 10 minutes — DexScreener is free but we should not poll on every refresh. */
@@ -135,7 +136,12 @@ function pairToRow(pair: DexPair, metaSlug: string): LowCapRow | null {
     id: `dex-${chain}-${base.address}`,
     name: base.name,
     symbol: base.symbol,
-    image: pair.info?.imageUrl ?? "",
+    image:
+      resolveTokenImageUrl({
+        dexImage: pair.info?.imageUrl,
+        chain,
+        address: base.address,
+      }) ?? "",
     marketCap: typeof marketCap === "number" && Number.isFinite(marketCap) ? marketCap : null,
     liquidity,
     chain,

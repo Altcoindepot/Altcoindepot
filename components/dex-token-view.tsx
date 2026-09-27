@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { CopyAddressButton } from "@/components/copy-address-button";
@@ -8,6 +7,7 @@ import { DexRecentTrades } from "@/components/dex-recent-trades";
 import { DexScreenerChart } from "@/components/dex-screener-chart";
 import { DexVenueBadge } from "@/components/dex-venue-badge";
 import { RecordTokenView } from "@/components/record-token-view";
+import { TokenAvatar } from "@/components/token-avatar";
 import { TokenGeckoStatsPanel } from "@/components/token-gecko-stats";
 import { TokenNewsStrip } from "@/components/token-news-strip";
 import { TokenStayRail, type TokenStayMover } from "@/components/token-stay-rail";
@@ -22,6 +22,7 @@ import type { SiteNewsItem } from "@/lib/site-news";
 import { DATA_RESPONSIBILITY_DISCLAIMER } from "@/lib/data-responsibility";
 import { formatChainLabel } from "@/lib/format-chain";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
+import { resolveTokenImageUrl } from "@/lib/token-image";
 import { ds } from "@/lib/ui-classes";
 
 function shortContract(address: string): string {
@@ -76,6 +77,12 @@ export function DexTokenView({
 }) {
   const chainLabel = formatChainLabel(token.chain);
   const symbol = token.symbol.toUpperCase();
+  const headerImage = resolveTokenImageUrl({
+    dexImage: token.image,
+    chain: token.chain,
+    address: token.address,
+    geckoImageSmall: geckoStats?.imageSmall,
+  });
   const dexEmbed = dexScreenerEmbedUrl(token.pairUrl, token.chain, token.pairAddress);
   const gtEmbed = geckoTerminalChartEmbedUrl(token.chain, token.pairAddress);
   const changePositive = (token.change24h ?? 0) >= 0;
@@ -109,19 +116,12 @@ export function DexTokenView({
       {/* 1) Dex price header — same pair as chart */}
       <header className="chrome-glass mt-4 p-4 sm:p-5">
         <div className="flex flex-wrap items-start gap-4">
-          {token.image ? (
-            <Image
-              src={token.image}
-              alt=""
-              width={56}
-              height={56}
-              className="rounded-full ring-1 ring-teal-400/25"
-            />
-          ) : (
-            <span className="flex size-14 items-center justify-center rounded-full bg-zinc-800 font-mono text-lg font-bold text-zinc-300 ring-1 ring-teal-400/20">
-              {symbol.slice(0, 1)}
-            </span>
-          )}
+          <TokenAvatar
+            symbol={symbol}
+            imageUrl={headerImage}
+            size={32}
+            className="ring-1 ring-teal-400/25"
+          />
           <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">
               {h1}

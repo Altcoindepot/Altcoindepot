@@ -52,6 +52,7 @@ export function DexPairPriceTable({
               href={tokenHref(row)}
               symbol={row.symbol}
               name={row.name}
+              imageUrl={row.imageUrl}
               chain={row.chain}
               dexId={row.dex}
               dexLabel={row.dexLabel}
@@ -91,7 +92,7 @@ export function DexPairPriceTable({
                 </td>
                 <td className="px-3 py-1.5">
                   <Link href={tokenHref(row)} className="inline-flex min-w-0 items-center gap-2.5">
-                    <TokenAvatar symbol={row.symbol} size={28} />
+                    <TokenAvatar symbol={row.symbol} imageUrl={row.imageUrl} size={28} />
                     <span className="min-w-0">
                       <span className="block truncate font-mono text-[13px] font-semibold uppercase text-zinc-100">
                         {row.symbol}

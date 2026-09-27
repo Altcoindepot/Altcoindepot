@@ -20,6 +20,7 @@ import {
 import { getCoinDexLive, overlayDexPricesForPlatforms, type CoinDexLive } from "@/lib/coin-dex-live";
 import { formatChainLabel } from "@/lib/format-chain";
 import type { UniverseSearchHit } from "@/lib/universe-search-types";
+import { resolveTokenImageUrl } from "@/lib/token-image";
 import {
   getMajorsCatalog,
   isKnownFamilyContract,
@@ -89,7 +90,11 @@ function entryToHit(
     truncatedContract: address ? truncateContract(address) : null,
     chainLabel: chain ? formatChainLabel(chain) : null,
     priceUsd: opts.priceUsd,
-    imageUrl: entry.image || null,
+    imageUrl: resolveTokenImageUrl({
+      chain,
+      address,
+      geckoImageSmall: entry.image || null,
+    }),
     href,
     pairLabel,
     rankTier: opts.tier ?? "other",

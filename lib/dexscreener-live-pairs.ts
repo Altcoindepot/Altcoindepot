@@ -8,6 +8,7 @@ import { unstable_cache } from "next/cache";
 import { dexVenueLabel } from "@/lib/dex-venue";
 import { normalizeDexChainId } from "@/lib/dex-token-path";
 import { parseDexUsdNumber } from "@/lib/dex-pair-fields";
+import { resolveTokenImageUrl } from "@/lib/token-image";
 import {
   finalizeDexListRows,
   majorQuoteRank,
@@ -31,6 +32,8 @@ export type DexLivePairRow = {
   dexLabel: string;
   /** Quote side for pair pills (e.g. USDC). */
   quoteSymbol: string | null;
+  /** Dex pair `info.imageUrl` when present. */
+  imageUrl: string | null;
   priceUsd: number | null;
   /** Prefer for short-window heat when present. */
   change1h: number | null;
@@ -51,6 +54,7 @@ type DexPair = {
   volume?: { h24?: number };
   liquidity?: { usd?: number };
   pairCreatedAt?: number | null;
+  info?: { imageUrl?: string };
 };
 
 type TokenBoostRef = { chainId: string; tokenAddress: string };
@@ -90,6 +94,10 @@ export function mapDexPairToLiveRow(pair: DexPair): DexLivePairRow | null {
       : null;
 
   const quoteRaw = pair.quoteToken?.symbol?.trim();
+  const dexImage =
+    typeof pair.info?.imageUrl === "string" && pair.info.imageUrl.trim()
+      ? pair.info.imageUrl.trim()
+      : null;
   return {
     id: `${chain}:${base.address.toLowerCase()}`,
     symbol: base.symbol.toUpperCase(),
@@ -99,6 +107,11 @@ export function mapDexPairToLiveRow(pair: DexPair): DexLivePairRow | null {
     dex,
     dexLabel: dexVenueLabel(dex) || dex || "—",
     quoteSymbol: quoteRaw ? quoteRaw.toUpperCase() : null,
+    imageUrl: resolveTokenImageUrl({
+      dexImage,
+      chain,
+      address: base.address,
+    }),
     priceUsd,
     change1h,
     change24h,

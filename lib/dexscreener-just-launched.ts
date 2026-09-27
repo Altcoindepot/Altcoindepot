@@ -9,6 +9,7 @@ import {
 } from "@/lib/dex-project-links";
 import { logDexSampleRow, parseDexUsdNumber } from "@/lib/dex-pair-fields";
 import { isJustLaunchedAge } from "@/lib/pair-age-split";
+import { resolveTokenImageUrl } from "@/lib/token-image";
 
 const DEX_BASE = "https://api.dexscreener.com";
 /** 5 minutes — just-launched pairs go stale quickly. */
@@ -149,7 +150,12 @@ function pairToRow(pair: DexPair, iconFallback?: string, profileLinks?: unknown)
     id: `launch-${chain}-${base.address}`,
     name: base.name,
     symbol: base.symbol,
-    image: pair.info?.imageUrl ?? iconFallback ?? "",
+    image:
+      resolveTokenImageUrl({
+        dexImage: pair.info?.imageUrl ?? iconFallback,
+        chain,
+        address: base.address,
+      }) ?? "",
     chain,
     contractAddress: base.address,
     change,

@@ -5,7 +5,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { isResourcesPath, RESOURCES_NAV } from "@/lib/resources-nav";
 
-/** Desktop header: single Resources item with dropdown (Ecosystem / Podcasts / Tools). */
+/** Desktop header: Resources dropdown (Ecosystem / Tools). Podcasts is a top-level nav link. */
 export function ResourcesNavDropdown() {
   const pathname = usePathname() || "/";
   const [open, setOpen] = useState(false);
@@ -41,10 +41,8 @@ export function ResourcesNavDropdown() {
         aria-haspopup="menu"
         aria-controls={menuId}
         onClick={() => setOpen((v) => !v)}
-        className={`inline-flex min-h-11 items-center gap-1 rounded-lg px-3 text-sm font-medium ${
-          active || open
-            ? "bg-teal-500/15 text-teal-200"
-            : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
+        className={`site-drawer-link inline-flex min-h-11 items-center gap-1 rounded-lg px-3 text-sm font-medium ${
+          active || open ? "site-drawer-link-active" : ""
         }`}
       >
         Resources
@@ -64,7 +62,7 @@ export function ResourcesNavDropdown() {
           id={menuId}
           role="menu"
           aria-label="Resources"
-          className="absolute left-0 top-full z-50 mt-1 min-w-[11rem] overflow-hidden rounded-xl glass-panel py-1 shadow-xl shadow-black/40"
+          className="site-nav-dropdown absolute left-0 top-full z-50 mt-1 min-w-[11rem] overflow-hidden rounded-xl py-1 shadow-xl"
         >
           {RESOURCES_NAV.map((item) => {
             const itemActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -74,10 +72,8 @@ export function ResourcesNavDropdown() {
                 href={item.href}
                 role="menuitem"
                 onClick={() => setOpen(false)}
-                className={`block px-3 py-2.5 text-sm font-medium ${
-                  itemActive
-                    ? "bg-teal-500/15 text-teal-200"
-                    : "text-zinc-300 hover:bg-white/5 hover:text-zinc-100"
+                className={`site-drawer-link block px-3 py-2.5 text-sm font-medium ${
+                  itemActive ? "site-drawer-link-active" : ""
                 }`}
               >
                 {item.label}

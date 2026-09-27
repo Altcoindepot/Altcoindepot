@@ -4,10 +4,13 @@
  */
 
 import { dexTokenPath } from "@/lib/dex-token-path";
+import { resolveTokenImageUrl } from "@/lib/token-image";
 
 export type NewsTickerChip = {
   symbol: string;
   href: string;
+  /** Dex CDN or known pair image — letter fallback when null. */
+  imageUrl: string | null;
 };
 
 type CoreTicker = {
@@ -256,7 +259,11 @@ export function matchNewsTickerChips(
     const href = dexTokenPath(chain, address);
     if (!href) return;
     seen.add(sym);
-    out.push({ symbol: sym, href });
+    out.push({
+      symbol: sym,
+      href,
+      imageUrl: resolveTokenImageUrl({ chain, address }),
+    });
   };
 
   for (const core of CORE_TICKERS) {

@@ -62,17 +62,17 @@ export function ThemeSelector() {
   }, []);
 
   const shell = (
-    <div className="mt-1 border-t border-teal-400/20 pt-3">
+    <div className="mt-1 border-t border-teal-400/25 pt-3">
       <p
         id="theme-selector-label"
-        className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-widest text-teal-300"
+        className="site-drawer-section px-3 pb-2 text-[11px] font-semibold uppercase tracking-widest"
       >
         Appearance
       </p>
       <div
         role="radiogroup"
         aria-labelledby="theme-selector-label"
-        className="mx-1 grid grid-cols-3 gap-1 rounded-lg border border-white/10 bg-black/20 p-1"
+        className="theme-selector-grid mx-1 grid grid-cols-3 gap-1 rounded-lg border p-1"
       >
         {options.map((opt) => {
           const active = mounted && preference === opt.value;
@@ -87,10 +87,8 @@ export function ThemeSelector() {
                 persistThemePreference(opt.value);
                 setPreference(opt.value);
               }}
-              className={`flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-md px-1 py-2 text-[11px] font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400/70 sm:text-xs ${
-                active
-                  ? "bg-teal-500/25 text-zinc-50 ring-1 ring-teal-400/45"
-                  : "text-zinc-400 hover:bg-teal-500/15 hover:text-zinc-50"
+              className={`theme-selector-opt flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-md px-1 py-2 text-[11px] font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500/70 sm:text-xs ${
+                active ? "theme-selector-opt-active" : ""
               }`}
             >
               <ThemeIcon kind={opt.icon} />
@@ -99,7 +97,7 @@ export function ThemeSelector() {
           );
         })}
       </div>
-      <p className="px-3 pt-2 text-[10px] leading-relaxed text-[#c4b09a]">
+      <p className="site-drawer-section px-3 pt-2 text-[10px] leading-relaxed">
         Choice is saved on this device. System follows your OS setting.
       </p>
     </div>

@@ -29,6 +29,7 @@ import {
 import { TokenAvatar } from "@/components/token-avatar";
 import { DexVenueBadge } from "@/components/dex-venue-badge";
 import { MarketRow } from "@/components/market-row";
+import { resolveTokenImageUrl } from "@/lib/token-image";
 
 const PAGE_STEP = 50;
 const INITIAL_VISIBLE = 100;
@@ -117,7 +118,11 @@ function TokensRecentlyViewed() {
                 i > 0 ? "border-l border-white/10" : ""
               }`}
             >
-              <TokenAvatar symbol={row.symbol} size={32} />
+              <TokenAvatar
+                symbol={row.symbol}
+                imageUrl={resolveTokenImageUrl({ chain: row.chain, address: row.address })}
+                size={32}
+              />
               <span className="min-w-0">
                 <span className="block truncate font-mono text-[13px] font-bold uppercase text-zinc-50">
                   {row.symbol}
@@ -256,6 +261,7 @@ function TokensPairsTable({
               href={tokenHref(row)}
               symbol={row.symbol}
               name={`${row.name} · ${row.dexLabel} Pool`}
+              imageUrl={row.imageUrl}
               chain={row.chain}
               dexId={row.dex}
               dexLabel={row.dexLabel}
@@ -297,7 +303,7 @@ function TokensPairsTable({
                   </td>
                   <td className="px-3 py-3">
                     <Link href={tokenHref(row)} className="inline-flex min-w-0 items-center gap-3">
-                      <TokenAvatar symbol={row.symbol} size={34} />
+                      <TokenAvatar symbol={row.symbol} imageUrl={row.imageUrl} size={32} />
                       <span className="min-w-0">
                         <span className="block truncate text-[14px] font-bold uppercase tracking-tight text-zinc-50">
                           {row.symbol}

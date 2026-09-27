@@ -26,6 +26,8 @@ export type GeckoCoinStats = {
   geckoId: string;
   name: string | null;
   symbol: string | null;
+  /** Cached CoinGecko `image.small` when present — never fetched for icons alone. */
+  imageSmall: string | null;
   athUsd: number | null;
   athDate: string | null;
   atlUsd: number | null;
@@ -139,10 +141,18 @@ function parseContractCoin(data: unknown, fetchedAtMs: number): GeckoCoinStats |
         ? numOrNull(md.fully_diluted_valuation)
         : null;
 
+  const imageObj =
+    typeof obj.image === "object" && obj.image !== null
+      ? (obj.image as Record<string, unknown>)
+      : null;
+  const imageSmall =
+    strOrNull(imageObj?.small) ?? strOrNull(imageObj?.thumb) ?? strOrNull(imageObj?.large);
+
   return {
     geckoId: id,
     name: strOrNull(obj.name),
     symbol: strOrNull(obj.symbol),
+    imageSmall,
     athUsd: ath,
     athDate,
     atlUsd: atl,

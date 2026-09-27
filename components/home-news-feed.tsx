@@ -6,6 +6,7 @@ import type { SiteNewsItem } from "@/lib/site-news";
 import { formatTimeAgo } from "@/lib/format-date";
 import { readResponseJsonSafely } from "@/lib/read-response-json";
 import { matchNewsTickerChips } from "@/lib/news-tickers";
+import { TokenAvatar } from "@/components/token-avatar";
 
 /** Poll inside the 15–30m server cache window so slot 1 can flip when feeds update. */
 const POLL_MS = 10 * 60_000;
@@ -73,8 +74,9 @@ function HomeNewsCard({ item }: { item: SiteNewsItem }) {
             <Link
               key={chip.symbol}
               href={chip.href}
-              className="inline-flex min-h-9 items-center rounded-full border border-teal-400/45 bg-teal-500/20 px-2.5 font-mono text-[11px] font-bold uppercase tracking-wide text-teal-100 transition-colors hover:border-teal-300/60 hover:bg-teal-500/30"
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-teal-400/45 bg-teal-500/20 px-2 font-mono text-[11px] font-bold uppercase tracking-wide text-teal-100 transition-colors hover:border-teal-300/60 hover:bg-teal-500/30"
             >
+              <TokenAvatar symbol={chip.symbol} imageUrl={chip.imageUrl} size={24} />
               {chip.symbol}
             </Link>
           ))}

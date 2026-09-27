@@ -72,9 +72,7 @@ export function HomeTopMovers({
                   <span className="w-3 shrink-0 text-center font-mono text-[10px] tabular-nums text-zinc-600 sm:w-4 sm:text-[11px]">
                     {index + 1}
                   </span>
-                  <span className="hidden sm:inline-flex">
-                    <TokenAvatar symbol={row.symbol} imageUrl={row.imageUrl} size={28} />
-                  </span>
+                  <TokenAvatar symbol={row.symbol} imageUrl={row.imageUrl} size={28} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[11px] font-semibold text-zinc-50 sm:text-[13px]">
                       {row.name}

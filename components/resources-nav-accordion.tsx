@@ -5,7 +5,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { isResourcesPath, RESOURCES_NAV } from "@/lib/resources-nav";
 
-/** Mobile / drawer: Resources accordion nesting Ecosystem, Podcasts, Tools. */
+/** Mobile / drawer: Resources accordion (Ecosystem / Tools). Podcasts is top-level, not nested. */
 export function ResourcesNavAccordion({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname() || "/";
   const active = isResourcesPath(pathname);
@@ -17,8 +17,8 @@ export function ResourcesNavAccordion({ onNavigate }: { onNavigate?: () => void 
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className={`flex min-h-11 w-full items-center justify-between rounded-lg px-3 text-sm font-medium ${
-          active ? "bg-teal-500/15 text-teal-200" : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
+        className={`site-drawer-link flex min-h-11 w-full items-center justify-between rounded-lg px-3 text-sm font-medium ${
+          active ? "site-drawer-link-active" : ""
         }`}
       >
         <span>Resources</span>
@@ -34,7 +34,7 @@ export function ResourcesNavAccordion({ onNavigate }: { onNavigate?: () => void 
         </svg>
       </button>
       {open ? (
-        <div className="mt-0.5 flex flex-col gap-0.5 border-l border-white/10 pl-2 ml-3">
+        <div className="site-drawer-nest mt-0.5 ml-3 flex flex-col gap-0.5 border-l pl-2">
           {RESOURCES_NAV.map((item) => {
             const itemActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
@@ -42,10 +42,8 @@ export function ResourcesNavAccordion({ onNavigate }: { onNavigate?: () => void 
                 key={item.href}
                 href={item.href}
                 onClick={onNavigate}
-                className={`inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium ${
-                  itemActive
-                    ? "bg-teal-500/15 text-teal-200"
-                    : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
+                className={`site-drawer-link inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium ${
+                  itemActive ? "site-drawer-link-active" : ""
                 }`}
               >
                 {item.label}

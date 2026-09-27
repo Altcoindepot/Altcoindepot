@@ -6,6 +6,8 @@ import type { SiteNewsItem } from "@/lib/site-news";
 import { formatTimeAgo } from "@/lib/format-date";
 import { formatDexPct } from "@/lib/dex-pair-fields";
 import { matchNewsTickerChips, type NewsTickerCandidate } from "@/lib/news-tickers";
+import { resolveTokenImageUrl } from "@/lib/token-image";
+import { TokenAvatar } from "@/components/token-avatar";
 
 export type NewsDexMover = {
   id: string;
@@ -65,6 +67,11 @@ function MoverChip({ mover }: { mover: NewsDexMover }) {
           : "border-rose-400/30 bg-rose-500/10 text-rose-200"
       }`}
     >
+      <TokenAvatar
+        symbol={mover.symbol}
+        imageUrl={resolveTokenImageUrl({ chain: mover.chain, address: mover.address })}
+        size={24}
+      />
       <span className="uppercase text-zinc-100">{mover.symbol}</span>
       <span>{formatDexPct(mover.changePct)}</span>
       <span className="text-[9px] font-semibold uppercase text-zinc-500">{mover.window}</span>
@@ -116,8 +123,9 @@ function HeadlineRow({
               <Link
                 key={chip.symbol}
                 href={chip.href}
-                className="inline-flex min-h-11 items-center rounded-full border border-teal-400/45 bg-teal-500/20 px-3.5 font-mono text-[12px] font-bold uppercase tracking-wide text-teal-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] transition-colors hover:border-teal-300/60 hover:bg-teal-500/30 hover:text-teal-50 active:bg-teal-500/35"
+                className="inline-flex min-h-11 items-center gap-2 rounded-full border border-teal-400/45 bg-teal-500/20 px-3 font-mono text-[12px] font-bold uppercase tracking-wide text-teal-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] transition-colors hover:border-teal-300/60 hover:bg-teal-500/30 hover:text-teal-50 active:bg-teal-500/35"
               >
+                <TokenAvatar symbol={chip.symbol} imageUrl={chip.imageUrl} size={24} />
                 {chip.symbol}
               </Link>
             ))}

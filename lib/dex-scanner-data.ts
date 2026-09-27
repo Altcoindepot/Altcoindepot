@@ -8,6 +8,7 @@ import { dexVenueLabel } from "@/lib/dex-venue";
 import { normalizeDexChainId, sameDexChain } from "@/lib/dex-token-path";
 import { parseDexUsdNumber } from "@/lib/dex-pair-fields";
 import { DexScreenerFetchError } from "@/lib/dexscreener-live-pairs";
+import { resolveTokenImageUrl } from "@/lib/token-image";
 import {
   type DexScannerQuery,
   DEX_SCANNER_DEFAULT_QUERY,
@@ -46,6 +47,7 @@ export type DexScannerRow = {
   dex: string;
   dexLabel: string;
   quoteSymbol: string;
+  imageUrl: string | null;
   priceUsd: number | null;
   change24h: number | null;
   volume24h: number | null;
@@ -71,6 +73,7 @@ type DexPair = {
   marketCap?: number | null;
   fdv?: number | null;
   pairCreatedAt?: number | null;
+  info?: { imageUrl?: string };
 };
 
 type TokenBoostRef = { chainId: string; tokenAddress: string };
@@ -145,6 +148,10 @@ function mapPairToScannerRow(pair: DexPair): DexScannerRow | null {
       ? pair.pairCreatedAt
       : null;
   const quoteSymbol = (pair.quoteToken?.symbol ?? "").toUpperCase() || "—";
+  const dexImage =
+    typeof pair.info?.imageUrl === "string" && pair.info.imageUrl.trim()
+      ? pair.info.imageUrl.trim()
+      : null;
 
   return {
     id: `${chain}:${base.address.toLowerCase()}`,
@@ -155,6 +162,11 @@ function mapPairToScannerRow(pair: DexPair): DexScannerRow | null {
     dex,
     dexLabel: dexVenueLabel(dex) || dex || "—",
     quoteSymbol,
+    imageUrl: resolveTokenImageUrl({
+      dexImage,
+      chain,
+      address: base.address,
+    }),
     priceUsd,
     change24h,
     volume24h,

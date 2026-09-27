@@ -15,6 +15,7 @@ import {
 import { getDexProfileLinksByToken } from "@/lib/dexscreener-profile-links";
 import { geckoNetworkFromDexChain } from "@/lib/geckoterminal-trades";
 import { dexVenueId, dexVenueLabel } from "@/lib/dex-venue";
+import { resolveTokenImageUrl } from "@/lib/token-image";
 
 const DEX_BASE = "https://api.dexscreener.com";
 /** Short TTL — avoid long-lived empty/miss caches on cold token pages. */
@@ -355,7 +356,12 @@ export async function getDexScreenerTokenPage(
     address: tokenAddress,
     name: pair?.baseToken?.name ?? listed?.name ?? "Token",
     symbol: pair?.baseToken?.symbol ?? listed?.symbol ?? "TOKEN",
-    image: pair?.info?.imageUrl ?? listed?.image ?? "",
+    image:
+      resolveTokenImageUrl({
+        dexImage: pair?.info?.imageUrl ?? listed?.image,
+        chain: resolvedChain,
+        address: tokenAddress,
+      }) ?? "",
     priceUsd: asNumber(pair?.priceUsd),
     change24h: asNumber(pair?.priceChange?.h24) ?? listed?.change7d ?? null,
     volume: pair?.volume?.h24 ?? listed?.volume ?? null,

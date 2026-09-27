@@ -11,6 +11,7 @@ import {
 } from "@/lib/dex-token-path";
 import { parseDexUsdNumber } from "@/lib/dex-pair-fields";
 import { formatDexPct, formatDexPriceUsd } from "@/lib/dex-pair-fields";
+import { resolveTokenImageUrl } from "@/lib/token-image";
 
 const DEX_BASE = "https://api.dexscreener.com";
 const SEARCH_REVALIDATE_SECONDS = 60;
@@ -175,7 +176,11 @@ function mapHit(pair: DexPair, preferAddress?: string): DexSearchHit | null {
         : null,
     liquidityUsd: parseDexUsdNumber(pair.liquidity?.usd),
     volume24h: parseDexUsdNumber(pair.volume?.h24),
-    imageUrl: typeof pair.info?.imageUrl === "string" ? pair.info.imageUrl : null,
+    imageUrl: resolveTokenImageUrl({
+      dexImage: typeof pair.info?.imageUrl === "string" ? pair.info.imageUrl : null,
+      chain,
+      address,
+    }),
     href,
     pairUrl: typeof pair.url === "string" && pair.url.startsWith("http") ? pair.url : null,
     pairAddress: typeof pair.pairAddress === "string" ? pair.pairAddress.trim() : null,

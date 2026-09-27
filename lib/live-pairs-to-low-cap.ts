@@ -13,7 +13,7 @@ export function livePairsToLowCapRows(live: DexLivePairRow[]): LowCapRow[] {
       id: r.id,
       name: r.name,
       symbol: r.symbol,
-      image: "",
+      image: r.imageUrl ?? "",
       marketCap: null,
       liquidity: r.liquidityUsd,
       chain: r.chain,

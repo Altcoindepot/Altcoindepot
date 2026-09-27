@@ -70,13 +70,44 @@ function IconMovers() {
   );
 }
 
-/** Desktop primary nav — real routes only, icon + label. */
+function IconNews() {
+  return (
+    <svg className="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+      <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H16v14.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 4 18.5V5.5Z" />
+      <path d="M16 6h2.5A1.5 1.5 0 0 1 20 7.5v11A1.5 1.5 0 0 1 18.5 20H16" strokeLinecap="round" />
+      <path d="M7 8h6M7 11h6M7 14h4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconPodcasts() {
+  return (
+    <svg className="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+      <path d="M12 3a5 5 0 0 0-5 5v3a5 5 0 0 0 10 0V8a5 5 0 0 0-5-5Z" />
+      <path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** Primary nav — real routes only, icon + label. News/Podcasts are top-level (not under Resources). */
 const DESKTOP_NAV: NavItem[] = [
   {
     href: "/",
     label: "Explore",
     match: (p) => p === "/",
     icon: <IconExplore />,
+  },
+  {
+    href: "/news",
+    label: "News",
+    match: (p) => p.startsWith("/news"),
+    icon: <IconNews />,
+  },
+  {
+    href: "/podcasts",
+    label: "Podcasts",
+    match: (p) => p.startsWith("/podcasts"),
+    icon: <IconPodcasts />,
   },
   {
     href: "/top-100-trending",
@@ -101,7 +132,7 @@ const DESKTOP_NAV: NavItem[] = [
   },
   {
     href: "/dex-scanner",
-    label: "DEX Scanner",
+    label: "Scanner",
     match: (p) => p.startsWith("/dex-scanner"),
     icon: <IconScanner />,
   },
@@ -136,13 +167,13 @@ export function SiteHeaderClient({ fetchedAt }: { fetchedAt?: number | null }) {
                 <Link
                   key={item.label}
                   href={item.href}
-                  className={`inline-flex min-h-9 shrink-0 items-center gap-1 rounded-full px-2 text-[11px] font-medium transition-colors sm:min-h-10 sm:gap-1.5 sm:px-2.5 sm:text-[13px] xl:px-3 ${
-                    active
-                      ? "nav-pill-active"
-                      : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
+                  className={`site-nav-link inline-flex min-h-9 shrink-0 items-center gap-1 rounded-full px-2 text-[11px] font-medium transition-colors sm:min-h-10 sm:gap-1.5 sm:px-2.5 sm:text-[13px] xl:px-3 ${
+                    active ? "nav-pill-active" : ""
                   }`}
                 >
-                  <span className={active ? "text-[#5dffd0]" : "text-zinc-500"}>{item.icon}</span>
+                  <span className="site-nav-icon" aria-hidden>
+                    {item.icon}
+                  </span>
                   <span className="whitespace-nowrap">{item.label}</span>
                 </Link>
               );
@@ -159,7 +190,7 @@ export function SiteHeaderClient({ fetchedAt }: { fetchedAt?: number | null }) {
             </div>
             <button
               type="button"
-              className="inline-flex min-h-10 min-w-10 shrink-0 items-center justify-center rounded-full text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
+              className="site-nav-menu-btn inline-flex min-h-10 min-w-10 shrink-0 items-center justify-center rounded-full"
               aria-label="More"
               onClick={() => setMenuOpen(true)}
             >

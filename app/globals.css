@@ -584,6 +584,161 @@ html[data-theme="light"] .brand-wordmark-depot {
   -webkit-backdrop-filter: blur(16px) saturate(1.5);
 }
 
+.nav-pill-active .site-nav-icon {
+  color: inherit;
+}
+
+/* Header + drawer chrome — theme tokens (--bg / --fg / --muted) */
+.site-nav-link {
+  color: var(--muted);
+}
+
+.site-nav-link .site-nav-icon {
+  color: var(--muted);
+}
+
+.site-nav-link:hover {
+  color: #2dd4bf;
+  background-color: color-mix(in srgb, #14b8a6 12%, transparent);
+}
+
+.site-nav-link:hover .site-nav-icon {
+  color: #2dd4bf;
+}
+
+.site-nav-link.nav-pill-active {
+  color: #5dffd0;
+}
+
+.site-nav-menu-btn {
+  color: var(--muted);
+}
+
+.site-nav-menu-btn:hover {
+  color: #2dd4bf;
+  background-color: color-mix(in srgb, #14b8a6 12%, transparent);
+}
+
+.site-more-drawer {
+  background: var(--bg);
+  color: var(--fg);
+  border-right: 1px solid color-mix(in srgb, var(--muted) 28%, transparent);
+  box-shadow: 8px 0 32px color-mix(in srgb, var(--fg) 18%, transparent);
+}
+
+.site-drawer-section {
+  color: var(--muted);
+}
+
+.site-drawer-link {
+  color: var(--muted);
+}
+
+.site-drawer-link:hover {
+  color: #0d9488;
+  background-color: color-mix(in srgb, #14b8a6 12%, transparent);
+}
+
+html:not([data-theme="light"]) .site-drawer-link:hover {
+  color: #5eead4;
+}
+
+.site-drawer-link-active {
+  color: #0f766e;
+  background-color: color-mix(in srgb, #14b8a6 16%, transparent);
+}
+
+html:not([data-theme="light"]) .site-drawer-link-active {
+  color: #5dffd0;
+  background-color: rgba(45, 212, 191, 0.15);
+}
+
+.site-drawer-nest {
+  border-color: color-mix(in srgb, var(--muted) 28%, transparent);
+}
+
+.site-drawer-soon {
+  color: var(--muted);
+  opacity: 0.85;
+}
+
+.site-drawer-soon-badge {
+  border-color: color-mix(in srgb, var(--muted) 35%, transparent);
+  color: var(--muted);
+}
+
+.site-nav-dropdown {
+  background: var(--bg);
+  border: 1px solid color-mix(in srgb, var(--muted) 28%, transparent);
+  color: var(--fg);
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--fg) 16%, transparent);
+}
+
+html[data-theme="light"] .site-header-shell {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg) 92%, transparent) 0%,
+    color-mix(in srgb, var(--bg) 45%, transparent) 70%,
+    transparent 100%
+  );
+}
+
+html[data-theme="light"] .nav-pill-active {
+  border-color: rgba(13, 148, 136, 0.4);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(13, 148, 136, 0.14) 55%,
+    rgba(204, 251, 241, 0.65) 100%
+  );
+  color: #0f766e;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 0 12px rgba(13, 148, 136, 0.12);
+}
+
+html[data-theme="light"] .site-nav-link.nav-pill-active {
+  color: #0f766e;
+}
+
+html[data-theme="light"] .site-nav-link:hover {
+  color: #0f766e;
+}
+
+html[data-theme="light"] .site-nav-menu-btn:hover {
+  color: #0f766e;
+}
+
+.theme-selector-grid {
+  border-color: color-mix(in srgb, var(--muted) 30%, transparent);
+  background: color-mix(in srgb, var(--fg) 4%, var(--bg));
+}
+
+.theme-selector-opt {
+  color: var(--muted);
+}
+
+.theme-selector-opt:hover:not(:disabled) {
+  color: #0d9488;
+  background-color: color-mix(in srgb, #14b8a6 12%, transparent);
+}
+
+html:not([data-theme="light"]) .theme-selector-opt:hover:not(:disabled) {
+  color: #5eead4;
+}
+
+.theme-selector-opt-active {
+  color: #0f766e;
+  background-color: color-mix(in srgb, #14b8a6 18%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #0d9488 45%, transparent);
+}
+
+html:not([data-theme="light"]) .theme-selector-opt-active {
+  color: #f4f7f6;
+  background-color: rgba(45, 212, 191, 0.25);
+  box-shadow: inset 0 0 0 1px rgba(45, 212, 191, 0.45);
+}
+
 /* Gain / loss chips — smaller wet glass */
 .glass-chip-gain,
 .glass-chip-loss {
@@ -630,6 +785,10 @@ html[data-theme="light"] .brand-wordmark-depot {
 
 .mobile-tab-bar .tab-active {
   color: #5dffd0;
+}
+
+.mobile-tab-bar .site-tab-idle {
+  color: var(--muted);
 }
 
 .mobile-tab-bar .tab-active-icon {

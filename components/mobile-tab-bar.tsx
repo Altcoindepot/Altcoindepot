@@ -67,6 +67,22 @@ function IconNews({ active }: { active: boolean }) {
   );
 }
 
+function IconPodcasts({ active }: { active: boolean }) {
+  return (
+    <svg
+      className="size-5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={active ? 2.25 : 1.75}
+      aria-hidden
+    >
+      <path d="M12 3a5 5 0 0 0-5 5v3a5 5 0 0 0 10 0V8a5 5 0 0 0-5-5Z" />
+      <path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 const TABS: Array<{
   href: string;
   label: string;
@@ -84,6 +100,12 @@ const TABS: Array<{
     label: "News",
     match: (p) => p.startsWith("/news"),
     icon: (a) => <IconNews active={a} />,
+  },
+  {
+    href: "/podcasts",
+    label: "Podcasts",
+    match: (p) => p.startsWith("/podcasts"),
+    icon: (a) => <IconPodcasts active={a} />,
   },
   {
     href: "/dex-scanner",
@@ -108,15 +130,15 @@ export function MobileTabBar() {
       aria-label="Primary"
       className="mobile-tab-bar fixed inset-x-2.5 bottom-[max(0.55rem,env(safe-area-inset-bottom))] z-50 overflow-hidden lg:hidden sm:inset-x-4"
     >
-      <ul className="grid grid-cols-4">
+      <ul className="grid grid-cols-5">
         {TABS.map((tab) => {
           const active = tab.match(pathname);
           return (
             <li key={tab.href}>
               <Link
                 href={tab.href}
-                className={`flex min-h-12 flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[10px] font-semibold ${
-                  active ? "tab-active" : "text-zinc-400"
+                className={`flex min-h-12 flex-col items-center justify-center gap-0.5 px-0.5 py-1.5 text-[9px] font-semibold sm:text-[10px] ${
+                  active ? "tab-active" : "site-tab-idle"
                 }`}
               >
                 <span

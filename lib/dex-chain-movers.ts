@@ -17,6 +17,7 @@ import {
   compareTickerListPreference,
   majorQuoteRank,
 } from "@/lib/dex-majors-list-dedupe";
+import { resolveTokenImageUrl } from "@/lib/token-image";
 
 const DEX_BASE = "https://api.dexscreener.com";
 /** Dex cache 2–5 min (3 min). */
@@ -248,7 +249,11 @@ function pairToCandidate(pair: DexPair, expectChain: string): Candidate | null {
     change24h: change24h != null && Number.isFinite(change24h) ? change24h : null,
     liquidityUsd,
     volume24h,
-    imageUrl: typeof pair.info?.imageUrl === "string" ? pair.info.imageUrl : null,
+    imageUrl: resolveTokenImageUrl({
+      dexImage: typeof pair.info?.imageUrl === "string" ? pair.info.imageUrl : null,
+      chain,
+      address: base.address,
+    }),
   };
 }
 

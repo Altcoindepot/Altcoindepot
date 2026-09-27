@@ -1,6 +1,6 @@
+/** Nested under Resources — Podcasts is a top-level nav link, not here. */
 export const RESOURCES_NAV = [
   { href: "/ecosystem", label: "Ecosystem" },
-  { href: "/podcasts", label: "Podcasts" },
   { href: "/tools", label: "Tools" },
 ] as const;
 
