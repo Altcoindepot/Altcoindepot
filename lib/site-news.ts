@@ -15,6 +15,8 @@ export type SiteNewsItem = {
   href: string;
   source: string;
   publishedAt: string;
+  /** 1–2 sentence RSS excerpt for /news/read — never a scraped full article. */
+  excerpt?: string | null;
 };
 
 export type SiteNewsResult = {
@@ -57,6 +59,11 @@ export const SITE_NEWS_FEEDS: readonly FeedSource[] = [
   { name: "The Daily Hodl", url: "https://dailyhodl.com/feed/" },
   { name: "Bitcoin Magazine", url: "https://bitcoinmagazine.com/feed" },
   { name: "DL News", url: "https://www.dlnews.com/arc/outboundfeeds/rss/" },
+  { name: "CryptoSlate", url: "https://cryptoslate.com/feed/" },
+  { name: "NewsBTC", url: "https://newsbtc.com/feed/" },
+  { name: "BeInCrypto", url: "https://beincrypto.com/feed/" },
+  { name: "Bitcoinist", url: "https://bitcoinist.com/feed/" },
+  { name: "Crypto.news", url: "https://crypto.news/feed/" },
 ] as const;
 
 type CacheEntry = {
@@ -147,6 +154,50 @@ export function sortNewsByPubDateDesc(items: SiteNewsItem[]): SiteNewsItem[] {
   });
 }
 
+/** Collapse cross-outlet reprints of the same story — keep the newest pubDate. */
+export function normalizeStoryTitleKey(title: string): string {
+  return cleanText(title)
+    .toLowerCase()
+    .replace(/[''`]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\b(breaking|update|exclusive|analysis|opinion|report)\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export function dedupeNewsStoriesKeepNewest(items: SiteNewsItem[]): SiteNewsItem[] {
+  const sorted = sortNewsByPubDateDesc(items);
+  const seen = new Set<string>();
+  const out: SiteNewsItem[] = [];
+  for (const item of sorted) {
+    const key = normalizeStoryTitleKey(item.title);
+    // Very short / empty keys: keep (avoid over-collapsing).
+    if (key.length >= 18) {
+      if (seen.has(key)) continue;
+      seen.add(key);
+    }
+    out.push(item);
+  }
+  return out;
+}
+
+/** First 1–2 sentences from an RSS description (no full scrape). */
+export function excerptFromRssHtml(raw: string, maxChars = 280): string | null {
+  const text = cleanText(raw);
+  if (!text) return null;
+  const parts = text.split(/(?<=[.!?])\s+/).filter((p) => p.trim().length > 0);
+  let out = "";
+  for (const part of parts.slice(0, 2)) {
+    const next = out ? `${out} ${part}` : part;
+    if (next.length > maxChars && out) break;
+    out = next;
+    if (out.length >= 120) break;
+  }
+  if (!out) return null;
+  if (out.length > maxChars) return `${out.slice(0, maxChars - 1).trim()}…`;
+  return out;
+}
+
 function newestPubDateOf(items: SiteNewsItem[]): string | null {
   if (items.length === 0) return null;
   return sortNewsByPubDateDesc(items)[0]?.publishedAt ?? null;
@@ -156,7 +207,12 @@ function parseRssOrAtom(xml: string, source: string): SiteNewsItem[] {
   const raw: SiteNewsItem[] = [];
   const seen = new Set<string>();
 
-  const push = (title: string, hrefRaw: string, publishedRaw: string) => {
+  const push = (
+    title: string,
+    hrefRaw: string,
+    publishedRaw: string,
+    excerptRaw: string,
+  ) => {
     if (raw.length >= PER_FEED_PARSE_CAP) return;
     const titleClean = cleanText(title);
     const href = hrefRaw.trim();
@@ -167,14 +223,23 @@ function parseRssOrAtom(xml: string, source: string): SiteNewsItem[] {
     const norm = normalizeNewsUrl(href);
     if (seen.has(norm)) return;
     seen.add(norm);
+    const excerpt = excerptFromRssHtml(excerptRaw);
     raw.push({
       id: `${source}::${norm}`,
       title: titleClean,
       href,
       source,
       publishedAt,
+      excerpt,
     });
   };
+
+  const itemExcerpt = (block: string) =>
+    tagText(block, "description") ||
+    tagText(block, "content:encoded") ||
+    tagText(block, "summary") ||
+    tagText(block, "content") ||
+    "";
 
   for (const m of xml.matchAll(/<item\b[^>]*>([\s\S]*?)<\/item>/gi)) {
     if (raw.length >= PER_FEED_PARSE_CAP) break;
@@ -185,6 +250,7 @@ function parseRssOrAtom(xml: string, source: string): SiteNewsItem[] {
         block.match(/<link[^>]*href=["']([^"']+)["']/i)?.[1]?.trim() ||
         "",
       tagText(block, "pubDate") || tagText(block, "published") || tagText(block, "dc:date"),
+      itemExcerpt(block),
     );
   }
 
@@ -196,6 +262,7 @@ function parseRssOrAtom(xml: string, source: string): SiteNewsItem[] {
         tagText(block, "title"),
         atomLink(block),
         tagText(block, "published") || tagText(block, "updated") || tagText(block, "dc:date"),
+        itemExcerpt(block),
       );
     }
   }
@@ -299,7 +366,7 @@ function mergeWithLastGood(
     }
   }
 
-  return sortNewsByPubDateDesc([...byUrl.values()]);
+  return dedupeNewsStoriesKeepNewest(sortNewsByPubDateDesc([...byUrl.values()]));
 }
 
 async function refreshSiteNews(): Promise<CacheEntry | null> {
@@ -357,12 +424,24 @@ async function refreshSiteNews(): Promise<CacheEntry | null> {
  * Merged publisher RSS/Atom headlines. Never throws.
  * Partial success merges onto lastGood and re-sorts by pubDate — no source balancing.
  */
+/** Look up a cached headline by canonical URL (for /news/read). */
+export async function findSiteNewsByHref(href: string): Promise<SiteNewsItem | null> {
+  const want = normalizeNewsUrl(href);
+  if (!want) return null;
+  const news = await getSiteNewsCached(SITE_NEWS_PAGE_LIMIT);
+  return news.items.find((i) => normalizeNewsUrl(i.href) === want) ?? null;
+}
+
+/**
+ * Merged publisher RSS/Atom headlines. Never throws.
+ * Partial success merges onto lastGood and re-sorts by pubDate — no source balancing.
+ */
 export async function getSiteNewsCached(limit = SITE_NEWS_HOME_LIMIT): Promise<SiteNewsResult> {
   const capped = Math.min(SITE_NEWS_PAGE_LIMIT, Math.max(1, Math.floor(limit)));
   const now = Date.now();
   if (cache && cache.items.length > 0 && now - cache.fetchedAt < SITE_NEWS_TTL_MS) {
     return {
-      items: sortNewsByPubDateDesc(cache.items).slice(0, capped),
+      items: dedupeNewsStoriesKeepNewest(sortNewsByPubDateDesc(cache.items)).slice(0, capped),
       sourcesSucceeded: cache.sourcesSucceeded,
       sourcesLabel: sourcesLabel(cache.sourcesSucceeded),
       stale: false,
@@ -393,7 +472,7 @@ export async function getSiteNewsCached(limit = SITE_NEWS_HOME_LIMIT): Promise<S
 
   if (cache && cache.items.length > 0) {
     return {
-      items: sortNewsByPubDateDesc(cache.items).slice(0, capped),
+      items: dedupeNewsStoriesKeepNewest(sortNewsByPubDateDesc(cache.items)).slice(0, capped),
       sourcesSucceeded: cache.sourcesSucceeded,
       sourcesLabel: sourcesLabel(cache.sourcesSucceeded),
       stale: true,
