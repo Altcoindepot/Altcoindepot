@@ -12,7 +12,7 @@ import Link from "next/link";
 import { Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { MarketSentimentWidget } from "@/components/dashboard/market-sentiment-widget";
-import { HomeTopMovers } from "@/components/dashboard/home-top-movers";
+import { HomeTopMovers, HomeSearchStrip } from "@/components/dashboard/home-top-movers";
 import { DexHeatRotation } from "@/components/dashboard/dex-heat-rotation";
 import { HomeNewsFeed } from "@/components/home-news-feed";
 import { DisclaimerNote } from "@/components/disclaimer-note";
@@ -103,8 +103,8 @@ export function DashboardHome({
       initialItems={initialNewsItems}
       initialStale={initialNewsStale}
       initialSourcesLabel={initialNewsSourcesLabel}
-      maxItems={4}
-      maxItemsMobile={4}
+      maxItems={8}
+      maxItemsMobile={8}
     />
   );
 
@@ -122,6 +122,10 @@ export function DashboardHome({
             </Link>
           </div>
         ) : null}
+
+        <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-30 -mx-0.5 bg-[#07080c]/95 px-0.5 py-1.5 backdrop-blur-md sm:top-[calc(4rem+env(safe-area-inset-top))] lg:static lg:bg-transparent lg:px-0 lg:py-0 lg:backdrop-blur-none">
+          <HomeSearchStrip />
+        </div>
 
         {/* Same fold as desktop: heat 2×2 | movers, news full-width */}
         <div className="grid grid-cols-[minmax(0,1.55fr)_minmax(7.75rem,0.85fr)] items-start gap-2 sm:gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(18rem,0.85fr)] lg:gap-6">

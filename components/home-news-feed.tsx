@@ -43,8 +43,8 @@ export function HomeNewsFeed({
   initialItems,
   initialStale,
   initialSourcesLabel,
-  maxItems = 4,
-  maxItemsMobile = 4,
+  maxItems = 8,
+  maxItemsMobile = 8,
 }: {
   initialItems?: SiteNewsItem[];
   initialStale?: boolean;
@@ -59,12 +59,13 @@ export function HomeNewsFeed({
   const [sourcesLabel, setSourcesLabel] = useState(
     initialSourcesLabel ?? "Headlines from major crypto outlets",
   );
+  const pollLimit = Math.max(maxItems, maxItemsMobile, 8);
 
   useEffect(() => {
     let mounted = true;
     async function refresh() {
       try {
-        const res = await fetch(`/api/news?limit=4&_=${Date.now()}`, {
+        const res = await fetch(`/api/news?limit=${pollLimit}&_=${Date.now()}`, {
           cache: "no-store",
         });
         if (!res.ok) return;
@@ -90,7 +91,7 @@ export function HomeNewsFeed({
       mounted = false;
       window.clearInterval(id);
     };
-  }, []);
+  }, [pollLimit]);
 
   const desktop = items.slice(0, maxItems);
   const strip = items.slice(0, Math.max(maxItems, maxItemsMobile));
@@ -172,12 +173,9 @@ export function HomeNewsFeed({
 
         <Link
           href="/news"
-          className="flex shrink-0 items-center justify-center border-l border-white/10 px-2 text-teal-300/90 hover:bg-white/[0.03] hover:text-teal-200 sm:px-3"
-          aria-label="More headlines"
+          className="flex shrink-0 items-center justify-center border-l border-white/10 px-2.5 text-xs font-semibold text-teal-300/90 hover:bg-white/[0.03] hover:text-teal-200 sm:px-3 sm:text-[13px]"
         >
-          <span className="flex size-7 items-center justify-center rounded-full border border-white/15 text-base sm:size-9 sm:text-lg">
-            →
-          </span>
+          All news →
         </Link>
       </div>
       <p className="border-t border-white/[0.06] px-3 py-2 text-[10px] text-zinc-600 sm:px-4 sm:text-[11px]">

@@ -100,11 +100,16 @@ export function HomeTopMovers({
   );
 }
 
-/** Compact full-width search on the phone fold (desktop uses header search). */
+/** Compact full-width search on the home fold (sticky on mobile). */
 export function HomeSearchStrip({ className = "" }: { className?: string }) {
   return (
     <section aria-label="Search ticker or contract" className={className}>
-      <CoinSearchBar variant="wide" inputId="home-coin-search" showSubmitButton={false} />
+      <CoinSearchBar
+        variant="wide"
+        inputId="home-coin-search"
+        placeholder="Ticker or contract"
+        showSubmitButton={false}
+      />
     </section>
   );
 }

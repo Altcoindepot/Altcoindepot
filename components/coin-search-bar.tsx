@@ -7,6 +7,11 @@ import { formatDexPriceUsd } from "@/lib/dex-pair-fields";
 import { ChainIcon } from "@/components/chain-icon";
 import { TokenAvatar } from "@/components/token-avatar";
 import { readResponseJsonSafely } from "@/lib/read-response-json";
+import {
+  clearSearchHistory,
+  pushSearchHistory,
+  readSearchHistory,
+} from "@/lib/search-history";
 
 type CoinSearchBarProps = {
   variant?: "header" | "wide";
@@ -40,7 +45,7 @@ function isMajorHit(hit: UniverseSearchHit): boolean {
 export function CoinSearchBar({
   variant = "header",
   inputId,
-  placeholder = "Search ticker or contract",
+  placeholder = "Ticker or contract",
   showSubmitButton = true,
 }: CoinSearchBarProps) {
   const autoId = useId();
@@ -50,6 +55,7 @@ export function CoinSearchBar({
   const rootRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<UniverseSearchHit[]>([]);
+  const [history, setHistory] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [searched, setSearched] = useState(false);
@@ -57,6 +63,13 @@ export function CoinSearchBar({
   const [error, setError] = useState<string | null>(null);
   /** Keep results above mobile keyboard / tab bar */
   const [sheetPad, setSheetPad] = useState(72);
+
+  const showHistory = open && query.trim().length === 0 && history.length > 0;
+  const showResults =
+    open &&
+    query.trim().length > 0 &&
+    (results.length > 0 || error || searched || loading);
+  const showDropdown = showHistory || showResults;
 
   useEffect(() => {
     function syncPad() {
@@ -81,11 +94,11 @@ export function CoinSearchBar({
     const q = query.trim();
     if (q.length < 1) {
       setResults([]);
-      setOpen(false);
       setActiveIndex(-1);
       setSearched(false);
       setLoading(false);
       setError(null);
+      // Keep dropdown open for history when focused; don't force-close.
       return;
     }
 
@@ -142,35 +155,99 @@ export function CoinSearchBar({
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
+  const remember = useCallback((q: string) => {
+    setHistory(pushSearchHistory(q));
+  }, []);
+
   const goToHit = useCallback(
-    (hit: UniverseSearchHit) => {
+    (hit: UniverseSearchHit, rememberedQuery?: string) => {
+      const q = (rememberedQuery ?? query).trim() || hit.symbol;
+      remember(q);
       setOpen(false);
       setQuery("");
       router.push(hit.href);
     },
-    [router],
+    [query, remember, router],
+  );
+
+  const runHistoryQuery = useCallback(
+    (q: string) => {
+      const next = q.trim();
+      if (!next) return;
+      remember(next);
+      setQuery(next);
+      setOpen(true);
+      setActiveIndex(-1);
+    },
+    [remember],
   );
 
   const submitSearch = useCallback(
     (value: string) => {
       const q = value.trim();
       if (!q) return;
+      remember(q);
       if (activeIndex >= 0 && results[activeIndex]) {
-        goToHit(results[activeIndex]!);
+        goToHit(results[activeIndex]!, q);
         return;
       }
       if (results[0]) {
-        goToHit(results[0]);
+        goToHit(results[0], q);
         return;
       }
       router.push(`/coin?q=${encodeURIComponent(q)}`);
       setOpen(false);
     },
-    [activeIndex, goToHit, results, router],
+    [activeIndex, goToHit, remember, results, router],
   );
 
-  const showDropdown = open && (results.length > 0 || error || searched || loading);
+  const onClearHistory = useCallback(() => {
+    clearSearchHistory();
+    setHistory([]);
+    setOpen(false);
+  }, []);
+
   const wide = variant === "wide";
+
+  const historyList = (
+    <>
+      <li className="flex items-center justify-between gap-2 px-3 pb-1 pt-2">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+          Recent
+        </span>
+        <button
+          type="button"
+          className="text-[11px] font-medium text-zinc-500 underline-offset-2 hover:text-zinc-300 hover:underline"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={onClearHistory}
+        >
+          Clear
+        </button>
+      </li>
+      {history.map((item, idx) => (
+        <li key={item} role="option" aria-selected={idx === activeIndex}>
+          <button
+            type="button"
+            className={`flex min-h-11 w-full items-center gap-2.5 px-3 text-left text-sm text-zinc-200 transition-colors active:bg-white/[0.08] ${
+              idx === activeIndex ? "bg-white/[0.06]" : ""
+            }`}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => runHistoryQuery(item)}
+          >
+            <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full border border-white/10 text-zinc-500" aria-hidden>
+              <svg className="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+                <path d="M12 7v5l3 2" strokeLinecap="round" strokeLinejoin="round" />
+                <circle cx="12" cy="12" r="8.25" />
+              </svg>
+            </span>
+            <span className="min-w-0 truncate font-mono text-[13px] font-medium text-zinc-100">
+              {item}
+            </span>
+          </button>
+        </li>
+      ))}
+    </>
+  );
 
   const resultsList = (
     <>
@@ -182,7 +259,7 @@ export function CoinSearchBar({
       {results.map((hit, idx) => {
         const major = isMajorHit(hit);
         return (
-          <li key={`${hit.kind}:${hit.id}`} role="option" aria-selected={idx === activeIndex}>
+          <li key={`${hit.kind}:${hit.id}:${hit.address ?? ""}`} role="option" aria-selected={idx === activeIndex}>
             <button
               type="button"
               className={`flex w-full items-center gap-2.5 px-3 text-left transition-colors active:bg-white/[0.08] ${
@@ -227,6 +304,9 @@ export function CoinSearchBar({
     </>
   );
 
+  const dropdownBody = showHistory ? historyList : resultsList;
+  const dropdownLen = showHistory ? history.length : results.length;
+
   return (
     <div ref={rootRef} className={wide ? "relative w-full" : "relative block"}>
       <form
@@ -248,16 +328,28 @@ export function CoinSearchBar({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => {
+              if (query.trim().length === 0) {
+                const items = readSearchHistory();
+                setHistory(items);
+                if (items.length > 0) {
+                  setOpen(true);
+                  setActiveIndex(-1);
+                }
+                return;
+              }
               if (results.length > 0 || error || searched) setOpen(true);
             }}
             onKeyDown={(e) => {
-              if (!showDropdown || results.length === 0) return;
+              if (!showDropdown || dropdownLen === 0) return;
               if (e.key === "ArrowDown") {
                 e.preventDefault();
-                setActiveIndex((i) => (i + 1) % results.length);
+                setActiveIndex((i) => (i + 1) % dropdownLen);
               } else if (e.key === "ArrowUp") {
                 e.preventDefault();
-                setActiveIndex((i) => (i <= 0 ? results.length - 1 : i - 1));
+                setActiveIndex((i) => (i <= 0 ? dropdownLen - 1 : i - 1));
+              } else if (e.key === "Enter" && showHistory && activeIndex >= 0 && history[activeIndex]) {
+                e.preventDefault();
+                runHistoryQuery(history[activeIndex]!);
               } else if (e.key === "Escape") {
                 setOpen(false);
               }
@@ -283,7 +375,7 @@ export function CoinSearchBar({
               role="listbox"
               className="glass-dropdown absolute right-0 top-full z-[60] mt-1.5 hidden max-h-96 w-full min-w-[22rem] overflow-y-auto rounded-2xl py-1 shadow-[0_16px_48px_rgba(0,0,0,0.65)] lg:block"
             >
-              {resultsList}
+              {dropdownBody}
             </ul>
           ) : null}
         </div>
@@ -312,7 +404,7 @@ export function CoinSearchBar({
             role="listbox"
             className="glass-dropdown mx-2 max-h-[min(52vh,22rem)] overflow-y-auto rounded-2xl py-1 shadow-[0_-8px_40px_rgba(0,0,0,0.65)]"
           >
-            {resultsList}
+            {dropdownBody}
           </ul>
         </div>
       ) : null}

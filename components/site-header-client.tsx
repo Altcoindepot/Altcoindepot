@@ -153,7 +153,7 @@ export function SiteHeaderClient({ fetchedAt }: { fetchedAt?: number | null }) {
             <div className="min-w-0 w-[min(42vw,11rem)] sm:w-[12rem] lg:min-w-[14rem] lg:w-auto">
               <CoinSearchBar
                 inputId="header-coin-search"
-                placeholder="Ticker or 0x…"
+                placeholder="Ticker or contract"
                 showSubmitButton={false}
               />
             </div>

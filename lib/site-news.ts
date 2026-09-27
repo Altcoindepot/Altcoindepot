@@ -34,7 +34,7 @@ export const SITE_NEWS_TTL_MS = 20 * 60_000;
 /** /news serves this many newest headlines (25–50). */
 export const SITE_NEWS_PAGE_LIMIT = 50;
 /** Homepage strip uses the first N of the same newest-first list. */
-export const SITE_NEWS_HOME_LIMIT = 4;
+export const SITE_NEWS_HOME_LIMIT = 8;
 const FEED_TIMEOUT_MS = 5_000;
 /** Parse this many raw entries per feed, then keep the newest after pubDate sort. */
 const PER_FEED_PARSE_CAP = 40;
