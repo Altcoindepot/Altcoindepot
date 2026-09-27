@@ -77,7 +77,15 @@ const SEED_BY_SYMBOL: Record<string, SeedRow> = {
   USDC: { symbol: "USDC", geckoId: "usd-coin", names: ["usd coin"] },
   XRP: { symbol: "XRP", geckoId: "ripple", names: ["ripple"] },
   BNB: { symbol: "BNB", geckoId: "binancecoin", names: ["binance coin", "binancecoin"] },
-  SOL: { symbol: "SOL", geckoId: "solana", names: ["solana"] },
+  SOL: {
+    symbol: "SOL",
+    geckoId: "solana",
+    names: ["solana"],
+    preferred: {
+      chain: "solana",
+      address: "So11111111111111111111111111111111111111112",
+    },
+  },
   DOGE: { symbol: "DOGE", geckoId: "dogecoin", names: ["dogecoin"] },
   TRX: { symbol: "TRX", geckoId: "tron", names: ["tron"] },
   ADA: { symbol: "ADA", geckoId: "cardano", names: ["cardano"] },
@@ -110,6 +118,10 @@ const SEED_BY_SYMBOL: Record<string, SeedRow> = {
     symbol: "INJ",
     geckoId: "injective-protocol",
     names: ["injective", "injective protocol"],
+    preferred: {
+      chain: "ethereum",
+      address: "0xe28b3B32B6c345A34Ff64674606124Dd5Aceca30",
+    },
   },
   OP: { symbol: "OP", geckoId: "optimism", names: ["optimism"] },
   STX: { symbol: "STX", geckoId: "blockstack", names: ["stacks", "blockstack"] },
@@ -547,7 +559,7 @@ async function buildMajorsCatalogUncached(): Promise<MajorCatalogEntry[]> {
 
 const getCachedMajorsCatalog = unstable_cache(
   buildMajorsCatalogUncached,
-  ["majors-catalog-cb-bn-v1"],
+  ["majors-catalog-cb-bn-v2-preferred-sol-inj"],
   { revalidate: REVALIDATE_SECONDS },
 );
 
@@ -644,6 +656,14 @@ export function isKnownFamilyContract(major: MajorCatalogEntry, address: string)
   if (major.symbol === "ETH") {
     const weth = SEED_BY_SYMBOL.WETH?.preferred?.address.toLowerCase();
     if (weth && weth === a) return true;
+  }
+  if (major.symbol === "SOL") {
+    const wsol = SEED_BY_SYMBOL.SOL?.preferred?.address.toLowerCase();
+    if (wsol && wsol === a) return true;
+  }
+  if (major.symbol === "INJ") {
+    const inj = SEED_BY_SYMBOL.INJ?.preferred?.address.toLowerCase();
+    if (inj && inj === a) return true;
   }
   return false;
 }

@@ -36,13 +36,28 @@ const MAJOR_SYMBOLS = new Set([
   "WSOL",
   "BNB",
   "WBNB",
+  "XRP",
   "AVAX",
   "WAVAX",
+  "ADA",
+  "DOGE",
+  "LINK",
+  "SUI",
+  "TON",
+  "TRX",
+  "DOT",
+  "LTC",
+  "BCH",
+  "ATOM",
+  "NEAR",
+  "APT",
+  "FIL",
+  "ARB",
+  "OP",
   "MATIC",
   "WMATIC",
   "POL",
-  "ARB",
-  "OP",
+  "INJ",
 ]);
 
 export type DexSearchHit = {
@@ -168,7 +183,7 @@ function mapHit(pair: DexPair, preferAddress?: string): DexSearchHit | null {
 }
 
 /**
- * Rank: exact ticker match → USDT then USDC for majors → liquidity → volume.
+ * Rank: exact ticker → USDT then USDC for majors → volume → liquidity.
  * Dedupe by chain:address.
  */
 function rankAndDedupe(
@@ -194,10 +209,12 @@ function rankAndDedupe(
       if (qa !== qb) return qa - qb;
     }
 
+    const volA = parseDexUsdNumber(a.volume?.h24) ?? 0;
+    const volB = parseDexUsdNumber(b.volume?.h24) ?? 0;
+    if (volB !== volA) return volB - volA;
     const liqA = parseDexUsdNumber(a.liquidity?.usd) ?? 0;
     const liqB = parseDexUsdNumber(b.liquidity?.usd) ?? 0;
-    if (liqB !== liqA) return liqB - liqA;
-    return (parseDexUsdNumber(b.volume?.h24) ?? 0) - (parseDexUsdNumber(a.volume?.h24) ?? 0);
+    return liqB - liqA;
   });
 
   const seen = new Set<string>();

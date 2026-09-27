@@ -92,10 +92,10 @@ function pickBestPair(pairs: DexPair[], address: string): DexPair | null {
       const qa = quotePreference(a.quoteToken?.symbol);
       const qb = quotePreference(b.quoteToken?.symbol);
       if (qa !== qb) return qa - qb;
-      const liqA = parseDexUsdNumber(a.liquidity?.usd) ?? 0;
-      const liqB = parseDexUsdNumber(b.liquidity?.usd) ?? 0;
-      if (liqB !== liqA) return liqB - liqA;
-      return (parseDexUsdNumber(b.volume?.h24) ?? 0) - (parseDexUsdNumber(a.volume?.h24) ?? 0);
+      const volA = parseDexUsdNumber(a.volume?.h24) ?? 0;
+      const volB = parseDexUsdNumber(b.volume?.h24) ?? 0;
+      if (volB !== volA) return volB - volA;
+      return (parseDexUsdNumber(b.liquidity?.usd) ?? 0) - (parseDexUsdNumber(a.liquidity?.usd) ?? 0);
     })[0] ?? null
   );
 }
@@ -166,7 +166,7 @@ export async function getCoinDexLive(
     .join("|");
   const cached = unstable_cache(
     () => resolveDexLiveUncached(platforms),
-    ["coin-dex-live-v1", key],
+    ["coin-dex-live-v2-usdt-vol", key],
     { revalidate: COIN_DEX_PRICE_REVALIDATE_SECONDS },
   );
   return cached();

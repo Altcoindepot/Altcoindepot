@@ -145,6 +145,55 @@ function synthesizeMajorEntry(
   };
 }
 
+function nameAffinity(hitName: string, majorName: string): number {
+  const n = hitName.toLowerCase().trim();
+  const m = majorName.toLowerCase().trim();
+  if (!n || !m) return 3;
+  if (n === m) return 0;
+  if (n.includes(m) || m.includes(n)) return 1;
+  // Wrapped aliases
+  if (n.includes(`wrapped ${m}`) || n.startsWith("w") && m && n.includes(m)) return 1;
+  return 3;
+}
+
+function isExactMajorTicker(hitSymbol: string, major: MajorCatalogEntry): boolean {
+  const family = majorFamilySymbols(major);
+  return family.has(hitSymbol.trim().toUpperCase());
+}
+
+/** Credible major Dex hit — known contract or exact family ticker with name affinity. */
+function isCredibleMajorDexHit(major: MajorCatalogEntry, hit: DexSearchHit): boolean {
+  if (!isExactMajorTicker(hit.symbol, major)) return false;
+  if (isKnownFamilyContract(major, hit.address)) return true;
+  // Reject farm tokens that only share the ticker letters.
+  return nameAffinity(hit.name, major.name) <= 1;
+}
+
+function dexHitToLive(hit: DexSearchHit): CoinDexLive {
+  const dexChart = dexScreenerEmbedUrl(hit.pairUrl, hit.chain, hit.pairAddress);
+  const gtChart = geckoTerminalChartEmbedUrl(hit.chain, hit.pairAddress);
+  return {
+    chain: hit.chain,
+    address: hit.address,
+    priceUsd: hit.priceUsd,
+    change24h: hit.change24h,
+    volume24h: hit.volume24h,
+    liquidityUsd: hit.liquidityUsd,
+    quoteSymbol: (hit.quoteSymbol || "USDT").toUpperCase(),
+    pairAddress: hit.pairAddress,
+    pairUrl: hit.pairUrl,
+    dexChartEmbedUrl: dexChart,
+    geckoTerminalEmbedUrl: gtChart,
+    chartEmbedUrl: dexChart ?? gtChart,
+    tokenHref: hit.href,
+  };
+}
+
+/**
+ * Pick the major's live Dex pair.
+ * Order: known/preferred contract + USDT → preferred live → exact family + volume.
+ * Never promotes USDC or farm tickers over an available USDT on the real asset.
+ */
 async function resolveMajorDexLive(
   major: MajorCatalogEntry,
   entry: TopCoinSearchEntry,
@@ -161,58 +210,99 @@ async function resolveMajorDexLive(
       : []),
     ...(entry.platforms ?? []),
   ];
+
+  // 1) Resolve preferred / platform contracts directly (contract lookup, not ticker search).
+  let platformLive: CoinDexLive | null = null;
   if (platforms.length > 0) {
-    const live = await getCoinDexLive(platforms);
-    if (live) return live;
+    try {
+      platformLive = await getCoinDexLive(platforms);
+    } catch {
+      platformLive = null;
+    }
   }
 
-  // Dex symbol search — family symbols only; known contracts + name affinity beat memes
-  const family = majorFamilySymbols(major);
-  const majorName = major.name.toLowerCase();
-  const dexHits = await searchDexPairs(major.symbol, 24);
-  const exact = dexHits
-    .filter((h) => family.has(h.symbol.toUpperCase()))
+  // Preferred address via Dex contract search — guarantees real WBTC/WETH/WSOL/INJ pools.
+  let preferredHits: DexSearchHit[] = [];
+  if (major.preferred?.address) {
+    try {
+      preferredHits = await searchDexPairs(major.preferred.address, 16);
+    } catch {
+      preferredHits = [];
+    }
+  }
+  const preferredUsdt = preferredHits.find(
+    (h) =>
+      isKnownFamilyContract(major, h.address) &&
+      (h.quoteSymbol || "").toUpperCase() === "USDT",
+  );
+  if (preferredUsdt) return dexHitToLive(preferredUsdt);
+  if (platformLive && platformLive.quoteSymbol.toUpperCase() === "USDT") {
+    return platformLive;
+  }
+
+  // 2) Ticker Dex search — known contracts only for USDT (blocks farm "BTC"/"INJ").
+  let dexHits: DexSearchHit[] = [];
+  try {
+    dexHits = await searchDexPairs(major.symbol, 32);
+  } catch {
+    dexHits = [];
+  }
+
+  const knownHits = dexHits
+    .filter((h) => isKnownFamilyContract(major, h.address))
     .sort((a, b) => {
-      const knownA = isKnownFamilyContract(major, a.address) ? 0 : 1;
-      const knownB = isKnownFamilyContract(major, b.address) ? 0 : 1;
-      if (knownA !== knownB) return knownA - knownB;
-      const nameA = (() => {
-        const n = a.name.toLowerCase();
-        if (n === majorName) return 0;
-        if (n.includes(majorName) || majorName.includes(n)) return 1;
-        return 2;
-      })();
-      const nameB = (() => {
-        const n = b.name.toLowerCase();
-        if (n === majorName) return 0;
-        if (n.includes(majorName) || majorName.includes(n)) return 1;
-        return 2;
-      })();
+      const qa = quoteRank(a.quoteSymbol);
+      const qb = quoteRank(b.quoteSymbol);
+      if (qa !== qb) return qa - qb;
+      return (b.volume24h ?? 0) - (a.volume24h ?? 0);
+    });
+  const knownUsdt = knownHits.find((h) => (h.quoteSymbol || "").toUpperCase() === "USDT");
+  if (knownUsdt) return dexHitToLive(knownUsdt);
+
+  // Credible USDT on another venue (e.g. BSC INJ/USDT) before falling back to preferred USDC.
+  const credibleUsdt = dexHits
+    .filter((h) => isCredibleMajorDexHit(major, h))
+    .filter((h) => (h.quoteSymbol || "").toUpperCase() === "USDT")
+    .sort((a, b) => {
+      const nameA = nameAffinity(a.name, major.name);
+      const nameB = nameAffinity(b.name, major.name);
+      if (nameA !== nameB) return nameA - nameB;
+      return (b.volume24h ?? 0) - (a.volume24h ?? 0);
+    })[0];
+  if (credibleUsdt && nameAffinity(credibleUsdt.name, major.name) <= 1) {
+    return dexHitToLive(credibleUsdt);
+  }
+
+  // Preferred/platform any quote (USDC OK only when no USDT on the real asset).
+  const preferredBest = preferredHits
+    .filter((h) => isKnownFamilyContract(major, h.address))
+    .sort((a, b) => {
+      const qa = quoteRank(a.quoteSymbol);
+      const qb = quoteRank(b.quoteSymbol);
+      if (qa !== qb) return qa - qb;
+      return (b.volume24h ?? 0) - (a.volume24h ?? 0);
+    })[0];
+  if (preferredBest) return dexHitToLive(preferredBest);
+  if (knownHits[0]) return dexHitToLive(knownHits[0]);
+  if (platformLive) return platformLive;
+
+  // No preferred/known contract — credible name match (still USDT first).
+  const credible = dexHits
+    .filter((h) => isCredibleMajorDexHit(major, h))
+    .sort((a, b) => {
+      const nameA = nameAffinity(a.name, major.name);
+      const nameB = nameAffinity(b.name, major.name);
       if (nameA !== nameB) return nameA - nameB;
       const qa = quoteRank(a.quoteSymbol);
       const qb = quoteRank(b.quoteSymbol);
       if (qa !== qb) return qa - qb;
-      return (b.liquidityUsd ?? 0) - (a.liquidityUsd ?? 0);
+      return (b.volume24h ?? 0) - (a.volume24h ?? 0);
     });
-  const best = exact[0];
-  if (!best) return null;
-  const dexChart = dexScreenerEmbedUrl(best.pairUrl, best.chain, best.pairAddress);
-  const gtChart = geckoTerminalChartEmbedUrl(best.chain, best.pairAddress);
-  return {
-    chain: best.chain,
-    address: best.address,
-    priceUsd: best.priceUsd,
-    change24h: best.change24h,
-    volume24h: best.volume24h,
-    liquidityUsd: best.liquidityUsd,
-    quoteSymbol: best.quoteSymbol || "USDT",
-    pairAddress: best.pairAddress,
-    pairUrl: best.pairUrl,
-    dexChartEmbedUrl: dexChart,
-    geckoTerminalEmbedUrl: gtChart,
-    chartEmbedUrl: dexChart ?? gtChart,
-    tokenHref: best.href,
-  };
+  const credUsdt = credible.find((h) => (h.quoteSymbol || "").toUpperCase() === "USDT");
+  if (credUsdt) return dexHitToLive(credUsdt);
+  if (credible[0]) return dexHitToLive(credible[0]);
+
+  return null;
 }
 
 function sortHits(hits: UniverseSearchHit[]): UniverseSearchHit[] {
@@ -221,6 +311,15 @@ function sortHits(hits: UniverseSearchHit[]): UniverseSearchHit[] {
     const ta = tierOrder[a.rankTier ?? "other"];
     const tb = tierOrder[b.rankTier ?? "other"];
     if (ta !== tb) return ta - tb;
+    const qa = quoteRank(a.pairLabel?.split("/").pop());
+    const qb = quoteRank(b.pairLabel?.split("/").pop());
+    if (qa !== qb) return qa - qb;
+    return 0;
+  });
+}
+
+function sortMajorFamilyHits(hits: UniverseSearchHit[]): UniverseSearchHit[] {
+  return [...hits].sort((a, b) => {
     const qa = quoteRank(a.pairLabel?.split("/").pop());
     const qb = quoteRank(b.pairLabel?.split("/").pop());
     if (qa !== qb) return qa - qb;
@@ -261,8 +360,9 @@ export async function searchUniverse(query: string, limit = 10): Promise<Univers
     const dexLive = await resolveMajorDexLive(major, entry);
     const quote = (dexLive?.quoteSymbol || "USDT").toUpperCase();
     const pairLabel = majorPairLabel(major, quote);
+    // Only real USDT gets the major_usdt tier — never USDC.
     const tier: UniverseSearchHit["rankTier"] =
-      quoteRank(quote) <= 2 ? "major_usdt" : "major_other";
+      quote === "USDT" ? "major_usdt" : "major_other";
 
     const canonical = entryToHit(entry, {
       priceUsd: dexLive?.priceUsd ?? null,
@@ -286,20 +386,26 @@ export async function searchUniverse(query: string, limit = 10): Promise<Univers
       (e) => e.id !== major.geckoId,
     );
 
-    // Other pairs of the same asset (known wrapped contracts only) — not random "BTC" memes
+    // Other pairs of the same asset (known wrapped contracts only) — USDC OK below USDT
     let familyDex: UniverseSearchHit[] = [];
     try {
       const dexHits = await searchDexPairs(major.symbol, 16);
-      familyDex = dexHits
-        .filter((h) => family.has(h.symbol.toUpperCase()))
-        .filter((h) => isKnownFamilyContract(major, h.address))
-        .filter((h) => h.address.toLowerCase() !== (canonical.address ?? "").toLowerCase())
-        .slice(0, 3)
-        .map((h) => {
-          const hit = dexHitToUniverse(h, "major_other");
-          hit.pairLabel = `${h.symbol.toUpperCase()}/${h.quoteSymbol || "USDT"}`;
-          return hit;
-        });
+      familyDex = sortMajorFamilyHits(
+        dexHits
+          .filter((h) => family.has(h.symbol.toUpperCase()))
+          .filter((h) => isKnownFamilyContract(major, h.address))
+          .filter((h) => h.address.toLowerCase() !== (canonical.address ?? "").toLowerCase())
+          .filter((h) => isCredibleMajorDexHit(major, h))
+          .slice(0, 4)
+          .map((h) => {
+            const hit = dexHitToUniverse(
+              h,
+              (h.quoteSymbol || "").toUpperCase() === "USDT" ? "major_usdt" : "major_other",
+            );
+            hit.pairLabel = `${major.symbol}/${(h.quoteSymbol || "USDT").toUpperCase()}`;
+            return hit;
+          }),
+      );
     } catch {
       familyDex = [];
     }
@@ -328,16 +434,27 @@ export async function searchUniverse(query: string, limit = 10): Promise<Univers
     const seen = new Set<string>();
     const out: UniverseSearchHit[] = [];
     for (const hit of merged) {
-      const key = hit.kind === "coin" ? `coin:${hit.id}` : `token:${hit.id}`;
+      const key =
+        hit.kind === "token" && hit.address
+          ? `token:${(hit.chain ?? "").toLowerCase()}:${hit.address.toLowerCase()}`
+          : `coin:${hit.id}`;
       if (seen.has(key)) continue;
       seen.add(key);
       out.push(hit);
       if (out.length >= capped) break;
     }
-    // Guarantee canonical is first
-    const without = out.filter(
-      (h) => !(h.kind === "coin" && major.geckoId && h.id === major.geckoId),
-    );
+    // Guarantee canonical major is first
+    const canonKey =
+      canonical.kind === "token" && canonical.address
+        ? `token:${(canonical.chain ?? "").toLowerCase()}:${canonical.address.toLowerCase()}`
+        : `coin:${canonical.id}`;
+    const without = out.filter((h) => {
+      const key =
+        h.kind === "token" && h.address
+          ? `token:${(h.chain ?? "").toLowerCase()}:${h.address.toLowerCase()}`
+          : `coin:${h.id}`;
+      return key !== canonKey;
+    });
     return [canonical, ...without].slice(0, capped);
   }
 
