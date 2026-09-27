@@ -186,6 +186,14 @@ export function NewsPageView({
       <p className="mt-1 text-xs leading-relaxed text-zinc-500 sm:text-sm">
         {sourcesLabel} · newest first · {items.length} headlines
       </p>
+      <p className="mt-2 text-xs text-zinc-500">
+        <Link
+          href="/podcasts"
+          className="text-zinc-400 underline-offset-2 hover:text-teal-200 hover:underline"
+        >
+          Crypto podcasts →
+        </Link>
+      </p>
       {stale ? (
         <p className="mt-2 text-[11px] text-amber-200/90">
           Feed delayed — showing last good snapshot.

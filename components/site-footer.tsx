@@ -12,16 +12,10 @@ function XIcon({ className }: { className?: string }) {
 }
 
 const PRIMARY_LINKS = [
-  { href: "/compare", label: "Compare coins" },
-  { href: "/gainers-losers", label: "Gainers & Losers" },
-  { href: "/new-low-caps", label: "New & Low Caps" },
-  { href: "/just-launched", label: "Just Launched" },
   { href: "/news", label: "News" },
-  { href: "/market-overview", label: "Market overview" },
   { href: "/podcasts", label: "Podcasts" },
-  { href: "/ecosystem", label: "Ecosystem Research" },
-  { href: "/contact", label: "Feedback" },
-  { href: "/affiliate-disclosure", label: "Affiliate disclosure" },
+  { href: "/dex-scanner", label: "Scanner" },
+  { href: "/new-low-caps", label: "Low Caps" },
 ] as const;
 
 const LEGAL_LINKS = [
@@ -29,6 +23,8 @@ const LEGAL_LINKS = [
   { href: "/disclaimer", label: "Disclaimer" },
   { href: "/privacy-policy", label: "Privacy Policy" },
   { href: "/terms", label: "Terms of Service" },
+  { href: "/affiliate-disclosure", label: "Affiliate disclosure" },
+  { href: "/contact", label: "Feedback" },
 ] as const;
 
 const LEGAL_DISCLAIMER =
