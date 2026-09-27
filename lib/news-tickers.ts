@@ -38,8 +38,9 @@ const CORE_TICKERS: Array<{
   {
     symbol: "INJ",
     aliases: ["inj", "injective"],
-    chain: "ethereum",
-    address: "0xe28b3B32B6c345A34Ff64674606124Dd5Aceca30",
+    // Same Dex USDT venue search prefers (official ethereum INJ has no USDT pool).
+    chain: "bsc",
+    address: "0xa2B726B1145A4773F68593CF171187d8EBe4d495",
   },
 ];
 

@@ -111,12 +111,12 @@ function HeadlineRow({
           {item.title}
         </a>
         {chips.length > 0 ? (
-          <div className="mt-2 flex flex-wrap gap-1.5">
+          <div className="mt-2.5 flex flex-wrap gap-2">
             {chips.map((chip) => (
               <Link
                 key={chip.symbol}
                 href={chip.href}
-                className="inline-flex items-center rounded-full border border-white/15 bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide text-zinc-200 hover:border-teal-400/40 hover:text-teal-100"
+                className="inline-flex min-h-11 items-center rounded-full border border-teal-400/45 bg-teal-500/20 px-3.5 font-mono text-[12px] font-bold uppercase tracking-wide text-teal-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] transition-colors hover:border-teal-300/60 hover:bg-teal-500/30 hover:text-teal-50 active:bg-teal-500/35"
               >
                 {chip.symbol}
               </Link>
