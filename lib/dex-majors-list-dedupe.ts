@@ -77,18 +77,20 @@ export function compareTickerListPreference(
   a: {
     quoteSymbol?: string | null;
     volume24h?: number | null;
+    volume?: number | null;
     liquidityUsd?: number | null;
     liquidity?: number | null;
   },
   b: {
     quoteSymbol?: string | null;
     volume24h?: number | null;
+    volume?: number | null;
     liquidityUsd?: number | null;
     liquidity?: number | null;
   },
 ): number {
-  const volA = a.volume24h ?? 0;
-  const volB = b.volume24h ?? 0;
+  const volA = a.volume24h ?? a.volume ?? 0;
+  const volB = b.volume24h ?? b.volume ?? 0;
   if (volA !== volB) return volB - volA;
   const liqA = rowLiquidity(a);
   const liqB = rowLiquidity(b);
@@ -101,12 +103,14 @@ export function compareMajorListPreference(
   a: {
     quoteSymbol?: string | null;
     volume24h?: number | null;
+    volume?: number | null;
     liquidityUsd?: number | null;
     liquidity?: number | null;
   },
   b: {
     quoteSymbol?: string | null;
     volume24h?: number | null;
+    volume?: number | null;
     liquidityUsd?: number | null;
     liquidity?: number | null;
   },
@@ -131,6 +135,7 @@ export function finalizeDexListRows<
     symbol: string;
     quoteSymbol?: string | null;
     volume24h?: number | null;
+    volume?: number | null;
     liquidityUsd?: number | null;
     liquidity?: number | null;
   },
@@ -148,7 +153,7 @@ export function finalizeDexListRows<
       out.push(sym === row.symbol ? row : { ...row, symbol: sym });
     }
     if (sortByVolume) {
-      out.sort((a, b) => (b.volume24h ?? 0) - (a.volume24h ?? 0));
+      out.sort((a, b) => (b.volume24h ?? b.volume ?? 0) - (a.volume24h ?? a.volume ?? 0));
     }
     return out;
   }
@@ -167,7 +172,7 @@ export function finalizeDexListRows<
 
   const out = [...byTicker.values()];
   if (sortByVolume) {
-    out.sort((a, b) => (b.volume24h ?? 0) - (a.volume24h ?? 0));
+    out.sort((a, b) => (b.volume24h ?? b.volume ?? 0) - (a.volume24h ?? a.volume ?? 0));
   }
   return out;
 }

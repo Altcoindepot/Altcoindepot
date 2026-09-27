@@ -15,7 +15,6 @@ const STATIC_PATHS = [
   "/contact",
   "/privacy-policy",
   "/terms",
-  "/privacy",
   "/disclaimer",
   "/affiliate-disclosure",
   "/coin",

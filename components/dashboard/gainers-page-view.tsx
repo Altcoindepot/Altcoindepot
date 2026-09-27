@@ -7,6 +7,7 @@ import {
   type ChainMoversBoard,
   MOVER_CHAINS,
 } from "@/lib/dex-chain-movers";
+import { finalizeDexListRows } from "@/lib/dex-majors-list-dedupe";
 import { formatDexPct, formatDexPriceUsd } from "@/lib/dex-pair-fields";
 import { formatChainLabel } from "@/lib/format-chain";
 import { TokenAvatar } from "@/components/token-avatar";
@@ -223,34 +224,22 @@ function QuickActions() {
 }
 
 function flattenGainers(boards: ChainMoversBoard[], limit: number): ChainMoverRow[] {
-  const seen = new Set<string>();
-  const rows = boards
-    .flatMap((b) => b.gainers)
-    .sort((a, b) => b.changePct - a.changePct);
-  const out: ChainMoverRow[] = [];
-  for (const row of rows) {
-    const key = row.id;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    out.push(row);
-    if (out.length >= limit) break;
-  }
-  return out;
+  const flat = boards.flatMap((b) => b.gainers);
+  // One row per ticker across All — highest 24h volume wins, then sort by % change.
+  const deduped = finalizeDexListRows(flat, {
+    includeStableBases: true,
+    sortByVolume: false,
+  });
+  return [...deduped].sort((a, b) => b.changePct - a.changePct).slice(0, limit);
 }
 
 function flattenLosers(boards: ChainMoversBoard[], limit: number): ChainMoverRow[] {
-  const seen = new Set<string>();
-  const rows = boards
-    .flatMap((b) => b.losers)
-    .sort((a, b) => a.changePct - b.changePct);
-  const out: ChainMoverRow[] = [];
-  for (const row of rows) {
-    if (seen.has(row.id)) continue;
-    seen.add(row.id);
-    out.push(row);
-    if (out.length >= limit) break;
-  }
-  return out;
+  const flat = boards.flatMap((b) => b.losers);
+  const deduped = finalizeDexListRows(flat, {
+    includeStableBases: true,
+    sortByVolume: false,
+  });
+  return [...deduped].sort((a, b) => a.changePct - b.changePct).slice(0, limit);
 }
 
 /**

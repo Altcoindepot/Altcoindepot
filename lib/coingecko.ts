@@ -1,5 +1,4 @@
 import { cache } from "react";
-import { unstable_cache } from "next/cache";
 import { isProductionBuild } from "@/lib/build-phase";
 import {
   blockCoinGeckoMarkets,
@@ -377,11 +376,12 @@ async function fetchCoinDetailWithRetries(safe: string): Promise<CoinLookupResul
   return { status: "unavailable" };
 }
 
-const getCachedCoinDetailLookup = unstable_cache(
-  async (safe: string) => fetchCoinDetailWithRetries(safe),
-  ["coingecko-coin-detail-v2"],
-  { revalidate: 7200 },
-);
+/** 2h success-only memory for `/coins/{id}` — never caches not_found / unavailable. */
+const COIN_DETAIL_SUCCESS_TTL_MS = 2 * 60 * 60 * 1000;
+const coinDetailSuccessCache = new Map<
+  string,
+  { coin: CoinGeckoDetail; fetchedAtMs: number }
+>();
 
 /** Result of fetching `/coins/{id}` — never throws; use this when you must distinguish API failure from missing coin. */
 export type CoinLookupResult =
@@ -394,7 +394,21 @@ export const lookupCoinById = cache(async (id: string): Promise<CoinLookupResult
   if (!/^[a-z0-9_-]+$/i.test(safe)) {
     return { status: "not_found" };
   }
-  return getCachedCoinDetailLookup(safe);
+
+  const now = Date.now();
+  const hit = coinDetailSuccessCache.get(safe);
+  if (hit && now - hit.fetchedAtMs < COIN_DETAIL_SUCCESS_TTL_MS) {
+    return { status: "ok", coin: hit.coin };
+  }
+
+  const result = await fetchCoinDetailWithRetries(safe);
+  if (result.status === "ok") {
+    coinDetailSuccessCache.set(safe, {
+      coin: result.coin,
+      fetchedAtMs: now,
+    });
+  }
+  return result;
 });
 
 /** Coin detail or `null` if missing or unavailable — callers cannot tell which; prefer {@link lookupCoinById} when routing UX depends on it. */

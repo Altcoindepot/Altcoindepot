@@ -6,6 +6,7 @@ import { normalizeDexChainId } from "@/lib/dex-token-path";
 import { dexVenueId, dexVenueLabel } from "@/lib/dex-venue";
 import { logDexSampleRow, parseDexUsdNumber } from "@/lib/dex-pair-fields";
 import { isNewLowCapAge } from "@/lib/pair-age-split";
+import { finalizeDexListRows } from "@/lib/dex-majors-list-dedupe";
 
 const DEX_BASE = "https://api.dexscreener.com";
 /** 10 minutes — DexScreener is free but we should not poll on every refresh. */
@@ -216,14 +217,15 @@ async function loadDexLowCapsUncached(): Promise<LowCapRow[]> {
     }
   }
 
-  return [...byId.values()]
-    .sort((a, b) => (b.volume ?? 0) - (a.volume ?? 0))
-    .slice(0, DEXSCREENER_LIST_LIMIT);
+  return finalizeDexListRows([...byId.values()], {
+    includeStableBases: false,
+    sortByVolume: true,
+  }).slice(0, DEXSCREENER_LIST_LIMIT);
 }
 
 const loadDexLowCapsCached = unstable_cache(
   loadDexLowCapsUncached,
-  ["dexscreener-low-caps-v6-price"],
+  ["dexscreener-low-caps-v7-ticker-dedupe"],
   { revalidate: DEXSCREENER_REVALIDATE_SECONDS },
 );
 

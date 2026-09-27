@@ -385,7 +385,8 @@ export function TokensPageView({
       liquidity: r.liquidityUsd,
       change24h: r.change24h,
     }));
-    // Chain/DEX filter first, then one row per ticker (so Solana keeps its own PEPE).
+    // Chain/DEX filter first, then one row per ticker (highest 24h volume).
+    // All = all chains (dex:all); per-chain chips keep that chain's best PEPE.
     const scoped = applyDexListQuery(mapped, {
       ...query,
       pulse: "all",

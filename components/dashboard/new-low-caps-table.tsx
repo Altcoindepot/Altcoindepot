@@ -27,6 +27,7 @@ import {
   LOW_CAPS_DEFAULT_QUERY,
   parseDexListQuery,
 } from "@/lib/dex-list-query";
+import { finalizeDexListRows, wantsDexStableBases } from "@/lib/dex-majors-list-dedupe";
 
 function formatPct(n: number | null) {
   if (n == null || !Number.isFinite(n)) return "—";
@@ -97,14 +98,25 @@ export function NewLowCapsTable({
   const watchFiltered =
     watchlistOnly && mounted ? rows.filter((row) => watchIds.has(row.id)) : rows;
 
-  const visibleRows = useMemo(
-    () =>
-      applyDexListQuery(
-        watchFiltered.map((row) => ({ ...row, change24h: row.change7d })),
-        listQuery,
-      ),
-    [watchFiltered, listQuery],
-  );
+  const visibleRows = useMemo(() => {
+    const includeStables =
+      wantsDexStableBases(searchParams.get("q")) ||
+      searchParams.get("stable") === "1" ||
+      searchParams.get("stables") === "1" ||
+      searchParams.get("stable") === "true";
+    const mapped = watchFiltered.map((row) => ({
+      ...row,
+      change24h: row.change7d,
+      volume24h: row.volume,
+      liquidityUsd: row.liquidity ?? null,
+    }));
+    // Chain/DEX/pulse filter first, then one row per ticker (highest 24h volume).
+    const scoped = applyDexListQuery(mapped, listQuery);
+    return finalizeDexListRows(scoped, {
+      includeStableBases: includeStables,
+      sortByVolume: false,
+    });
+  }, [watchFiltered, listQuery, searchParams]);
 
   const chainIds = useMemo(
     () => [...new Set(rows.map((row) => row.chain).filter((chain): chain is string => Boolean(chain)))],

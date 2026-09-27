@@ -18,6 +18,7 @@ import {
   parseDexListQuery,
   type DexListPulse,
 } from "@/lib/dex-list-query";
+import { finalizeDexListRows, wantsDexStableBases } from "@/lib/dex-majors-list-dedupe";
 
 function asPulse(id: LaunchPulseBucketId | null): DexListPulse {
   return id ?? "all";
@@ -38,14 +39,23 @@ export function JustLaunchedSection({
   const searchParams = useSearchParams();
   const query = parseDexListQuery(searchParams, JUST_LAUNCHED_DEFAULT_QUERY);
 
-  const visible = useMemo(
-    () =>
-      applyDexListQuery(
-        rows.map((row) => ({ ...row, change24h: row.change })),
-        query,
-      ),
-    [rows, query],
-  );
+  const visible = useMemo(() => {
+    const includeStables =
+      wantsDexStableBases(searchParams.get("q")) ||
+      searchParams.get("stable") === "1" ||
+      searchParams.get("stables") === "1";
+    const mapped = rows.map((row) => ({
+      ...row,
+      change24h: row.change,
+      volume24h: row.volume,
+      liquidityUsd: row.liquidity ?? null,
+    }));
+    const scoped = applyDexListQuery(mapped, query);
+    return finalizeDexListRows(scoped, {
+      includeStableBases: includeStables,
+      sortByVolume: false,
+    });
+  }, [rows, query, searchParams]);
 
   const nodes = useMemo(() => buildLaunchPulse(rows), [rows]);
   const chainIds = useMemo(
