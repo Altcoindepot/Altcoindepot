@@ -184,6 +184,21 @@ function logStatsCall(fields: {
  * Optional CoinGecko fundamentals for a Dex token page.
  * Returns `null` when unmapped, skipped, miss, or 429 with no lastGood.
  */
+export function peekGeckoCoinStatsCached(input: {
+  chain: string;
+  address: string;
+}): GeckoCoinStats | null {
+  const platform = geckoPlatformIdForDexChain(input.chain);
+  if (!platform) return null;
+  const address = normalizeContractAddress(input.address);
+  if (!address) return null;
+  const key = cacheKey(platform, address);
+  const now = Date.now();
+  const hit = successCache.get(key);
+  if (hit && now - hit.fetchedAtMs < GECKO_STATS_TTL_MS) return hit.stats;
+  return lastGoodByKey.get(key) ?? null;
+}
+
 export async function getGeckoCoinStats(input: {
   chain: string;
   address: string;

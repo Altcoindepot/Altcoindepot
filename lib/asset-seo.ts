@@ -119,10 +119,12 @@ export function buildAssetSeoCopy(input: AssetSeoInput): AssetSeoCopy {
     ];
     const description = descriptions[variant] ?? descriptions[0]!;
 
+    const h1 = contractShort ? `${label} · ${contractShort}` : label;
+
     return {
       title: clampLen(title, 70),
       description: clampLen(description, 165),
-      h1: label,
+      h1,
     };
   } catch {
     return BASELINE;

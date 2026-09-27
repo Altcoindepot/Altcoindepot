@@ -57,9 +57,9 @@ export function DexRecentTrades({
             href={pairUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs font-medium text-teal-300/90 underline-offset-2 hover:underline"
+            className="text-xs text-zinc-500 underline-offset-2 hover:text-zinc-300 hover:underline"
           >
-            View trades on DexScreener ↗
+            DexScreener ↗
           </a>
         ) : null}
       </div>
@@ -135,9 +135,9 @@ export function DexRecentTrades({
               href={pairUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-3 inline-flex text-xs font-medium text-teal-300/90 underline-offset-2 hover:underline"
+              className="mt-3 inline-flex text-xs text-zinc-500 underline-offset-2 hover:text-zinc-300 hover:underline"
             >
-              View trades on DexScreener ↗
+              DexScreener ↗
             </a>
           ) : null}
         </div>

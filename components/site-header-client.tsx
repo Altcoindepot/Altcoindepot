@@ -149,11 +149,11 @@ export function SiteHeaderClient({ fetchedAt }: { fetchedAt?: number | null }) {
             })}
           </nav>
 
-          <div className="ml-auto flex shrink-0 items-center gap-1.5">
-            <div className="hidden min-w-[12rem] lg:block lg:min-w-[14rem]">
+          <div className="ml-auto flex min-w-0 shrink items-center gap-1.5">
+            <div className="min-w-0 w-[min(42vw,11rem)] sm:w-[12rem] lg:min-w-[14rem] lg:w-auto">
               <CoinSearchBar
                 inputId="header-coin-search"
-                placeholder="Search ticker or contract"
+                placeholder="Ticker or 0x…"
                 showSubmitButton={false}
               />
             </div>

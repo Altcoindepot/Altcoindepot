@@ -20,6 +20,16 @@ const DEX_BASE = "https://api.dexscreener.com";
 /** Short TTL — avoid long-lived empty/miss caches on cold token pages. */
 const TOKEN_FETCH_REVALIDATE_SECONDS = 120;
 
+export type DexTokenOtherPair = {
+  pairLabel: string;
+  dexLabel: string;
+  volume: number | null;
+  liquidity: number | null;
+  pairAddress: string;
+  /** On-site link — same token with preferred pair. */
+  href: string;
+};
+
 export type DexTokenPageData = {
   chain: string;
   address: string;
@@ -38,6 +48,8 @@ export type DexTokenPageData = {
   dexLabel?: string;
   /** Website / socials from DexScreener when present. */
   projectLinks?: DexProjectLink[];
+  /** Other liquid pairs for this base (on-site `?pair=`). */
+  otherPairs: DexTokenOtherPair[];
   /** True when this token is in the current New & Low Caps set (UI enrichment). */
   inLowCapsList: boolean;
 };
@@ -177,34 +189,72 @@ function pickBestPair(pairs: DexPair[], address: string, preferChain?: string): 
   );
 }
 
+type ResolvedDexPairs = {
+  best: DexPair;
+  /** Same-base pairs on the preferred chain (includes best). */
+  sameBase: DexPair[];
+};
+
+function sameBasePairs(pairs: DexPair[], address: string, preferChain?: string): DexPair[] {
+  const byChain = preferChain
+    ? pairs.filter((p) => sameDexChain(p.chainId, preferChain))
+    : pairs;
+  const scoped = byChain.length > 0 ? byChain : pairs;
+  return scoped.filter((pair) => sameTokenAddress(pair.baseToken?.address, address));
+}
+
+function preferPairAddress(pairs: DexPair[], prefer: string | null | undefined): DexPair | null {
+  if (!prefer?.trim()) return null;
+  return pairs.find((p) => sameTokenAddress(p.pairAddress, prefer)) ?? null;
+}
+
 /**
  * Resolve a Dex pair for a route param.
  * Route uses **token contract/mint** from the list; pair address is also accepted.
  * Order: `/tokens/v1` (canonical + aliases) → `/latest/dex/tokens` → `/latest/dex/pairs`.
  */
-async function resolveDexPair(chain: string, address: string): Promise<DexPair | null> {
+async function resolveDexPair(
+  chain: string,
+  address: string,
+  preferPair?: string | null,
+): Promise<ResolvedDexPairs | null> {
   const chainCandidates = dexChainLookupCandidates(chain);
+
+  const tryPool = (pairs: DexPair[]): ResolvedDexPairs | null => {
+    const asBase = sameBasePairs(pairs, address, chain);
+    const pool = asBase.length > 0 ? asBase : pairs;
+    const preferred = preferPairAddress(pool, preferPair);
+    const best = preferred ?? pickBestPair(pairs, address, chain);
+    if (!best) return null;
+    const sameBase =
+      asBase.length > 0
+        ? asBase
+        : sameTokenAddress(best.baseToken?.address, address)
+          ? [best]
+          : [];
+    return { best, sameBase };
+  };
 
   for (const chainId of chainCandidates) {
     const data = await dexGet(
       `/tokens/v1/${encodeURIComponent(chainId)}/${encodeURIComponent(address)}`,
     );
-    const best = pickBestPair(asPairArray(data), address, chain);
-    if (best) return best;
+    const hit = tryPool(asPairArray(data));
+    if (hit) return hit;
   }
 
   const byToken = await dexGet(`/latest/dex/tokens/${encodeURIComponent(address)}`);
   {
-    const best = pickBestPair(asPairArray(byToken), address, chain);
-    if (best) return best;
+    const hit = tryPool(asPairArray(byToken));
+    if (hit) return hit;
   }
 
   for (const chainId of chainCandidates) {
     const data = await dexGet(
       `/latest/dex/pairs/${encodeURIComponent(chainId)}/${encodeURIComponent(address)}`,
     );
-    const best = pickBestPair(asPairArray(data), address, chain);
-    if (best) return best;
+    const hit = tryPool(asPairArray(data));
+    if (hit) return hit;
   }
 
   return null;
@@ -218,17 +268,20 @@ async function resolveDexPair(chain: string, address: string): Promise<DexPair |
 export async function getDexScreenerTokenPage(
   chainRaw: string,
   addressRaw: string,
+  preferPairRaw?: string | null,
 ): Promise<DexTokenPageData | null> {
   const chain = normalizeDexChainId(chainRaw);
   const address = sanitizeAddressParam(addressRaw);
   if (!chain || !address) return null;
+  const preferPair = preferPairRaw ? sanitizeAddressParam(preferPairRaw) : null;
 
-  let pair: DexPair | null = null;
+  let resolved: ResolvedDexPairs | null = null;
   try {
-    pair = await resolveDexPair(chain, address);
+    resolved = await resolveDexPair(chain, address, preferPair);
   } catch (err) {
     console.warn("[dex-token] DexScreener token lookup failed", err);
   }
+  const pair = resolved?.best ?? null;
 
   let listed;
   try {
@@ -251,6 +304,10 @@ export async function getDexScreenerTokenPage(
     normalizeDexChainId(listed?.chain) ??
     chain;
 
+  const tokenAddress = canonicalizeTokenAddress(
+    pair?.baseToken?.address ?? listed?.contractAddress ?? address,
+  );
+
   const pairUrl =
     (typeof pair?.url === "string" && pair.url.startsWith("http") ? pair.url : null) ??
     listed?.href ??
@@ -259,11 +316,7 @@ export async function getDexScreenerTokenPage(
   let profileLinks: DexProjectLink[] | undefined;
   try {
     const map = await getDexProfileLinksByToken();
-    const tokenAddr = (
-      pair?.baseToken?.address ??
-      listed?.contractAddress ??
-      address
-    ).toLowerCase();
+    const tokenAddr = tokenAddress.toLowerCase();
     profileLinks =
       map[`${resolvedChain}:${tokenAddr}`] ??
       map[`${chain}:${tokenAddr}`];
@@ -277,11 +330,29 @@ export async function getDexScreenerTokenPage(
     profileLinks,
   );
 
+  const activePair = pair?.pairAddress ?? listed?.pairAddress ?? null;
+  const tokenPath = `/token/${encodeURIComponent(resolvedChain)}/${encodeURIComponent(tokenAddress)}`;
+  const otherPairs: DexTokenOtherPair[] = (resolved?.sameBase ?? [])
+    .filter((p) => p.pairAddress && !sameTokenAddress(p.pairAddress, activePair ?? undefined))
+    .sort((a, b) => (b.volume?.h24 ?? 0) - (a.volume?.h24 ?? 0))
+    .slice(0, 5)
+    .map((p) => {
+      const base = (p.baseToken?.symbol ?? "TOKEN").toUpperCase();
+      const quote = (p.quoteToken?.symbol ?? "?").toUpperCase();
+      const pairAddress = p.pairAddress!;
+      return {
+        pairLabel: `${base}/${quote}`,
+        dexLabel: dexVenueLabel(typeof p.dexId === "string" ? p.dexId : undefined),
+        volume: p.volume?.h24 ?? null,
+        liquidity: p.liquidity?.usd ?? null,
+        pairAddress,
+        href: `${tokenPath}?pair=${encodeURIComponent(pairAddress)}`,
+      };
+    });
+
   return {
     chain: resolvedChain,
-    address: canonicalizeTokenAddress(
-      pair?.baseToken?.address ?? listed?.contractAddress ?? address,
-    ),
+    address: tokenAddress,
     name: pair?.baseToken?.name ?? listed?.name ?? "Token",
     symbol: pair?.baseToken?.symbol ?? listed?.symbol ?? "TOKEN",
     image: pair?.info?.imageUrl ?? listed?.image ?? "",
@@ -294,7 +365,7 @@ export async function getDexScreenerTokenPage(
       pair?.pairCreatedAt != null
         ? pairAgeLabel(pair.pairCreatedAt)
         : (listed?.addedLabel ?? "New"),
-    pairAddress: pair?.pairAddress ?? listed?.pairAddress ?? null,
+    pairAddress: activePair,
     pairUrl,
     dexId:
       dexVenueId(typeof pair?.dexId === "string" ? pair.dexId : undefined) ??
@@ -303,6 +374,7 @@ export async function getDexScreenerTokenPage(
       (typeof pair?.dexId === "string" ? pair.dexId : undefined) ?? listed?.dexId,
     ),
     projectLinks: projectLinks.length > 0 ? projectLinks : undefined,
+    otherPairs,
     /** Enrichment flag for UI — not used for robots indexing. */
     inLowCapsList: Boolean(listed),
   };

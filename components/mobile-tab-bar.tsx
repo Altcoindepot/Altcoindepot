@@ -93,7 +93,7 @@ const TABS: Array<{
   {
     href: "/coin",
     label: "Search",
-    match: (p) => p.startsWith("/coin"),
+    match: (p) => p.startsWith("/coin") || p.startsWith("/token"),
     icon: (a) => <IconSearch active={a} />,
   },
 ];

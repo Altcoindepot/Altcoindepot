@@ -9,6 +9,8 @@ import { DexScreenerChart } from "@/components/dex-screener-chart";
 import { DexVenueBadge } from "@/components/dex-venue-badge";
 import { RecordTokenView } from "@/components/record-token-view";
 import { TokenGeckoStatsPanel } from "@/components/token-gecko-stats";
+import { TokenNewsStrip } from "@/components/token-news-strip";
+import { TokenStayRail, type TokenStayMover } from "@/components/token-stay-rail";
 import type { DexTokenPageData } from "@/lib/dexscreener-token";
 import {
   dexScreenerEmbedUrl,
@@ -16,10 +18,20 @@ import {
 } from "@/lib/dexscreener-token";
 import type { GeckoCoinStats } from "@/lib/gecko-coin-stats";
 import type { DexTrade } from "@/lib/geckoterminal-trades";
+import type { SiteNewsItem } from "@/lib/site-news";
 import { DATA_RESPONSIBILITY_DISCLAIMER } from "@/lib/data-responsibility";
 import { formatChainLabel } from "@/lib/format-chain";
 import { formatCompactUsd } from "@/lib/format-compact-usd";
 import { ds } from "@/lib/ui-classes";
+
+function shortContract(address: string): string {
+  const value = address.trim();
+  if (value.length <= 12) return value;
+  if (value.startsWith("0x") && value.length >= 10) {
+    return `${value.slice(0, 6)}…${value.slice(-4)}`;
+  }
+  return `${value.slice(0, 4)}…${value.slice(-4)}`;
+}
 
 function formatPct(n: number | null) {
   if (n == null || !Number.isFinite(n)) return "—";
@@ -45,18 +57,22 @@ function Stat({ label, children }: { label: string; children: ReactNode }) {
 
 /**
  * One token-page skeleton for every asset:
- * Dex price → Chart (Dex→GT) → Contract → Gecko stats or badge.
+ * Dex price → Chart → Contract → ATH/ATL (cached Gecko or —) → trades → stay rail.
  */
 export function DexTokenView({
   token,
   trades = [],
   geckoStats = null,
   pageH1,
+  movers = [],
+  headlines = [],
 }: {
   token: DexTokenPageData;
   trades?: DexTrade[];
   geckoStats?: GeckoCoinStats | null;
   pageH1?: string;
+  movers?: TokenStayMover[];
+  headlines?: SiteNewsItem[];
 }) {
   const chainLabel = formatChainLabel(token.chain);
   const symbol = token.symbol.toUpperCase();
@@ -64,6 +80,10 @@ export function DexTokenView({
   const gtEmbed = geckoTerminalChartEmbedUrl(token.chain, token.pairAddress);
   const changePositive = (token.change24h ?? 0) >= 0;
   const notOnGecko = !geckoStats;
+  const contractShort = shortContract(token.address);
+  const h1 =
+    pageH1 ??
+    `${token.name} (${symbol}) · ${contractShort}`;
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -104,9 +124,10 @@ export function DexTokenView({
           )}
           <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">
-              {pageH1 ?? `${token.name} (${symbol})`}
+              {h1}
             </h1>
             <div className="mt-2 flex flex-wrap items-center gap-2">
+              <CopyAddressButton address={token.address} />
               <span className={ds.badgeInfo}>{chainLabel}</span>
               <DexVenueBadge dexId={token.dexId} dexLabel={token.dexLabel} />
               {notOnGecko ? (
@@ -114,7 +135,7 @@ export function DexTokenView({
               ) : null}
             </div>
             <p className="mt-1 text-sm text-zinc-400">
-              Live price in USD · {chainLabel} contract below
+              Live price in USD · {chainLabel} contract
             </p>
           </div>
           <div className="text-right">
@@ -156,9 +177,9 @@ export function DexTokenView({
               href={token.pairUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs font-medium text-teal-300/90 underline-offset-2 hover:underline"
+              className="text-xs text-zinc-500 underline-offset-2 hover:text-zinc-300 hover:underline"
             >
-              Open DexScreener ↗
+              DexScreener ↗
             </a>
           ) : null}
         </div>
@@ -184,8 +205,8 @@ export function DexTokenView({
         </p>
       </div>
 
-      {/* 4) Gecko static stats OR already badged above */}
-      <TokenGeckoStatsPanel stats={geckoStats} />
+      {/* 4) ATH/ATL — cached Gecko only; else "—" (no live Gecko fetch on this page) */}
+      <TokenGeckoStatsPanel stats={geckoStats} alwaysShowAthAtl />
 
       {token.projectLinks && token.projectLinks.length > 0 ? (
         <div className={`${ds.panel} mt-5`}>
@@ -194,6 +215,15 @@ export function DexTokenView({
       ) : null}
 
       <DexRecentTrades trades={trades} pairUrl={token.pairUrl} />
+
+      <TokenNewsStrip symbol={symbol} items={headlines} />
+
+      <TokenStayRail
+        chain={token.chain}
+        symbol={symbol}
+        otherPairs={token.otherPairs ?? []}
+        movers={movers}
+      />
 
       <p className="mt-6 rounded-xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-sm leading-relaxed text-amber-100/90">
         Verify the contract and pair before any decision. DEX data can be wrong. Not financial advice.

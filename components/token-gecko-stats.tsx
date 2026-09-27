@@ -42,22 +42,29 @@ function Stat({ label, children }: { label: string; children: ReactNode }) {
 }
 
 /**
- * Encyclopedia fundamentals from CoinGecko. Omit entirely when `stats` is null
- * so Dex-only tokens stay clean. Never replaces Dex live price/chart.
+ * Encyclopedia fundamentals from CoinGecko.
+ * ATH/ATL only when cached Gecko stats exist; otherwise show "—" when
+ * `alwaysShowAthAtl` is set (token landings). Never fetches live Gecko here.
  */
-export function TokenGeckoStatsPanel({ stats }: { stats: GeckoCoinStats | null }) {
-  if (!stats) return null;
+export function TokenGeckoStatsPanel({
+  stats,
+  alwaysShowAthAtl = false,
+}: {
+  stats: GeckoCoinStats | null;
+  alwaysShowAthAtl?: boolean;
+}) {
+  if (!stats && !alwaysShowAthAtl) return null;
 
-  const hasAny =
-    stats.athUsd != null ||
-    stats.atlUsd != null ||
-    stats.circulatingSupply != null ||
-    stats.totalSupply != null ||
-    stats.maxSupply != null ||
-    stats.marketCapUsd != null ||
-    stats.fdvUsd != null;
-
-  if (!hasAny) return null;
+  const hasExtras =
+    stats != null &&
+    (stats.circulatingSupply != null ||
+      stats.totalSupply != null ||
+      stats.maxSupply != null ||
+      stats.marketCapUsd != null ||
+      stats.fdvUsd != null ||
+      stats.categories.length > 0 ||
+      Boolean(stats.homepage) ||
+      Boolean(stats.geckoId));
 
   return (
     <section className={`${ds.panel} mt-6`} aria-labelledby="token-fundamentals-heading">
@@ -66,62 +73,72 @@ export function TokenGeckoStatsPanel({ stats }: { stats: GeckoCoinStats | null }
           Fundamentals
         </h2>
         <p className="text-[10px] text-zinc-500">
-          Fundamentals via CoinGecko · delayed up to 2h
+          {stats
+            ? "Fundamentals via CoinGecko · delayed up to 2h"
+            : "ATH/ATL when CoinGecko is cached · otherwise —"}
         </p>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
         <Stat label="ATH">
-          {formatAthAtl(stats.athUsd)}
-          {stats.athDate ? (
+          {formatAthAtl(stats?.athUsd ?? null)}
+          {stats?.athDate ? (
             <span className="mt-0.5 block text-[10px] font-sans font-normal text-zinc-500">
               {formatDate(stats.athDate)}
             </span>
           ) : null}
         </Stat>
         <Stat label="ATL">
-          {formatAthAtl(stats.atlUsd)}
-          {stats.atlDate ? (
+          {formatAthAtl(stats?.atlUsd ?? null)}
+          {stats?.atlDate ? (
             <span className="mt-0.5 block text-[10px] font-sans font-normal text-zinc-500">
               {formatDate(stats.atlDate)}
             </span>
           ) : null}
         </Stat>
-        <Stat label="Circulating">{formatSupply(stats.circulatingSupply)}</Stat>
-        <Stat label="Total supply">{formatSupply(stats.totalSupply)}</Stat>
-        <Stat label="Max supply">{formatSupply(stats.maxSupply)}</Stat>
-        {stats.marketCapUsd != null ? (
-          <Stat label="Market cap (Gecko)">{formatCompactUsd(stats.marketCapUsd)}</Stat>
-        ) : null}
-        {stats.fdvUsd != null ? (
-          <Stat label="FDV (Gecko)">{formatCompactUsd(stats.fdvUsd)}</Stat>
+        {stats ? (
+          <>
+            <Stat label="Circulating">{formatSupply(stats.circulatingSupply)}</Stat>
+            <Stat label="Total supply">{formatSupply(stats.totalSupply)}</Stat>
+            <Stat label="Max supply">{formatSupply(stats.maxSupply)}</Stat>
+            {stats.marketCapUsd != null ? (
+              <Stat label="Market cap (Gecko)">{formatCompactUsd(stats.marketCapUsd)}</Stat>
+            ) : null}
+            {stats.fdvUsd != null ? (
+              <Stat label="FDV (Gecko)">{formatCompactUsd(stats.fdvUsd)}</Stat>
+            ) : null}
+          </>
         ) : null}
       </div>
 
-      {stats.categories.length > 0 ? (
-        <p className="mt-3 text-[11px] leading-relaxed text-zinc-500">
-          {stats.categories.slice(0, 4).join(" · ")}
-        </p>
-      ) : null}
+      {hasExtras && stats ? (
+        <>
+          {stats.categories.length > 0 ? (
+            <p className="mt-3 text-[11px] leading-relaxed text-zinc-500">
+              {stats.categories.slice(0, 4).join(" · ")}
+            </p>
+          ) : null}
 
-      {stats.homepage ? (
-        <a
-          href={stats.homepage}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-2 inline-flex text-[11px] font-medium text-teal-300/90 underline-offset-2 hover:underline"
-        >
-          Official site ↗
-        </a>
-      ) : null}
+          {stats.homepage ? (
+            <a
+              href={stats.homepage}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 inline-flex text-[11px] font-medium text-teal-300/90 underline-offset-2 hover:underline"
+            >
+              Official site ↗
+            </a>
+          ) : null}
 
-      {stats.geckoId ? (
-        <Link
-          href={`/coin/${encodeURIComponent(stats.geckoId)}`}
-          className="mt-3 inline-flex text-[11px] font-medium text-teal-300/90 underline-offset-2 hover:underline"
-        >
-          Open coin page →
-        </Link>
+          {stats.geckoId ? (
+            <Link
+              href={`/coin/${encodeURIComponent(stats.geckoId)}`}
+              className="mt-3 inline-flex text-[11px] font-medium text-teal-300/90 underline-offset-2 hover:underline"
+            >
+              Open coin page →
+            </Link>
+          ) : null}
+        </>
       ) : null}
     </section>
   );

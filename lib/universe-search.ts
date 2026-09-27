@@ -31,6 +31,7 @@ import {
   dexScreenerEmbedUrl,
   geckoTerminalChartEmbedUrl,
 } from "@/lib/dexscreener-token";
+import { dexTokenPath } from "@/lib/dex-token-path";
 
 export type { UniverseSearchHit };
 
@@ -40,6 +41,18 @@ function quoteRank(q: string | null | undefined): number {
   const u = (q ?? "").toUpperCase();
   const i = STABLE_ORDER.indexOf(u);
   return i === -1 ? 99 : i;
+}
+
+/** Prefer on-site /token when we have chain + contract; /coin only as encyclopedia fallback. */
+function tokenOrCoinHref(input: {
+  geckoId?: string | null;
+  chain?: string | null;
+  address?: string | null;
+}): string {
+  const path = dexTokenPath(input.chain ?? undefined, input.address ?? undefined);
+  if (path) return path;
+  if (input.geckoId) return `/coin/${encodeURIComponent(input.geckoId)}`;
+  return "/coin";
 }
 
 /** Pair chip for majors — BTC/USDT (name shown beside Major badge in UI). */
@@ -64,9 +77,11 @@ function entryToHit(
   const quote = (opts.quoteSymbol ?? "USDT").toUpperCase();
   const pairLabel =
     opts.pairLabel ?? `${entry.symbol.toUpperCase()}/${quote}`;
+  const href = tokenOrCoinHref({ geckoId: entry.id, chain, address });
+  const kind: UniverseSearchHit["kind"] = href.startsWith("/token/") ? "token" : "coin";
   return {
     id: entry.id,
-    kind: "coin",
+    kind,
     symbol: entry.symbol,
     name: entry.name,
     chain,
@@ -75,7 +90,7 @@ function entryToHit(
     chainLabel: chain ? formatChainLabel(chain) : null,
     priceUsd: opts.priceUsd,
     imageUrl: entry.image || null,
-    href: `/coin/${encodeURIComponent(entry.id)}`,
+    href,
     pairLabel,
     rankTier: opts.tier ?? "other",
   };
@@ -257,10 +272,13 @@ export async function searchUniverse(query: string, limit = 10): Promise<Univers
       address: dexLive?.address ?? major.preferred?.address ?? null,
       tier,
     });
-    // Keep href on /coin/[geckoId] when we have one
+    // Prefer /token when we have a contract; keep gecko id for identity.
     if (major.geckoId) {
       canonical.id = major.geckoId;
+    }
+    if (!canonical.href.startsWith("/token/") && major.geckoId) {
       canonical.href = `/coin/${encodeURIComponent(major.geckoId)}`;
+      canonical.kind = "coin";
     }
 
     const family = majorFamilySymbols(major);
@@ -323,12 +341,34 @@ export async function searchUniverse(query: string, limit = 10): Promise<Univers
     return [canonical, ...without].slice(0, capped);
   }
 
-  // Non-major ticker/name
-  const entries = searchTopCoinsIndex(index, q, capped, null);
-  if (entries.length === 0) {
-    const dexHits = await searchDexPairs(q, capped);
-    return dexHits.map((hit) => dexHitToUniverse(hit, "other"));
+  // Non-major ticker/name — Dex first so ticker paste lands on /token
+  const dexHits = await searchDexPairs(q, capped);
+  if (dexHits.length > 0) {
+    const entries = searchTopCoinsIndex(index, q, capped, null);
+    const prices = await overlayDexPricesForPlatforms(
+      entries.map((e) => ({ id: e.id, platforms: e.platforms ?? [] })),
+    );
+    const coinHits = entries.map((e) =>
+      entryToHit(e, { priceUsd: prices.get(e.id) ?? null, tier: "other" }),
+    );
+    const merged = [...dexHits.map((h) => dexHitToUniverse(h, "other")), ...coinHits];
+    const seen = new Set<string>();
+    const out: UniverseSearchHit[] = [];
+    for (const hit of merged) {
+      const key =
+        hit.kind === "token" && hit.address
+          ? `token:${(hit.chain ?? "").toLowerCase()}:${hit.address.toLowerCase()}`
+          : `coin:${hit.id}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(hit);
+      if (out.length >= capped) break;
+    }
+    return out;
   }
+
+  const entries = searchTopCoinsIndex(index, q, capped, null);
+  if (entries.length === 0) return [];
 
   const prices = await overlayDexPricesForPlatforms(
     entries.map((e) => ({ id: e.id, platforms: e.platforms ?? [] })),
